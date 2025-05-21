@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { CheckIcon, ClipboardCopyIcon, DownloadIcon } from 'lucide-react';
+import { CheckIcon, ClipboardCopyIcon, DownloadIcon, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { logger } from '../utils/logger';
