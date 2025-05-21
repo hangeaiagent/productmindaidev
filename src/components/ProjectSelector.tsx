@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { logger } from '../utils/logger';
 import JSZip from 'jszip';
-import { marked } from 'marked';
+import * as marked from 'marked';
 import type { Project, TemplateVersion } from '../types';
 import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, Packer, AlignmentType } from 'docx';
 import html2canvas from 'html2canvas';
