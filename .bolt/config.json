@@ -1,0 +1,8 @@
+{
+  "template": "bolt-vite-react-ts"
+  "exclude": [
+    "src/tests/**/*",
+    "supabase/migrations/**/*",
+    "README.md"
+  ]
+}
