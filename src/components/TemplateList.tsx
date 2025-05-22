@@ -12,6 +12,7 @@ import { useTemplates } from '../hooks/useTemplates';
 import { logger } from '../utils/logger';
 import OutputDisplay from './OutputDisplay';
 import OutputHistory from './OutputHistory';
+import type { Template, TemplateCategory } from '../types';
 
 const TemplateList = () => {
   const { 
@@ -64,13 +65,20 @@ const TemplateList = () => {
       return acc;
     }, {} as Record<string, { category: TemplateCategory; templates: Template[] }>);
 
-    return filteredTemplates.reduce((acc, template) => {
+    const result = filteredTemplates.reduce((acc, template) => {
       const category = categories.find(c => c.id === template.category_id);
       if (!category) return acc;
       
       acc[category.id].templates.push(template);
       return acc;
     }, initialGroups);
+
+    // 对每个分类中的模板进行排序
+    Object.values(result).forEach((group: { category: TemplateCategory; templates: Template[] }) => {
+      group.templates.sort((a: Template, b: Template) => (a.no || 0) - (b.no || 0));
+    });
+
+    return result;
   }, [filteredTemplates, categories]);
 
   const toggleTemplateExpand = (templateId: string) => {

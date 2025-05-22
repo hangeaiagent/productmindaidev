@@ -48,7 +48,8 @@ export function useTemplates(projectId?: string) {
               name_en,
               name_zh,
               description_en,
-              description_zh
+              description_zh,
+              no
             )${projectId ? `,
             versions:template_versions (
               id,
@@ -61,6 +62,7 @@ export function useTemplates(projectId?: string) {
               project_id
             )
             ` : ''}`)
+          .order('category(no)', { ascending: true })
           .order('no', { ascending: true });
 
         // 如果有 projectId，添加版本过滤条件
@@ -173,7 +175,8 @@ export function useTemplates(projectId?: string) {
               name_en,
               name_zh,
               description_en,
-              description_zh
+              description_zh,
+              no
             ),
             versions:template_versions (
               id,
@@ -185,6 +188,7 @@ export function useTemplates(projectId?: string) {
               version_number
             )
           `)
+          .order('category(no)', { ascending: true })
           .order('no', { ascending: true });
  logger.log('添加 projectId 筛选条件##', { projectId });
         if (projectId) {
