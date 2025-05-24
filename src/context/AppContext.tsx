@@ -5,7 +5,7 @@ import { generateStream } from '../services/aiService';
 import { logger } from '../utils/logger';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
-import type { AIModel, Language, GeneratedOutput, ModelConfig, Template, Project } from '../types';
+import type { AIModel, Language, GeneratedOutput, ModelConfig, Template, Project } from '../types/index';
 import debounce from 'lodash/debounce';
 import { translationService } from '../services/translationService';
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Plus, FolderOpen, Save, Download, Play, AlertTriangle, RefreshCw } from 'lucide-react';
 import { SafeLoader } from './SafeLoader';
 import { stateManager } from '../utils/stateManager';
-import { useAppContext } from '../context/AppContext'; 
+import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { logger } from '../utils/logger';
 import JSZip from 'jszip';
 import * as marked from 'marked';
 import { ErrorBoundaryProps, ErrorBoundaryState, GenerationState } from '../types/error-boundary';
-import type { Project, TemplateVersion, Template } from '../types';
+import type { Project, TemplateVersion, Template } from '../types/index';
 import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, Packer, AlignmentType } from 'docx';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -258,11 +258,21 @@ const ProjectSelector: React.FC = () => {
 
   useEffect(() => {
     if (projects.length > 0) {
+      // 如果当前已经选中了项目，保持选中状态
+      if (currentProject?.id) {
+        const project = projects.find(p => p.id === currentProject.id);
+        if (project) {
+          setCurrentProject(project as unknown as Project);
+          setSearchParams({ projectId: project.id });
+          return;
+        }
+      }
+
       // 如果URL中有projectId，选择对应项目
       if (projectId) {
         const project = projects.find(p => p.id === projectId);
         if (project) {
-          setCurrentProject(project);
+          setCurrentProject(project as unknown as Project);
           return;
         }
       }
@@ -270,7 +280,7 @@ const ProjectSelector: React.FC = () => {
       // 否则选择默认项目，如果没有默认项目则选择第一个
       const defaultProject = projects.find(p => p.is_default) || projects[0];
       if (defaultProject) {
-        setCurrentProject(defaultProject);
+        setCurrentProject(defaultProject as unknown as Project);
         setSearchParams({ projectId: defaultProject.id });
       }
     }
@@ -329,14 +339,24 @@ const ProjectSelector: React.FC = () => {
       return;
     }
 
-    setCurrentProject({
+    const emptyProject = {
       id: '',
       name: '',
       description: '',
+      name_zh: '',
+      name_en: '',
+      description_zh: '',
+      description_en: '',
+      source_language: language === 'zh' ? 'zh' : 'en',
       user_id: user?.id || '',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
+      updated_at: new Date().toISOString(),
+      is_default: false,
+      is_open_source: false,
+      model_locked: false
+    } as unknown as Project;
+
+    setCurrentProject(emptyProject);
   };
 
   const handleSaveProject = async () => {
@@ -431,13 +451,19 @@ const ProjectSelector: React.FC = () => {
         
         logger.debug('项目更新成功', { projectId: currentProject.id });
       } else {
-        // 创建新项目
+        // 创建新项目前，先清除其他项目的默认状态
+        await supabase
+          .from('user_projects')
+          .update({ is_default: false })
+          .eq('user_id', user?.id);
+
+        // 创建新项目，并设置为默认
         const { data, error: insertError } = await supabase
           .from('user_projects')
           .insert({
             ...projectData,
             user_id: user?.id,
-            is_default: false,
+            is_default: true,
             is_open_source: false,
             model_locked: false
           })
@@ -447,19 +473,38 @@ const ProjectSelector: React.FC = () => {
         if (insertError) throw insertError;
         
         // 更新当前项目状态，包含多语言字段
-        setCurrentProject({
+        const newProject = {
           ...data,
           name_zh: projectData.name_zh,
           name_en: projectData.name_en,
           description_zh: projectData.description_zh,
           description_en: projectData.description_en,
-          source_language: projectData.source_language
-        });
+          source_language: projectData.source_language,
+          is_default: true
+        } as unknown as Project;
         
-        logger.debug('项目创建成功', { projectId: data.id });
+        // 立即设置为当前选中的项目
+        setCurrentProject(newProject);
+        setSearchParams({ projectId: data.id });
+        
+        logger.debug('新项目创建成功并设置为默认和当前选中', { 
+          projectId: data.id,
+          name: data.name,
+          isDefault: true,
+          isSelected: true
+        });
       }
       
-      await loadProjects();
+      // 重新加载项目列表，但保持当前选中状态
+      const { data: updatedProjects } = await supabase
+        .from('user_projects')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+      
+      if (updatedProjects) {
+        setProjects(updatedProjects);
+      }
       
       // 显示成功提示
       const successMessage = language === 'zh' ? 
@@ -513,7 +558,7 @@ const ProjectSelector: React.FC = () => {
       // 查找并设置当前项目为新的默认项目
       const targetProject = projects.find(p => p.id === projectId);
       if (targetProject) {
-        setCurrentProject(targetProject);
+        setCurrentProject(targetProject as unknown as Project);
         setSearchParams({ projectId: targetProject.id });
         logger.debug('Default project updated successfully', {
           projectId: targetProject.id,
@@ -1337,7 +1382,7 @@ ${copyrightText}
                 <button
                   key={project.id}
                   onClick={() => {
-                    setCurrentProject(project);
+                    setCurrentProject(project as unknown as Project);
                     setSearchParams({ projectId: project.id });
                     // 清空当前选中的模板和输出内容，加载新项目的历史记录
                     setSelectedTemplate(null);
@@ -1348,7 +1393,8 @@ ${copyrightText}
                     logger.log('项目切换', { 
                       projectId: project.id,
                       projectName: project.name,
-                      location: '项目选择器组件:行号293'
+                      isDefault: project.is_default,
+                      location: '项目选择器组件'
                     });
                   }}
                   className={`p-4 rounded-lg border ${
@@ -1366,18 +1412,18 @@ ${copyrightText}
                       }`} />
                       <div className="flex-1 text-left">
                         <div className="flex items-center space-x-2">
-                                            <h3 className="font-medium text-gray-900">
-                    {language === 'zh' ? (project.name_zh || project.name) : (project.name_en || project.name)}
-                  </h3>
-                  {project.is_default && (
-                    <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
-                      {language === 'zh' ? '默认' : 'Default'}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm text-gray-500 line-clamp-3">
-                  {language === 'zh' ? (project.description_zh || project.description) : (project.description_en || project.description)}
-                </p>
+                          <h3 className="font-medium text-gray-900">
+                            {language === 'zh' ? (project.name_zh || project.name) : (project.name_en || project.name)}
+                          </h3>
+                          {project.is_default && (
+                            <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
+                              {language === 'zh' ? '默认' : 'Default'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500 line-clamp-3">
+                          {language === 'zh' ? (project.description_zh || project.description) : (project.description_en || project.description)}
+                        </p>
                       </div>
                     </div>
                     {!project.is_default && (
@@ -1429,20 +1475,20 @@ ${copyrightText}
                   : 'bg-green-500 hover:bg-green-600'
               } text-white rounded`}
             >
-                          {isGeneratingAll ? (
-              <>
-                <SafeLoader className="w-4 h-4 mr-2 animate-spin" />
-                {language === 'zh' 
-                  ? `生成中 (${generationResults.length}/${totalTemplates})`
-                  : `Generating (${generationResults.length}/${totalTemplates})`
-                }
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4 mr-2" />
-                {language === 'zh' ? '全部生成' : 'Generate All'}
-              </>
-            )}
+              {isGeneratingAll ? (
+                <>
+                  <SafeLoader className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'zh' 
+                    ? `生成中 (${generationResults.length}/${totalTemplates})`
+                    : `Generating (${generationResults.length}/${totalTemplates})`
+                  }
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 mr-2" />
+                  {language === 'zh' ? '全部生成' : 'Generate All'}
+                </>
+              )}
             </button>
           </div>
         </div>
