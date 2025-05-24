@@ -5,7 +5,7 @@ import { stateManager } from '../utils/stateManager';
 import { useAppContext } from '../context/AppContext'; 
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { logger } from '../utils/logger';
 import JSZip from 'jszip';
 import * as marked from 'marked';
@@ -134,7 +134,8 @@ const ProjectSelector: React.FC = () => {
     generateOutput
   } = useAppContext();
   
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
   const [projects, setProjects] = useState<Project[]>([]);
@@ -241,6 +242,12 @@ const ProjectSelector: React.FC = () => {
   };
 
   const handleNewProject = () => {
+    // 检查用户是否已登录
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     setCurrentProject({
       id: '',
       name: '',
@@ -252,6 +259,12 @@ const ProjectSelector: React.FC = () => {
   };
 
   const handleSaveProject = async () => {
+    // 检查用户是否已登录
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
     if (!currentProject?.name) {
       setError(language === 'zh' ? '请填写项目名称和描述' : 'Please fill in project name and description');
       return;
@@ -302,12 +315,29 @@ const ProjectSelector: React.FC = () => {
     try {
       logger.log('设置默认项目', { projectId });
       
+      // 首先清空所有项目的默认标记
+      await supabase
+        .from('user_projects')
+        .update({ is_default: false })
+        .eq('user_id', user?.id);
+
+      // 然后设置指定项目为默认
       const { error: updateError } = await supabase
         .from('user_projects')
         .update({ is_default: true })
         .eq('id', projectId);
 
       if (updateError) throw updateError;
+      
+      // 查找并设置当前项目为新的默认项目
+      const targetProject = projects.find(p => p.id === projectId);
+      if (targetProject) {
+        setCurrentProject(targetProject);
+        setSearchParams({ projectId: targetProject.id });
+      }
+      
+      // 清空错误提醒对话框
+      setError(null);
       
       await loadProjects();
     } catch (err) {
@@ -539,6 +569,19 @@ ${copyrightText}
   };
 
   const handleGenerateAll = async () => {
+    // 检查用户是否已登录
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    // 检查是否有项目
+    if (!currentProject || !currentProject.id) {
+      setError(language === 'zh' ? '请先创建并保存项目' : 'Please create and save a project first');
+      return;
+    }
+
+    // 检查是否有产品描述
     if (!currentProject?.description) {
       setError(language === 'zh' ? '请先输入产品描述' : 'Please enter product description first');
       return;
@@ -1041,6 +1084,8 @@ ${copyrightText}
                     // 清空当前选中的模板和输出内容，加载新项目的历史记录
                     setSelectedTemplate(null);
                     setStreamingOutput('');
+                    // 清空错误提醒对话框
+                    setError(null);
                     loadProjectHistory(project.id);
                     logger.log('项目切换', { 
                       projectId: project.id,
