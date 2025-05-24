@@ -1,6 +1,6 @@
 import { createParser } from 'eventsource-parser';
 import type { EventSourceMessage } from 'eventsource-parser';
-import { AIModel, ModelConfig, AIMessage, DeepseekStreamResponse, APIError } from '../types';
+import { AIModel, ModelConfig, AIMessage, DeepseekStreamResponse, APIError } from '../types/index';
 import { logger } from '../utils/logger';
 
 const API_ENDPOINTS = {
@@ -90,7 +90,7 @@ export async function generateStream(
   prompt: string
 ): Promise<ReadableStream<Uint8Array>> {
   if (!config.apiKey && !config.useSystemCredit) {
-    throw new Error('需要提供API密钥或启用系统额度');
+    throw new APIError('需要提供API密钥或启用系统额度', 'AUTH_ERROR');
   }
 
   const messages: AIMessage[] = [
@@ -124,12 +124,19 @@ export async function generateStream(
 
   // 设置请求超时
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout = setTimeout(() => {
+    controller.abort();
+    logger.error('请求超时', {
+      model,
+      endpoint: API_ENDPOINTS[model],
+      timeout: 30000
+    });
+  }, 30000);
 
   try {
-  const response = await fetch(API_ENDPOINTS[model], {
-    method: 'POST',
-    headers,
+    const response = await fetch(API_ENDPOINTS[model], {
+      method: 'POST',
+      headers,
       body: JSON.stringify(requestBody),
       signal: controller.signal
     });
@@ -142,17 +149,33 @@ export async function generateStream(
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders
-  });
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    logger.error('API请求失败', {
-      status: response.status,
-      statusText: response.statusText,
+    if (!response.ok) {
+      const errorText = await response.text();
+      logger.error('API请求失败', {
+        status: response.status,
+        statusText: response.statusText,
         error: errorText,
         headers: responseHeaders
       });
-      throw new Error(`API请求失败: ${response.status} ${errorText}`);
+      
+      // 根据状态码分类错误
+      switch (response.status) {
+        case 401:
+          throw new APIError('API密钥无效或已过期', 'AUTH_ERROR');
+        case 403:
+          throw new APIError('没有访问权限', 'AUTH_ERROR');
+        case 429:
+          throw new APIError('请求过于频繁，请稍后再试', 'RATE_LIMIT');
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          throw new APIError('AI服务暂时不可用，请稍后再试', 'SERVICE_ERROR');
+        default:
+          throw new APIError(`API请求失败: ${response.status} ${errorText}`, 'UNKNOWN_ERROR');
+      }
     }
 
     const contentType = response.headers.get('content-type');
@@ -164,6 +187,7 @@ export async function generateStream(
         status: response.status,
         responseText: text.substring(0, 200) // 只记录前200个字符
       });
+      throw new APIError('服务器返回了非流式响应', 'INVALID_RESPONSE');
     }
 
     logger.log('开始处理响应流', {
@@ -172,13 +196,17 @@ export async function generateStream(
       headers: responseHeaders
     });
 
-  return new ReadableStream({
-    async start(controller) {
+    return new ReadableStream({
+      async start(controller) {
         try {
           await handleStreamResponse(response, controller, model);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorType = error instanceof APIError ? error.type : 'STREAM_ERROR';
+          
           logger.error('处理流数据失败', {
-            error: error instanceof Error ? error.message : String(error),
+            error: errorMessage,
+            errorType,
             errorStack: error instanceof Error ? error.stack : undefined
           });
           throw error;
@@ -193,14 +221,21 @@ export async function generateStream(
     });
   } catch (error) {
     clearTimeout(timeout);
+    
     if (error instanceof Error && error.name === 'AbortError') {
-      logger.error('请求超时', {
-        endpoint: API_ENDPOINTS[model],
-        timeout: 30000
-      });
-      throw new Error('请求超时');
+      throw new APIError('请求超时', 'TIMEOUT_ERROR');
     }
-    throw error;
+    
+    // 如果已经是APIError则直接抛出
+    if (error instanceof APIError) {
+      throw error;
+    }
+    
+    // 其他错误转换为APIError
+    throw new APIError(
+      error instanceof Error ? error.message : String(error),
+      'UNKNOWN_ERROR'
+    );
   }
 }
 

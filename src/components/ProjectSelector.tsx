@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, FolderOpen, Loader, Save, Download, Play } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, FolderOpen, Save, Download, Play } from 'lucide-react';
+import { SafeLoader } from './SafeLoader';
+import { stateManager } from '../utils/stateManager';
 import { useAppContext } from '../context/AppContext'; 
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +9,7 @@ import { useSearchParams } from 'react-router-dom';
 import { logger } from '../utils/logger';
 import JSZip from 'jszip';
 import * as marked from 'marked';
+import { ErrorBoundaryProps, ErrorBoundaryState, GenerationState } from '../types/error-boundary';
 import type { Project, TemplateVersion, Template } from '../types';
 import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, Packer, AlignmentType } from 'docx';
 import html2canvas from 'html2canvas';
@@ -60,13 +63,64 @@ const convertMarkdownToDocx = async (markdown: string): Promise<Document> => {
 
 interface VersionWithTemplate extends TemplateVersion {
   template?: {
-    name_zh?: string;
-    name_en?: string;
+    id: string;
+    name_zh: string;
+    name_en: string;
     category?: {
-      name_zh?: string;
-      name_en?: string;
-    }
+      id: string;
+      name_zh: string;
+      name_en: string;
+    };
   };
+}
+
+// 改进的ErrorBoundary
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // 清理所有状态
+    stateManager.cleanupAll();
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    logger.error('组件错误', {
+      error: error.message,
+      componentStack: errorInfo.componentStack
+    });
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+          <h3 className="text-red-600 font-medium mb-2">页面出现错误</h3>
+          <p className="text-red-500 text-sm mb-3">检测到组件渲染错误，可能是由于状态不一致导致。</p>
+          <button
+            onClick={() => {
+              stateManager.cleanupAll();
+              window.location.reload();
+            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            清理并重新加载页面
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+interface GenerationResult {
+  templateName: string;
+  status: 'success' | 'failed';
+  error?: string;
 }
 
 const ProjectSelector: React.FC = () => {
@@ -93,13 +147,26 @@ const ProjectSelector: React.FC = () => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [totalTemplates, setTotalTemplates] = useState(0);
   const [showGenerationSummary, setShowGenerationSummary] = useState(false);
-  const [generationResults, setGenerationResults] = useState<Array<{
-    templateName: string;
-    status: 'success' | 'failed';
-    error?: string;
-  }>>([]);
+  const [generationResults, setGenerationResults] = useState<GenerationResult[]>([]);
   const [currentGenerating, setCurrentGenerating] = useState<string>('');
   const [nextToGenerate, setNextToGenerate] = useState<string>('');
+  const mountedRef = useRef(true);
+
+  // 组件卸载时清理
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      // 清理所有定时器和异步操作
+      stateManager.clearState('generationState');
+    };
+  }, []);
+
+  // 初始化时清理遗留状态
+  useEffect(() => {
+    // 直接清理所有生成相关状态
+    stateManager.clearState('generationState');
+    resetGenerationState();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -126,6 +193,18 @@ const ProjectSelector: React.FC = () => {
       }
     }
   }, [projects, projectId]);
+
+
+
+  // 添加重置生成状态的函数
+  const resetGenerationState = () => {
+    setIsGeneratingAll(false);
+    setGenerationProgress(0);
+    setGenerationResults([]);
+    setCurrentGenerating('');
+    setNextToGenerate('');
+    setTotalTemplates(0);
+  };
 
   const loadProjects = async () => {
     try {
@@ -466,9 +545,53 @@ ${copyrightText}
     }
 
     try {
+      // 保存初始状态
+      const initialState = {
+        isGeneratingAll: true,
+        generationProgress: 0,
+        currentGenerating: '',
+        nextToGenerate: '',
+        projectId: currentProject.id
+      };
+      stateManager.saveState('generationState', initialState);
+
+      logger.log('开始批量生成', {
+        projectId: currentProject.id,
+        projectName: currentProject.name,
+        state: initialState
+      });
+
+      // 重置所有状态
       setIsGeneratingAll(true);
       setGenerationProgress(0);
       setGenerationResults([]);
+      setCurrentGenerating('');
+      setNextToGenerate('');
+      setError(null);
+
+      // 清理未完成的生成任务
+      const { data: unfinishedVersions, error: cleanupError } = await supabase
+        .from('template_versions')
+        .select('*')
+        .eq('project_id', currentProject.id)
+        .eq('is_active', true)
+        .is('output_content', null);
+
+      if (cleanupError) throw cleanupError;
+
+      if (unfinishedVersions && unfinishedVersions.length > 0) {
+        logger.log('清理未完成的生成任务', {
+          projectId: currentProject.id,
+          versionsCount: unfinishedVersions.length
+        });
+
+        const { error: deleteError } = await supabase
+          .from('template_versions')
+          .delete()
+          .in('id', unfinishedVersions.map(v => v.id));
+
+        if (deleteError) throw deleteError;
+      }
 
       // 获取所有模板，包括分类信息
       const { data: sortedTemplates, error: templatesError } = await supabase
@@ -483,7 +606,9 @@ ${copyrightText}
           ),
           versions:template_versions (
             id,
-            project_id
+            project_id,
+            is_active,
+            output_content
           )
         `)
         .order('category(no)', { ascending: true })
@@ -491,12 +616,23 @@ ${copyrightText}
 
       if (templatesError) throw templatesError;
 
-      // 筛选出没有对应版本的模板
+      // 筛选出没有完成生成的模板
       const templatesToGenerate = sortedTemplates?.filter(template => {
-        const hasVersionInProject = template.versions?.some(
-          (version: { project_id: string }) => version.project_id === currentProject.id
+        const hasCompletedVersion = template.versions?.some(
+          (version: { project_id: string; is_active: boolean; output_content: any }) => 
+            version.project_id === currentProject.id && 
+            version.is_active && 
+            version.output_content !== null
         );
-        return !hasVersionInProject;
+        return !hasCompletedVersion;
+      });
+
+      logger.log('获取待生成模板', {
+        totalTemplates: templatesToGenerate?.length,
+        templates: templatesToGenerate?.map(t => ({
+          id: t.id,
+          name: language === 'zh' ? t.name_zh : t.name_en
+        }))
       });
 
       if (!templatesToGenerate?.length) {
@@ -510,37 +646,73 @@ ${copyrightText}
       // 逐个生成模板
       for (let i = 0; i < templatesToGenerate.length; i++) {
         const template = templatesToGenerate[i];
-        const templateName = language === 'zh' ? 
-          `${template.category?.name_zh} - ${template.name_zh}` : 
-          `${template.category?.name_en} - ${template.name_en}`;
-        
-        setCurrentGenerating(templateName);
-        setNextToGenerate(i < templatesToGenerate.length - 1 ? 
-          (language === 'zh' ? 
-            `${templatesToGenerate[i + 1].category?.name_zh} - ${templatesToGenerate[i + 1].name_zh}` : 
-            `${templatesToGenerate[i + 1].category?.name_en} - ${templatesToGenerate[i + 1].name_en}`
-          ) : ''
-        );
+        const templateName = language === 'zh' ? template.name_zh : template.name_en;
+
+        const currentState: GenerationState = {
+          isGeneratingAll: true,
+          generationProgress: (i / templatesToGenerate.length) * 100,
+          currentGenerating: templateName,
+          nextToGenerate: i < templatesToGenerate.length - 1 ? 
+            (language === 'zh' ? templatesToGenerate[i + 1].name_zh : templatesToGenerate[i + 1].name_en) : '',
+          projectId: currentProject.id
+        };
+        stateManager.saveState('generationState', currentState);
 
         try {
           await generateOutput(currentProject.description, template);
-          setGenerationResults(prev => [...prev, {
-            templateName,
-            status: 'success'
-          }]);
+          
+          setGenerationResults(prev => {
+            const newResults: GenerationResult[] = [...prev, { 
+              templateName, 
+              status: 'success' as const 
+            }];
+            stateManager.saveState('generationState', {
+              ...currentState,
+              results: newResults
+            });
+            return newResults;
+          });
         } catch (error) {
-          setGenerationResults(prev => [...prev, {
-            templateName,
-            status: 'failed',
-            error: error instanceof Error ? error.message : String(error)
-          }]);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          
+          setGenerationResults(prev => {
+            const newResults: GenerationResult[] = [...prev, { 
+              templateName, 
+              status: 'failed' as const,
+              error: errorMessage 
+            }];
+            stateManager.saveState('generationState', {
+              ...currentState,
+              results: newResults
+            });
+            return newResults;
+          });
+
+          if (error instanceof Error && 
+            (error.message.includes('API') || 
+             error.message.includes('network') || 
+             error.message.includes('authorization'))) {
+            break;
+          }
         }
 
-        setGenerationProgress((i + 1) / templatesToGenerate.length * 100);
-      }
+              setGenerationProgress((i + 1) / templatesToGenerate.length * 100);
+    }
 
-      setShowGenerationSummary(true);
+    stateManager.clearState('generationState');
+    setShowGenerationSummary(true);
     } catch (error) {
+      logger.error('批量生成过程发生错误', {
+        error: error instanceof Error ? error.message : String(error),
+        state: {
+          isGeneratingAll,
+          generationProgress,
+          currentGenerating,
+          nextToGenerate,
+          results: generationResults
+        }
+      });
+      
       setError(error instanceof Error ? error.message : 
         language === 'zh' ? '生成过程中发生错误' : 'Error during generation'
       );
@@ -548,6 +720,7 @@ ${copyrightText}
       setIsGeneratingAll(false);
       setCurrentGenerating('');
       setNextToGenerate('');
+      stateManager.clearState('generationState');
     }
   };
 
@@ -639,12 +812,20 @@ ${copyrightText}
     );
   };
 
+  // 修改生成进度对话框组件
   const GenerationProgressDialog = () => {
+    // 只在主动点击生成按钮后显示进度框
     if (!isGeneratingAll) return null;
 
     return (
       <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-md">
         <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="text-lg font-medium text-gray-700 dark:text-gray-300">
+              {language === 'zh' ? '生成进度' : 'Generation Progress'}
+            </div>
+          </div>
+
           {currentGenerating && (
             <div>
               <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -674,244 +855,268 @@ ${copyrightText}
               {generationResults.length} / {totalTemplates} {language === 'zh' ? '已完成' : 'completed'}
             </div>
           </div>
+
+          {/* 最近完成的项目列表 */}
+          {generationResults.length > 0 && (
+            <div className="mt-2">
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'zh' ? '最近完成' : 'Recently Completed'}:
+              </div>
+              <div className="max-h-32 overflow-y-auto">
+                {generationResults.slice(-3).map((result, index) => (
+                  <div 
+                    key={index}
+                    className={`text-sm ${
+                      result.status === 'success' 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-red-600 dark:text-red-400'
+                    }`}
+                  >
+                    {result.templateName}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {language === 'zh' ? '项目信息' : 'Project Information'}
-          </h2>
-          <div className="flex space-x-2">
-            <button
-              onClick={handleNewProject}
-              className="px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100"
-            >
-              <Plus className="w-4 h-4 inline-block mr-1" />
-              {language === 'zh' ? '新建' : 'New'}
-            </button>
-            <div className="relative">
+    <ErrorBoundary>
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {language === 'zh' ? '项目信息' : 'Project Information'}
+            </h2>
+            <div className="flex space-x-2">
               <button
-                onClick={() => setShowDownloadOptions(!showDownloadOptions)}
-                disabled={isDownloading}
-                className={`px-3 py-1.5 text-sm font-medium rounded ${
-                  isDownloading
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
-                }`}
+                onClick={handleNewProject}
+                className="px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100"
               >
-                {isDownloading ? (
-                  <>
-                    <Loader className="w-4 h-4 inline-block mr-1 animate-spin" />
-                    {language === 'zh' ? '下载中...' : 'Downloading...'}
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 inline-block mr-1" />
-                    {language === 'zh' ? '全部下载' : 'Download All'}
-                  </>
-                )}
+                <Plus className="w-4 h-4 inline-block mr-1" />
+                {language === 'zh' ? '新建' : 'New'}
               </button>
-              
-              {showDownloadOptions && !isDownloading && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-                  <div className="py-1" role="menu" aria-orientation="vertical">
-                    <button
-                      onClick={() => handleDownloadAll('md')}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      role="menuitem"
-                    >
-                      {language === 'zh' ? '全部下载 Markdown' : 'Download All Markdown'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleSaveProject}
-              disabled={saving || !currentProject?.name}
-              className={`px-3 py-1.5 text-sm font-medium rounded ${
-                saving || !currentProject?.name
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'text-white bg-indigo-600 hover:bg-indigo-700'
-              }`}
-            >
-              {saving ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowDownloadOptions(!showDownloadOptions)}
+                  disabled={isDownloading}
+                  className={`px-3 py-1.5 text-sm font-medium rounded ${
+                    isDownloading
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+                  }`}
+                >
+                                {isDownloading ? (
                 <>
-                  <Loader className="w-4 h-4 inline-block mr-1 animate-spin" />
-                  {language === 'zh' ? '保存中...' : 'Saving...'}
+                  <SafeLoader className="w-4 h-4 inline-block mr-1 animate-spin" />
+                  {language === 'zh' ? '下载中...' : 'Downloading...'}
                 </>
               ) : (
                 <>
-                  <Save className="w-4 h-4 inline-block mr-1" />
-                  {language === 'zh' ? '保存' : 'Save'}
+                  <Download className="w-4 h-4 inline-block mr-1" />
+                  {language === 'zh' ? '全部下载' : 'Download All'}
                 </>
               )}
-            </button>
+                </button>
+                
+                {showDownloadOptions && !isDownloading && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                    <div className="py-1" role="menu" aria-orientation="vertical">
+                      <button
+                        onClick={() => handleDownloadAll('md')}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        {language === 'zh' ? '全部下载 Markdown' : 'Download All Markdown'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={handleSaveProject}
+                disabled={saving || !currentProject?.name}
+                className={`px-3 py-1.5 text-sm font-medium rounded ${
+                  saving || !currentProject?.name
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'text-white bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                {saving ? (
+                  <>
+                    <SafeLoader className="w-4 h-4 inline-block mr-1 animate-spin" />
+                    {language === 'zh' ? '保存中...' : 'Saving...'}
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 inline-block mr-1" />
+                    {language === 'zh' ? '保存' : 'Save'}
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-600">{error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'zh' ? '项目名称' : 'Project Name'}
-            </label>
-            <input
-              type="text"
-              value={currentProject?.name || ''}
-              onChange={async (e) => {
-                const value = e.target.value;
-                setCurrentProject(prev => prev ? {
-                  ...prev,
-                  name: value
-                } : null);
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder={language === 'zh' ? '项目名称' : 'Project Name'}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'zh' ? '产品概述' : 'Product Overview'}
-            </label>
-            <div className="relative">
-              <textarea
-                value={currentProject?.description || ''}
-                onChange={(e) => {
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'zh' ? '项目名称' : 'Project Name'}
+              </label>
+              <input
+                type="text"
+                value={currentProject?.name || ''}
+                onChange={async (e) => {
                   const value = e.target.value;
                   setCurrentProject(prev => prev ? {
                     ...prev,
-                    description: value
+                    name: value
                   } : null);
                 }}
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder={language === 'zh' ? 
-                  '请用一句话描述您的产品概念（例如：开发一个帮助用户管理日常任务的应用）' : 
-                  'Describe your product concept in one sentence'
-                }
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder={language === 'zh' ? '项目名称' : 'Project Name'}
               />
-              <p className="mt-2 text-sm text-gray-500">
-                {language === 'zh'
-                  ? '简单描述您的产品理念，我们将帮助您进行深入分析'
-                  : 'Briefly describe your product concept, and we will help you analyze it in depth'
-                }
-              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'zh' ? '产品概述' : 'Product Overview'}
+              </label>
+              <div className="relative">
+                <textarea
+                  value={currentProject?.description || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setCurrentProject(prev => prev ? {
+                      ...prev,
+                      description: value
+                    } : null);
+                  }}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder={language === 'zh' ? 
+                    '请用一句话描述您的产品概念（例如：开发一个帮助用户管理日常任务的应用）' : 
+                    'Describe your product concept in one sentence'
+                  }
+                  required
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  {language === 'zh'
+                    ? '简单描述您的产品理念，我们将帮助您进行深入分析'
+                    : 'Briefly describe your product concept, and we will help you analyze it in depth'
+                  }
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          {language === 'zh' ? '我的项目' : 'My Projects'}
-        </h3>
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader className="w-6 h-6 text-indigo-600 animate-spin" />
-            <span className="ml-2 text-gray-600">
-              {language === 'zh' ? '加载中...' : 'Loading...'}
-            </span>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
-              <button
-                key={project.id}
-                onClick={() => {
-                  setCurrentProject(project);
-                  setSearchParams({ projectId: project.id });
-                  // 清空当前选中的模板和输出内容，加载新项目的历史记录
-                  setSelectedTemplate(null);
-                  setStreamingOutput('');
-                  loadProjectHistory(project.id);
-                  logger.log('项目切换', { 
-                    projectId: project.id,
-                    projectName: project.name,
-                    location: '项目选择器组件:行号293'
-                  });
-                }}
-                className={`p-4 rounded-lg border ${
-                  currentProject?.id === project.id
-                    ? 'border-indigo-500 bg-indigo-50'
-                    : 'border-gray-200 hover:border-indigo-300'
-                }`}
-              >
-                <div className="flex flex-col h-full">
-                  <div className="flex items-start space-x-3">
-                    <FolderOpen className={`w-5 h-5 ${
-                      currentProject?.id === project.id
-                        ? 'text-indigo-600'
-                        : 'text-gray-400'
-                    }`} />
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-medium text-gray-900">
-                          {project.name}
-                        </h3>
-                        {project.is_default && (
-                          <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
-                            {language === 'zh' ? '默认' : 'Default'}
-                          </span>
-                        )}
+        <div className="mt-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            {language === 'zh' ? '我的项目' : 'My Projects'}
+          </h3>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <SafeLoader className="w-6 h-6 text-indigo-600 animate-spin" />
+              <span className="ml-2 text-gray-600">
+                {language === 'zh' ? '加载中...' : 'Loading...'}
+              </span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {projects.map((project) => (
+                <button
+                  key={project.id}
+                  onClick={() => {
+                    setCurrentProject(project);
+                    setSearchParams({ projectId: project.id });
+                    // 清空当前选中的模板和输出内容，加载新项目的历史记录
+                    setSelectedTemplate(null);
+                    setStreamingOutput('');
+                    loadProjectHistory(project.id);
+                    logger.log('项目切换', { 
+                      projectId: project.id,
+                      projectName: project.name,
+                      location: '项目选择器组件:行号293'
+                    });
+                  }}
+                  className={`p-4 rounded-lg border ${
+                    currentProject?.id === project.id
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-indigo-300'
+                  }`}
+                >
+                  <div className="flex flex-col h-full">
+                    <div className="flex items-start space-x-3">
+                      <FolderOpen className={`w-5 h-5 ${
+                        currentProject?.id === project.id
+                          ? 'text-indigo-600'
+                          : 'text-gray-400'
+                      }`} />
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium text-gray-900">
+                            {project.name}
+                          </h3>
+                          {project.is_default && (
+                            <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
+                              {language === 'zh' ? '默认' : 'Default'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-sm text-gray-500 line-clamp-3">
+                          {project.description}
+                        </p>
                       </div>
-                      <p className="mt-1 text-sm text-gray-500 line-clamp-3">
-                        {project.description}
-                      </p>
                     </div>
+                    {!project.is_default && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSetDefault(project.id);
+                        }}
+                        className="mt-3 text-xs text-indigo-600 hover:text-indigo-700"
+                      >
+                        {language === 'zh' ? '设为默认' : 'Set as default'}
+                      </button>
+                    )}
                   </div>
-                  {!project.is_default && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSetDefault(project.id);
-                      }}
-                      className="mt-3 text-xs text-indigo-600 hover:text-indigo-700"
-                    >
-                      {language === 'zh' ? '设为默认' : 'Set as default'}
-                    </button>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-      <div className="flex justify-between items-center mt-4">
-        <div className="flex space-x-2">
-          <button
-            onClick={handleNewProject}
-            className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            {language === 'zh' ? '新建项目' : 'New Project'}
-          </button>
-          
-          <button
-            onClick={handleGenerateAll}
-            disabled={isGeneratingAll || !currentProject?.id}
-            className={`flex items-center px-3 py-2 ${
-              isGeneratingAll || !currentProject?.id
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-green-500 hover:bg-green-600'
-            } text-white rounded`}
-          >
-            {isGeneratingAll ? (
+        <div className="flex justify-between items-center mt-4">
+          <div className="flex space-x-2">
+            <button
+              onClick={handleNewProject}
+              className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {language === 'zh' ? '新建项目' : 'New Project'}
+            </button>
+            
+            <button
+              onClick={handleGenerateAll}
+              disabled={isGeneratingAll || !currentProject?.id}
+              className={`flex items-center px-3 py-2 ${
+                isGeneratingAll || !currentProject?.id
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-500 hover:bg-green-600'
+              } text-white rounded`}
+            >
+                          {isGeneratingAll ? (
               <>
-                <Loader className="w-4 h-4 mr-2 animate-spin" />
+                <SafeLoader className="w-4 h-4 mr-2 animate-spin" />
                 {language === 'zh' 
                   ? `生成中 (${generationResults.length}/${totalTemplates})`
                   : `Generating (${generationResults.length}/${totalTemplates})`
@@ -923,18 +1128,19 @@ ${copyrightText}
                 {language === 'zh' ? '全部生成' : 'Generate All'}
               </>
             )}
-          </button>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 添加生成进度提示 */}
-      {isGeneratingAll && (
-        <GenerationProgressDialog />
-      )}
-      
-      {/* 添加生成结果摘要对话框 */}
-      <GenerationSummaryDialog />
-    </div>
+        {/* 添加生成进度提示 */}
+        {isGeneratingAll && (
+          <GenerationProgressDialog />
+        )}
+        
+        {/* 添加生成结果摘要对话框 */}
+        <GenerationSummaryDialog />
+      </div>
+    </ErrorBoundary>
   );
 };
 

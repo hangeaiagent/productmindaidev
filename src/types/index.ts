@@ -71,17 +71,26 @@ export type AIModel = 'deepseek' | 'openai' | 'claude' | 'google';
 
 // 模型配置
 export interface ModelConfig {
-  id: string;
-  name: string;
-  version?: string;
   apiKey?: string;
   useSystemCredit?: boolean;
+  version?: string;
 }
 
-// AI消息类型
+// AI 消息
 export interface AIMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+}
+
+// API 错误
+export class APIError extends Error {
+  constructor(
+    message: string,
+    public type: 'AUTH_ERROR' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_RESPONSE' | 'STREAM_ERROR' | 'TIMEOUT_ERROR' | 'UNKNOWN_ERROR'
+  ) {
+    super(message);
+    this.name = 'APIError';
+  }
 }
 
 // Deepseek流式响应格式
@@ -104,11 +113,4 @@ export interface DeepseekStreamResponse {
     prompt_tokens: number;
     total_tokens: number;
   } | null;
-}
-
-// API错误响应
-export interface APIError {
-  message: string;
-  type: string;
-  details?: any;
 }
