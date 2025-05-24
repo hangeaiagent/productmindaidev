@@ -18,12 +18,36 @@ export interface Template {
 export interface TemplateVersion {
   id: string;
   template_id: string;
+  project_id?: string;
   input_content: string;
-  output_content: string;
+  output_content: {
+    content: string;
+    annotations: any[];
+  };
+  output_content_zh: {
+    content: string;
+    annotations: any[];
+  };
+  output_content_en: {
+    content: string;
+    annotations: any[];
+  };
+  source_language: 'zh' | 'en';
   created_at: string;
-  created_by: string | null;
+  updated_at: string;
+  created_by: string;
   is_active: boolean;
   version_number: number;
+  template?: {
+    id: string;
+    name_zh: string;
+    name_en: string;
+    category?: {
+      id: string;
+      name_zh: string;
+      name_en: string;
+    };
+  };
 }
 
 export interface TemplateCategory {
@@ -43,9 +67,16 @@ export interface Project {
   user_id: string;
   name: string;
   description: string | null;
+  name_zh: string;
+  name_en: string;
+  description_zh: string | null;
+  description_en: string | null;
+  source_language: 'zh' | 'en';
   created_at: string;
   updated_at: string;
   is_default?: boolean;
+  is_open_source?: boolean;
+  model_locked?: boolean;
 }
 
 export interface ProjectAnalysis {
@@ -130,4 +161,12 @@ export interface DeepseekStreamResponse {
     prompt_tokens: number;
     total_tokens: number;
   } | null;
+}
+
+// 翻译服务接口
+export interface TranslationResult {
+  originalText: string;
+  translatedText: string;
+  detectedLang: 'zh' | 'en';
+  targetLang: 'zh' | 'en';
 }

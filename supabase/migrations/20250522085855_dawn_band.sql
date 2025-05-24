@@ -695,3 +695,18 @@ Include both quantitative and qualitative questions.', '2025-05-14 11:13:46.5376
    - Event catalog
    - Integration guide
    - Maintenance plan', '2025-05-14 11:13:46.537628+00', '2025-05-16 15:09:40.792369+00', '3');
+
+ 
+-- 修改 user_projects 表
+ALTER TABLE user_projects
+ADD COLUMN name_zh VARCHAR(255),
+ADD COLUMN name_en VARCHAR(255),
+ADD COLUMN description_zh TEXT,
+ADD COLUMN description_en TEXT,
+ADD COLUMN source_language VARCHAR(10); -- 记录原始输入语言
+
+-- 修改 template_versions 表
+ALTER TABLE template_versions
+ADD COLUMN output_content_zh TEXT,
+ADD COLUMN output_content_en TEXT,
+ADD COLUMN source_language VARCHAR(10)

@@ -15,6 +15,7 @@ import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell,
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { FunctionCaller } from '../utils/functionCaller';
+import { translationService } from '../services/translationService';
 
 // 转换 Markdown 为 Word 文档
 const convertMarkdownToDocx = async (markdown: string): Promise<Document> => {
@@ -345,7 +346,7 @@ const ProjectSelector: React.FC = () => {
       return;
     }
 
-    if (!currentProject?.name) {
+    if (!currentProject?.name || !currentProject?.description) {
       setError(language === 'zh' ? '请填写项目名称和描述' : 'Please fill in project name and description');
       return;
     }
@@ -354,38 +355,134 @@ const ProjectSelector: React.FC = () => {
     setError(null);
 
     try {
+      logger.debug('开始保存项目（含自动翻译）', {
+        projectId: currentProject.id,
+        name: currentProject.name.substring(0, 50),
+        description: currentProject.description?.substring(0, 100)
+      });
+
+      // 检测项目名称和描述的语言
+      const [nameLanguage, descLanguage] = await Promise.all([
+        translationService.detectLanguage(currentProject.name),
+        translationService.detectLanguage(currentProject.description || '')
+      ]);
+
+      logger.debug('语言检测结果', {
+        nameLanguage,
+        descLanguage,
+        name: currentProject.name.substring(0, 30),
+        description: currentProject.description?.substring(0, 50)
+      });
+
+      // 确保语言一致性
+      if (nameLanguage !== descLanguage) {
+        throw new Error(language === 'zh' ? 
+          '项目名称和描述的语言必须一致' : 
+          'Project name and description must be in the same language'
+        );
+      }
+
+      const sourceLang = nameLanguage;
+      const targetLang = sourceLang === 'zh' ? 'en' : 'zh';
+
+      // 自动翻译到另一种语言
+      logger.debug('开始自动翻译', { sourceLang, targetLang });
+      
+      const [translatedName, translatedDesc] = await Promise.all([
+        translationService.translate(currentProject.name, sourceLang, targetLang),
+        currentProject.description ? 
+          translationService.translate(currentProject.description, sourceLang, targetLang) : 
+          Promise.resolve('')
+      ]);
+
+      logger.debug('翻译完成', {
+        translatedName: translatedName.substring(0, 30),
+        translatedDesc: translatedDesc.substring(0, 50)
+      });
+
+      // 准备数据库数据
       const projectData = {
-        name: currentProject.name,
-        description: currentProject.description || '',
+        name: currentProject.name, // 保持兼容性
+        description: currentProject.description || '', // 保持兼容性
+        name_zh: sourceLang === 'zh' ? currentProject.name : translatedName,
+        name_en: sourceLang === 'en' ? currentProject.name : translatedName,
+        description_zh: sourceLang === 'zh' ? currentProject.description : translatedDesc,
+        description_en: sourceLang === 'en' ? currentProject.description : translatedDesc,
+        source_language: sourceLang,
         updated_at: new Date().toISOString()
       };
 
+      logger.debug('准备保存项目数据', {
+        sourceLang,
+        hasNameZh: !!projectData.name_zh,
+        hasNameEn: !!projectData.name_en,
+        hasDescZh: !!projectData.description_zh,
+        hasDescEn: !!projectData.description_en
+      });
+
       if (currentProject.id) {
+        // 更新现有项目
         const { error: updateError } = await supabase
           .from('user_projects')
           .update(projectData)
           .eq('id', currentProject.id);
 
         if (updateError) throw updateError;
+        
+        logger.debug('项目更新成功', { projectId: currentProject.id });
       } else {
+        // 创建新项目
         const { data, error: insertError } = await supabase
           .from('user_projects')
           .insert({
             ...projectData,
-            user_id: user?.id
+            user_id: user?.id,
+            is_default: false,
+            is_open_source: false,
+            model_locked: false
           })
           .select()
           .single();
 
         if (insertError) throw insertError;
-        setCurrentProject(data);
+        
+        // 更新当前项目状态，包含多语言字段
+        setCurrentProject({
+          ...data,
+          name_zh: projectData.name_zh,
+          name_en: projectData.name_en,
+          description_zh: projectData.description_zh,
+          description_en: projectData.description_en,
+          source_language: projectData.source_language
+        });
+        
+        logger.debug('项目创建成功', { projectId: data.id });
       }
       
       await loadProjects();
+      
+      // 显示成功提示
+      const successMessage = language === 'zh' ? 
+        `项目保存成功！已自动生成${targetLang === 'zh' ? '中文' : '英文'}版本` :
+        `Project saved successfully! ${targetLang === 'zh' ? 'Chinese' : 'English'} version auto-generated`;
+        
+      logger.log('项目保存完成（含翻译）', {
+        projectId: currentProject.id,
+        sourceLang,
+        targetLang,
+        message: successMessage
+      });
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 
         language === 'zh' ? '保存项目失败' : 'Failed to save project';
       setError(errorMessage);
+      
+      logger.error('项目保存失败', {
+        error: err,
+        projectId: currentProject.id,
+        message: errorMessage
+      });
     } finally {
       setSaving(false);
     }
@@ -1269,18 +1366,18 @@ ${copyrightText}
                       }`} />
                       <div className="flex-1 text-left">
                         <div className="flex items-center space-x-2">
-                          <h3 className="font-medium text-gray-900">
-                            {project.name}
-                          </h3>
-                          {project.is_default && (
-                            <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
-                              {language === 'zh' ? '默认' : 'Default'}
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-1 text-sm text-gray-500 line-clamp-3">
-                          {project.description}
-                        </p>
+                                            <h3 className="font-medium text-gray-900">
+                    {language === 'zh' ? (project.name_zh || project.name) : (project.name_en || project.name)}
+                  </h3>
+                  {project.is_default && (
+                    <span className="px-2 py-0.5 text-xs bg-indigo-100 text-indigo-600 rounded">
+                      {language === 'zh' ? '默认' : 'Default'}
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-gray-500 line-clamp-3">
+                  {language === 'zh' ? (project.description_zh || project.description) : (project.description_en || project.description)}
+                </p>
                       </div>
                     </div>
                     {!project.is_default && (
