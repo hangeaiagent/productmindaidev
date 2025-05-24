@@ -147,6 +147,11 @@ const TemplateList = () => {
   };
 
   const handleGenerateClick = (template: Template) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location.pathname } });
+      return;
+    }
+
     if (template.versions?.some(v => v.is_active)) {
       setPendingTemplate(template);
       setShowConfirmDialog(true);

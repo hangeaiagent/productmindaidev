@@ -333,37 +333,6 @@ ${copyrightText}
     }
   };
 
-  // 修改下载按钮部分的渲染
-  const renderDownloadButton = () => (
-    <div className="relative">
-      <button
-        onClick={() => setShowDownloadOptions(!showDownloadOptions)}
-        disabled={!output}
-        className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-        title="下载分析报告"
-      >
-        <div className="flex items-center space-x-1">
-          <DownloadIcon className="h-4 w-4" />
-          <span>下载</span>
-        </div>
-      </button>
-      
-      {showDownloadOptions && output && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-          <div className="py-1" role="menu" aria-orientation="vertical">
-            <button
-              onClick={downloadAsMarkdown}
-              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              role="menuitem"
-            >
-              {language === 'zh' ? '下载为 Markdown (.md)' : 'Download as Markdown (.md)'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   if (!template && !isLoading && !output) return null;
 
   return (
@@ -376,14 +345,14 @@ ${copyrightText}
             </div>
             <div>
               <h3 className="text-lg font-medium text-gray-900 flex items-center space-x-3">
-                <span>分析结果</span>
+                <span>{language === 'zh' ? '分析结果' : 'Analysis Result'}</span>
                 {isLoading && (
                   <div className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
                 )}
               </h3>
               {template && (
                 <p className="text-sm text-gray-500 mt-1">
-                  {template.name_zh} · {template.description_zh}
+                  {language === 'zh' ? template.name_zh : template.name_en} · {language === 'zh' ? template.description_zh : template.description_en}
                 </p>
               )}
             </div>
@@ -393,21 +362,47 @@ ${copyrightText}
               onClick={copyToClipboard}
               disabled={!output}
               className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              title="复制到剪贴板"
+              title={language === 'zh' ? '复制到剪贴板' : 'Copy to Clipboard'}
             >
               {copied ? (
                 <div className="flex items-center space-x-1">
                   <CheckIcon className="h-4 w-4 text-green-500" />
-                  <span>已复制</span>
+                  <span>{language === 'zh' ? '已复制' : 'Copied'}</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-1">
                   <ClipboardCopyIcon className="h-4 w-4" />
-                  <span>复制</span>
+                  <span>{language === 'zh' ? '复制' : 'Copy'}</span>
                 </div>
               )}
             </button>
-            {renderDownloadButton()}
+            <div className="relative">
+              <button
+                onClick={() => setShowDownloadOptions(!showDownloadOptions)}
+                disabled={!output}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                title={language === 'zh' ? '下载分析报告' : 'Download Analysis Report'}
+              >
+                <div className="flex items-center space-x-1">
+                  <DownloadIcon className="h-4 w-4" />
+                  <span>{language === 'zh' ? '下载' : 'Download'}</span>
+                </div>
+              </button>
+              
+              {showDownloadOptions && output && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                  <div className="py-1" role="menu" aria-orientation="vertical">
+                    <button
+                      onClick={downloadAsMarkdown}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      role="menuitem"
+                    >
+                      {language === 'zh' ? '下载为 Markdown (.md)' : 'Download as Markdown (.md)'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {error && (
@@ -444,7 +439,7 @@ ${copyrightText}
                           handleCodeBlockCopy(code);
                         }}
                         className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="复制代码"
+                        title={language === 'zh' ? '复制代码' : 'Copy Code'}
                       >
                         {codeBlockCopied === code ? (
                           <CheckIcon className="h-4 w-4 text-green-500" />

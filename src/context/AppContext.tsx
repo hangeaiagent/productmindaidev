@@ -54,7 +54,11 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 // 应用上下文提供者组件
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 基础状态管理
-  const [language, setLanguage] = useState<Language>('zh');
+  const [language, setLanguage] = useState<Language>(() => {
+    // 尝试从 localStorage 获取语言偏好
+    const savedLanguage = localStorage.getItem('userLanguagePreference');
+    return (savedLanguage as Language) || 'zh';
+  });
   const { user } = useAuth();
   const [selectedModel, setSelectedModel] = useState<AIModel>('deepseek');
   const [modelConfigs, setModelConfigs] = useState<Record<AIModel, ModelConfig>>({
@@ -96,6 +100,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [currentProject, debouncedLogProjectUpdate]);
 
   const { templates, categories, loading: templatesLoading } = useTemplates(currentProject?.id);
+
+  // 当语言改变时保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('userLanguagePreference', language);
+    
+    // 如果用户已登录，同时更新到数据库
+    if (user?.id) {
+      supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user.id,
+          language: language,
+          updated_at: new Date().toISOString()
+        })
+        .then(({ error }) => {
+          if (error) {
+            logger.error('保存用户语言偏好失败', { error });
+          }
+        });
+    }
+  }, [language, user?.id]);
+
+  // 当用户登录时，从数据库加载语言偏好
+  useEffect(() => {
+    if (user?.id) {
+      supabase
+        .from('user_preferences')
+        .select('language')
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data, error }) => {
+          if (!error && data?.language) {
+            setLanguage(data.language as Language);
+          }
+        });
+    }
+  }, [user?.id]);
 
   /**
    * 加载项目历史记录

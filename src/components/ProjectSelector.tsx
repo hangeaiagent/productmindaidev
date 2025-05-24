@@ -1490,6 +1490,36 @@ ${copyrightText}
                 </>
               )}
             </button>
+
+            <button
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate('/login');
+                  return;
+                }
+                if (!currentProject?.id) {
+                  setError(language === 'zh' ? '请先选择项目' : 'Please select a project first');
+                  return;
+                }
+                logger.debug('刷新项目模板列表', { 
+                  projectId: currentProject.id,
+                  projectName: currentProject.name
+                });
+                // 重新加载项目历史记录
+                loadProjectHistory(currentProject.id);
+                // 清空错误提示
+                setError(null);
+              }}
+              disabled={!currentProject?.id}
+              className={`flex items-center px-3 py-2 ${
+                !currentProject?.id
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-indigo-500 hover:bg-indigo-600'
+              } text-white rounded`}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              {language === 'zh' ? '刷新' : 'Refresh'}
+            </button>
           </div>
         </div>
 
