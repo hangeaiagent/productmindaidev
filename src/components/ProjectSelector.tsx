@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, FolderOpen, Save, Download, Play } from 'lucide-react';
+import { Plus, FolderOpen, Save, Download, Play, AlertTriangle, RefreshCw } from 'lucide-react';
 import { SafeLoader } from './SafeLoader';
 import { stateManager } from '../utils/stateManager';
 import { useAppContext } from '../context/AppContext'; 
@@ -82,33 +82,83 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    console.log('[ErrorBoundary] 捕获到错误，开始清理所有状态...');
     // 清理所有状态
     stateManager.cleanupAll();
+    // 额外清理进度相关状态
+    try {
+      stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      console.log('[ErrorBoundary] 状态清理完成');
+    } catch (e) {
+      console.error('[ErrorBoundary] 清理状态时出错:', e);
+    }
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    logger.error('组件错误', {
+    logger.error('[ErrorBoundary] 组件错误详情', {
       error: error.message,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
+      errorStack: error.stack
     });
   }
 
   render(): React.ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <h3 className="text-red-600 font-medium mb-2">页面出现错误</h3>
-          <p className="text-red-500 text-sm mb-3">检测到组件渲染错误，可能是由于状态不一致导致。</p>
-          <button
-            onClick={() => {
-              stateManager.cleanupAll();
-              window.location.reload();
-            }}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            清理并重新加载页面
-          </button>
+        <div className="p-6 bg-green-50 border border-green-200 rounded-lg shadow-lg">
+          <h3 className="text-green-600 font-medium mb-3 flex items-center">
+            <AlertTriangle className="w-5 h-5 mr-2" />
+            系统提示
+          </h3>
+          <p className="text-green-700 text-sm mb-4">
+            由于异常退出，导致本地服务器错误，请手动清除浏览器缓存。
+          </p>
+          
+          <div className="bg-orange-50 border border-orange-200 p-3 rounded mb-4">
+            <p className="text-orange-700 text-sm">
+              <strong>注意：</strong>因为上述情况，缺少进度提醒对话框，但不影响项目文档正常生成。
+            </p>
+          </div>
+          
+          <div className="bg-white bg-opacity-50 p-4 rounded-lg mb-4">
+            <h4 className="text-green-600 font-medium mb-2">手动清除浏览器缓存的方法：</h4>
+            <div className="text-green-700 text-sm space-y-2">
+              <ol className="list-decimal list-inside space-y-1">
+                <li className="font-medium">清理浏览器缓存：</li>
+                <ul className="list-disc list-inside ml-4 space-y-1">
+                  <li>打开浏览器的开发者工具（F12）</li>
+                  <li>右键点击刷新按钮</li>
+                  <li>选择"清空缓存并硬性重新加载"（Empty Cache and Hard Reload）</li>
+                </ul>
+              </ol>
+              
+              <div className="mt-4 text-sm">
+                <p className="mb-2">详细操作说明：</p>
+                <div className="space-y-1">
+                  <a 
+                    href="https://pangea.hisense.com/syma/clear-cache.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-700 hover:underline block"
+                  >
+                    🔗 中文版操作说明
+                  </a>
+                  <a 
+                    href="https://help.codehs.com/en/articles/4951972-how-to-clear-your-browser-cache-and-hard-refresh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-700 hover:underline block"
+                  >
+                    🔗 English Version Guide
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }
@@ -155,18 +205,48 @@ const ProjectSelector: React.FC = () => {
 
   // 组件卸载时清理
   useEffect(() => {
+    console.log('[ProjectSelector] 组件挂载');
+    mountedRef.current = true;
+    
     return () => {
+      console.log('[ProjectSelector] 组件卸载，开始清理...');
       mountedRef.current = false;
       // 清理所有定时器和异步操作
       stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      // 重置本地状态
+      resetGenerationState();
+      logger.debug('ProjectSelector unmounted and cleaned up', {
+        trigger: 'component_unmount',
+        timestamp: new Date().toISOString()
+      });
     };
   }, []);
 
   // 初始化时清理遗留状态
   useEffect(() => {
+    logger.debug('ProjectSelector initialized, cleaning legacy states', {
+      trigger: 'component_init',
+      timestamp: new Date().toISOString()
+    });
     // 直接清理所有生成相关状态
     stateManager.clearState('generationState');
+    stateManager.clearState('generationProgress');
+    stateManager.clearState('currentGeneratingTemplate');
+    stateManager.clearState('generationResults');
     resetGenerationState();
+    
+    // 检查是否有未完成的生成任务
+    const savedState = stateManager.loadState<GenerationState>('generationState');
+    if (savedState) {
+      logger.debug('Found and cleaned legacy generation state', {
+        state: savedState,
+        trigger: 'state_cleanup',
+        timestamp: new Date().toISOString()
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -195,16 +275,16 @@ const ProjectSelector: React.FC = () => {
     }
   }, [projects, projectId]);
 
-
-
   // 添加重置生成状态的函数
   const resetGenerationState = () => {
+    console.log('[ProjectSelector] 重置生成状态...');
     setIsGeneratingAll(false);
     setGenerationProgress(0);
     setGenerationResults([]);
     setCurrentGenerating('');
     setNextToGenerate('');
     setTotalTemplates(0);
+    console.log('[ProjectSelector] 生成状态重置完成');
   };
 
   const loadProjects = async () => {
@@ -313,7 +393,11 @@ const ProjectSelector: React.FC = () => {
 
   const handleSetDefault = async (projectId: string) => {
     try {
-      logger.log('设置默认项目', { projectId });
+      logger.debug('Setting default project', { 
+        projectId,
+        trigger: 'user_action',
+        timestamp: new Date().toISOString()
+      });
       
       // 首先清空所有项目的默认标记
       await supabase
@@ -334,6 +418,12 @@ const ProjectSelector: React.FC = () => {
       if (targetProject) {
         setCurrentProject(targetProject);
         setSearchParams({ projectId: targetProject.id });
+        logger.debug('Default project updated successfully', {
+          projectId: targetProject.id,
+          projectName: targetProject.name,
+          trigger: 'default_project_set',
+          timestamp: new Date().toISOString()
+        });
       }
       
       // 清空错误提醒对话框
@@ -344,6 +434,12 @@ const ProjectSelector: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 
         language === 'zh' ? '设置默认项目失败' : 'Failed to set default project';
       setError(errorMessage);
+      logger.error('Failed to set default project', {
+        error: err,
+        projectId,
+        trigger: 'default_project_error',
+        timestamp: new Date().toISOString()
+      });
     }
   };
 
@@ -569,25 +665,37 @@ ${copyrightText}
   };
 
   const handleGenerateAll = async () => {
+    console.log('[ProjectSelector] 开始批量生成流程...');
+    
     // 检查用户是否已登录
     if (!isAuthenticated) {
+      console.log('[ProjectSelector] 用户未登录，跳转到登录页面');
       navigate('/login');
       return;
     }
 
     // 检查是否有项目
     if (!currentProject || !currentProject.id) {
+      console.log('[ProjectSelector] 未选择项目');
       setError(language === 'zh' ? '请先创建并保存项目' : 'Please create and save a project first');
       return;
     }
 
     // 检查是否有产品描述
     if (!currentProject?.description) {
+      console.log('[ProjectSelector] 项目无描述');
       setError(language === 'zh' ? '请先输入产品描述' : 'Please enter product description first');
       return;
     }
 
     try {
+      console.log('[ProjectSelector] 清理旧的生成状态...');
+      // 先清理旧的状态
+      stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      
       // 保存初始状态
       const initialState = {
         isGeneratingAll: true,
@@ -598,7 +706,7 @@ ${copyrightText}
       };
       stateManager.saveState('generationState', initialState);
 
-      logger.log('开始批量生成', {
+      logger.log('[ProjectSelector] 开始批量生成', {
         projectId: currentProject.id,
         projectName: currentProject.name,
         state: initialState
@@ -623,7 +731,7 @@ ${copyrightText}
       if (cleanupError) throw cleanupError;
 
       if (unfinishedVersions && unfinishedVersions.length > 0) {
-        logger.log('清理未完成的生成任务', {
+        console.log('[ProjectSelector] 清理未完成的生成任务', {
           projectId: currentProject.id,
           versionsCount: unfinishedVersions.length
         });
@@ -670,7 +778,7 @@ ${copyrightText}
         return !hasCompletedVersion;
       });
 
-      logger.log('获取待生成模板', {
+      console.log('[ProjectSelector] 获取待生成模板', {
         totalTemplates: templatesToGenerate?.length,
         templates: templatesToGenerate?.map(t => ({
           id: t.id,
@@ -679,8 +787,11 @@ ${copyrightText}
       });
 
       if (!templatesToGenerate?.length) {
+        console.log('[ProjectSelector] 没有需要生成的模板');
         setError(language === 'zh' ? '没有需要生成的模板' : 'No templates to generate');
         setIsGeneratingAll(false);
+        // 清理状态
+        stateManager.clearState('generationState');
         return;
       }
 
@@ -688,8 +799,16 @@ ${copyrightText}
 
       // 逐个生成模板
       for (let i = 0; i < templatesToGenerate.length; i++) {
+        // 检查组件是否已卸载
+        if (!mountedRef.current) {
+          console.log('[ProjectSelector] 组件已卸载，停止生成');
+          break;
+        }
+        
         const template = templatesToGenerate[i];
         const templateName = language === 'zh' ? template.name_zh : template.name_en;
+
+        console.log(`[ProjectSelector] 生成模板 ${i + 1}/${templatesToGenerate.length}: ${templateName}`);
 
         const currentState: GenerationState = {
           isGeneratingAll: true,
@@ -715,8 +834,10 @@ ${copyrightText}
             });
             return newResults;
           });
+          console.log(`[ProjectSelector] 模板生成成功: ${templateName}`);
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error(`[ProjectSelector] 模板生成失败: ${templateName}`, errorMessage);
           
           setGenerationResults(prev => {
             const newResults: GenerationResult[] = [...prev, { 
@@ -735,17 +856,24 @@ ${copyrightText}
             (error.message.includes('API') || 
              error.message.includes('network') || 
              error.message.includes('authorization'))) {
+            console.log('[ProjectSelector] 遇到严重错误，停止生成');
             break;
           }
         }
 
-              setGenerationProgress((i + 1) / templatesToGenerate.length * 100);
-    }
+        setGenerationProgress((i + 1) / templatesToGenerate.length * 100);
+      }
 
-    stateManager.clearState('generationState');
-    setShowGenerationSummary(true);
+      console.log('[ProjectSelector] 批量生成完成，清理状态...');
+      // 清理所有生成状态
+      stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      
+      setShowGenerationSummary(true);
     } catch (error) {
-      logger.error('批量生成过程发生错误', {
+      console.error('[ProjectSelector] 批量生成过程发生错误', {
         error: error instanceof Error ? error.message : String(error),
         state: {
           isGeneratingAll,
@@ -760,10 +888,16 @@ ${copyrightText}
         language === 'zh' ? '生成过程中发生错误' : 'Error during generation'
       );
     } finally {
+      console.log('[ProjectSelector] 批量生成结束，执行最终清理...');
       setIsGeneratingAll(false);
       setCurrentGenerating('');
       setNextToGenerate('');
+      // 确保清理所有状态
       stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      console.log('[ProjectSelector] 清理完成');
     }
   };
 
@@ -775,17 +909,26 @@ ${copyrightText}
     const failedCount = generationResults.filter(r => r.status === 'failed').length;
 
     const handleClose = async () => {
+      console.log('[GenerationSummaryDialog] 关闭摘要对话框，清理状态...');
       setShowGenerationSummary(false);
       setGenerationResults([]);
       
+      // 清理所有生成相关的本地存储
+      stateManager.clearState('generationState');
+      stateManager.clearState('generationProgress');
+      stateManager.clearState('currentGeneratingTemplate');
+      stateManager.clearState('generationResults');
+      
       // 重新加载项目历史
       if (currentProject?.id) {
+        console.log('[GenerationSummaryDialog] 重新加载项目历史...');
         await loadProjectHistory(currentProject.id);
       }
       
       // 通知 AppContext 刷新模板列表
       setSelectedTemplate(null);
       setStreamingOutput('');
+      console.log('[GenerationSummaryDialog] 状态清理完成');
     };
 
     return (
@@ -936,7 +1079,13 @@ ${copyrightText}
             </h2>
             <div className="flex space-x-2">
               <button
-                onClick={handleNewProject}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  handleNewProject();
+                }}
                 className="px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded hover:bg-indigo-100"
               >
                 <Plus className="w-4 h-4 inline-block mr-1" />
@@ -944,7 +1093,13 @@ ${copyrightText}
               </button>
               <div className="relative">
                 <button
-                  onClick={() => setShowDownloadOptions(!showDownloadOptions)}
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      navigate('/login');
+                      return;
+                    }
+                    setShowDownloadOptions(!showDownloadOptions);
+                  }}
                   disabled={isDownloading}
                   className={`px-3 py-1.5 text-sm font-medium rounded ${
                     isDownloading
@@ -952,17 +1107,17 @@ ${copyrightText}
                       : 'text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
                   }`}
                 >
-                                {isDownloading ? (
-                <>
-                  <SafeLoader className="w-4 h-4 inline-block mr-1 animate-spin" />
-                  {language === 'zh' ? '下载中...' : 'Downloading...'}
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 inline-block mr-1" />
-                  {language === 'zh' ? '全部下载' : 'Download All'}
-                </>
-              )}
+                  {isDownloading ? (
+                    <>
+                      <SafeLoader className="w-4 h-4 inline-block mr-1 animate-spin" />
+                      {language === 'zh' ? '下载中...' : 'Downloading...'}
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 inline-block mr-1" />
+                      {language === 'zh' ? '全部下载' : 'Download All'}
+                    </>
+                  )}
                 </button>
                 
                 {showDownloadOptions && !isDownloading && (
@@ -980,7 +1135,13 @@ ${copyrightText}
                 )}
               </div>
               <button
-                onClick={handleSaveProject}
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login');
+                    return;
+                  }
+                  handleSaveProject();
+                }}
                 disabled={saving || !currentProject?.name}
                 className={`px-3 py-1.5 text-sm font-medium rounded ${
                   saving || !currentProject?.name
@@ -1143,7 +1304,13 @@ ${copyrightText}
         <div className="flex justify-between items-center mt-4">
           <div className="flex space-x-2">
             <button
-              onClick={handleNewProject}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate('/login');
+                  return;
+                }
+                handleNewProject();
+              }}
               className="flex items-center px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -1151,7 +1318,13 @@ ${copyrightText}
             </button>
             
             <button
-              onClick={handleGenerateAll}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate('/login');
+                  return;
+                }
+                handleGenerateAll();
+              }}
               disabled={isGeneratingAll || !currentProject?.id}
               className={`flex items-center px-3 py-2 ${
                 isGeneratingAll || !currentProject?.id

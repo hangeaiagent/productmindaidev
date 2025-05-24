@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useTemplates } from '../hooks/useTemplates';
 import { buildPrompt } from '../utils/promptBuilder';
 import { generateStream } from '../services/aiService';
@@ -6,6 +6,7 @@ import { logger } from '../utils/logger';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import type { AIModel, Language, GeneratedOutput, ModelConfig, Template, Project } from '../types';
+import debounce from 'lodash/debounce';
 
 // 默认的模型配置
 const DEFAULT_MODEL_CONFIG: ModelConfig = {
@@ -69,8 +70,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [modelSettingsOpen, setModelSettingsOpen] = useState(false);
   
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-   
-  logger.log('加载currentProject@@', { currentProject: currentProject ? currentProject.id : null });
+  
+  // 使用防抖的日志记录函数
+  const debouncedLogProjectUpdate = useCallback(
+    debounce((project: Project | null) => {
+      if (project?.id) {
+        logger.debug('Current project state updated', {
+          projectId: project.id,
+          projectName: project.name,
+          trigger: 'app_context_update',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }, 1000), // 1秒的防抖时间
+    []
+  );
+
+  // 监听 currentProject 变化
+  useEffect(() => {
+    debouncedLogProjectUpdate(currentProject);
+    return () => {
+      debouncedLogProjectUpdate.cancel(); // 清理防抖
+    };
+  }, [currentProject, debouncedLogProjectUpdate]);
+
   const { templates, categories, loading: templatesLoading } = useTemplates(currentProject?.id);
 
   /**

@@ -66,14 +66,31 @@ export interface ProjectAnalysis {
   setSelectedCategory: (category: string | null) => void;
 }
 
+// 语言类型
+export type Language = 'zh' | 'en';
+
+// 生成输出类型
+export interface GeneratedOutput {
+  id: string;
+  promptId: string;
+  promptTitle: string;
+  input: string;
+  output: string;
+  timestamp: number;
+  model: AIModel;
+  is_active: boolean;
+}
+
 // AI 模型类型
 export type AIModel = 'deepseek' | 'openai' | 'claude' | 'google';
 
 // 模型配置
 export interface ModelConfig {
+  id: AIModel;
+  name: string;
   apiKey?: string;
-  useSystemCredit?: boolean;
   version?: string;
+  useSystemCredit?: boolean;
 }
 
 // AI 消息
