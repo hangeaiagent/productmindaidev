@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import type { AIModel, Language, GeneratedOutput, ModelConfig, Template, Project } from '../types/index';
 import debounce from 'lodash/debounce';
 import { translationService } from '../services/translationService';
+import { toast } from 'react-hot-toast';
 
 // 默认的模型配置
 const DEFAULT_MODEL_CONFIG: ModelConfig = {
@@ -19,7 +20,7 @@ const DEFAULT_MODEL_CONFIG: ModelConfig = {
 };
 
 // 定义上下文类型接口
-interface AppContextType {
+export interface AppContextType {
   language: Language;
   setLanguage: (language: Language) => void;
   setStreamingOutput: (output: string) => void;
@@ -47,9 +48,10 @@ interface AppContextType {
   t: (key: string) => string;
   modelSettingsOpen: boolean;
   setModelSettingsOpen: (open: boolean) => void;
+  handleAIFundingSearch: () => Promise<void>;
 }
 
-const AppContext = createContext<AppContextType | undefined>(undefined);
+export const AppContext = createContext<AppContextType>({} as AppContextType);
 
 // 应用上下文提供者组件
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -469,6 +471,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return key;
   };
 
+  const handleAIFundingSearch = async () => {
+    try {
+      const response = await fetch('/.netlify/functions/search-ai-funding', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('搜索失败');
+      }
+
+      const data = await response.json();
+      logger.log('AI融资项目搜索完成', { results: data });
+      
+      // 显示成功消息
+      toast({
+        title: '搜索完成',
+        description: `成功更新${data.count}条AI融资项目数据`,
+        status: 'success',
+      });
+    } catch (error) {
+      logger.error('AI融资项目搜索失败', { error });
+      toast({
+        title: '搜索失败',
+        description: error instanceof Error ? error.message : '未知错误',
+        status: 'error',
+      });
+    }
+  };
+
   const value = {
     language,
     setLanguage,
@@ -498,7 +532,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     searchTemplates,
     t,
     modelSettingsOpen,
-    setModelSettingsOpen
+    setModelSettingsOpen,
+    handleAIFundingSearch,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

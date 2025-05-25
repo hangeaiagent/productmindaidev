@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GlassesIcon as MagnifyingGlassIcon, BookmarkIcon as XMarkIcon } from 'lucide-react';
+import { GlassesIcon as MagnifyingGlassIcon, BookmarkIcon as XMarkIcon, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import LanguageSwitch from './LanguageSwitch';
 import ModelSettings from './ModelSettings';
@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
-  const { searchTemplates, setSelectedTemplate, t, language } = useAppContext();
+  const { searchTemplates, setSelectedTemplate, t, language, handleAIFundingSearch } = useAppContext();
   const { isAuthenticated, user, signOut } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
@@ -159,6 +159,13 @@ const Header: React.FC = () => {
               <path d="M9 18c-4.51 2-5-2-7-2" />
             </svg>
           </a>
+          <button
+            onClick={handleAIFundingSearch}
+            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <Search className="w-4 h-4 mr-2" />
+            {t('搜索AI融资项目')}
+          </button>
         </div>
       </div>
     </header>
