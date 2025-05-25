@@ -170,3 +170,23 @@ export interface TranslationResult {
   detectedLang: 'zh' | 'en';
   targetLang: 'zh' | 'en';
 }
+
+export interface AIFundingProject {
+  id: number;
+  project_name: string;
+  description: string;        // 产品说明
+  company_info: string;       // 公司信息
+  funding_info: string;       // 融资情况说明
+  source_url: string;
+  company_website: string;
+  funding_amount: string;
+  funding_round: string;
+  funding_date: string;
+  investors: string[];
+  company_location: string;
+  industry_tags: string[];
+  employee_count: string;
+  founding_date: string;
+  created_at: string;
+  updated_at: string;
+}
