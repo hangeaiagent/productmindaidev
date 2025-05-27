@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronRight, ChevronDown, Search, Filter, ArrowLeft, ExternalLink, Download } from 'lucide-react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { ChevronRight, ChevronDown, Search, Filter, ArrowLeft, ExternalLink, Download, Globe, LogIn, UserPlus, Github } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -27,12 +27,72 @@ const AIProductsPage: React.FC = () => {
   const navigate = useNavigate();
   const { categoryCode } = useParams();
   
+  // 默认设置为英文
+  const [language, setLanguage] = useState<'en' | 'zh'>('en');
   const [categories, setCategories] = useState<Category[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryCode || '');
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+
+  // 多语言文本
+  const texts = {
+    en: {
+      title: 'AI Products Reference',
+      backToHome: 'Back to Home',
+      searchPlaceholder: 'Search products...',
+      productCategories: 'Product Categories',
+      allProducts: 'All Products',
+      totalProducts: 'Found {count} AI products',
+      viewDetails: 'View Details',
+      getTemplate: 'Get Template',
+      noResults: 'No Results Found',
+      noResultsDesc: 'Try using different keywords',
+      noProductsInCategory: 'No products in this category',
+      createdAt: 'Created on',
+      myProducts: 'My Products',
+      login: 'Login',
+      register: 'Register',
+      languageSwitch: 'Language'
+    },
+    zh: {
+      title: 'AI产品参考库',
+      backToHome: '返回首页',
+      searchPlaceholder: '搜索产品...',
+      productCategories: '产品分类',
+      allProducts: '全部产品',
+      totalProducts: '共找到 {count} 个相关AI产品',
+      viewDetails: '查看详情',
+      getTemplate: '获取模板',
+      noResults: '未找到相关产品',
+      noResultsDesc: '尝试使用其他关键词搜索',
+      noProductsInCategory: '该分类下暂无产品',
+      createdAt: '创建于',
+      myProducts: '我的产品',
+      login: '登录',
+      register: '注册',
+      languageSwitch: '语言'
+    }
+  };
+
+  const t = texts[language];
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'zh' : 'en');
+  };
+
+  const handleLogin = () => {
+    alert(language === 'en' ? 'Login functionality will be implemented' : '登录功能将会实现');
+  };
+
+  const handleRegister = () => {
+    alert(language === 'en' ? 'Register functionality will be implemented' : '注册功能将会实现');
+  };
+
+  const handleGithub = () => {
+    window.open('https://github.com/hangeaiagent/productmindaidev', '_blank');
+  };
 
   // 获取分类数据
   const fetchCategories = async () => {
@@ -123,27 +183,99 @@ const AIProductsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
+      <div className="bg-indigo-600 text-white shadow-lg">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo和标题 */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+                  <path d="M17 14h.01" />
+                </svg>
+                <h1 className="text-xl font-bold">ProductMind AI</h1>
+              </div>
+              <div className="h-6 w-px bg-indigo-400"></div>
+              <h2 className="text-lg font-semibold">{t.title}</h2>
+            </div>
+            
+            {/* 右侧导航 */}
+            <div className="flex items-center space-x-4">
+              {/* 语言切换 */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center px-3 py-2 text-sm font-medium text-white hover:text-indigo-200 transition-colors"
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                {language === 'en' ? '中文' : 'English'}
+              </button>
+
+              {/* 进入我的产品 */}
+              <Link
+                to="/dashboard"
+                className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200 transition-colors"
+              >
+                {t.myProducts}
+              </Link>
+
+              {/* 登录注册 */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLogin}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-white hover:text-indigo-200 transition-colors"
+                >
+                  <LogIn className="w-4 h-4 mr-1" />
+                  {t.login}
+                </button>
+                <button
+                  onClick={handleRegister}
+                  className="flex items-center px-3 py-2 text-sm font-medium text-white bg-indigo-700 rounded-md hover:bg-indigo-800 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4 mr-1" />
+                  {t.register}
+                </button>
+              </div>
+
+              {/* GitHub链接 */}
+              <button
+                onClick={handleGithub}
+                className="text-indigo-100 hover:text-white transition-colors"
+              >
+                <Github className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 搜索栏 */}
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/')}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                返回首页
-              </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <h1 className="text-2xl font-bold text-gray-900">AI产品参考库</h1>
-            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              {t.backToHome}
+            </button>
             
             {/* 搜索框 */}
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="搜索产品..."
+                placeholder={t.searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none w-full"
@@ -158,7 +290,7 @@ const AIProductsPage: React.FC = () => {
           {/* 左侧分类导航 */}
           <div className="w-80 bg-white rounded-lg shadow-sm border p-6 h-fit sticky top-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">产品分类</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t.productCategories}</h2>
               <Filter className="w-5 h-5 text-gray-400" />
             </div>
             
@@ -171,7 +303,7 @@ const AIProductsPage: React.FC = () => {
                   : 'hover:bg-gray-50'
               }`}
             >
-              <span className="font-medium">全部产品</span>
+              <span className="font-medium">{t.allProducts}</span>
               <span className="text-sm text-gray-500">425+</span>
             </div>
 
@@ -232,10 +364,10 @@ const AIProductsPage: React.FC = () => {
             {/* 分类信息头部 */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {selectedCategoryInfo ? selectedCategoryInfo.category_name : '全部AI产品'}
+                {selectedCategoryInfo ? selectedCategoryInfo.category_name : t.allProducts}
               </h2>
               <p className="text-gray-600">
-                共找到 {filteredProjects.length} 个相关AI产品
+                {t.totalProducts.replace('{count}', filteredProjects.length.toString())}
               </p>
             </div>
 
@@ -266,7 +398,7 @@ const AIProductsPage: React.FC = () => {
                         </div>
 
                         <p className="text-gray-600 mb-4 leading-relaxed">
-                          {project.description || '暂无描述'}
+                          {project.description || (language === 'en' ? 'No description available' : '暂无描述')}
                         </p>
 
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -279,7 +411,7 @@ const AIProductsPage: React.FC = () => {
                             </span>
                           )}
                           <span>
-                            创建于 {new Date(project.created_at).toLocaleDateString('zh-CN')}
+                            {t.createdAt} {new Date(project.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN')}
                           </span>
                         </div>
                       </div>
@@ -289,7 +421,7 @@ const AIProductsPage: React.FC = () => {
                           onClick={() => window.open(`/products/${project.id}`, '_blank')}
                           className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                          <span>查看详情</span>
+                          <span>{t.viewDetails}</span>
                           <ExternalLink className="w-4 h-4 ml-2" />
                         </button>
                         
@@ -298,7 +430,7 @@ const AIProductsPage: React.FC = () => {
                           className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <Download className="w-4 h-4 mr-2" />
-                          <span>获取模板</span>
+                          <span>{t.getTemplate}</span>
                         </button>
                       </div>
                     </div>
@@ -310,9 +442,9 @@ const AIProductsPage: React.FC = () => {
                     <div className="text-gray-400 mb-4">
                       <Search className="w-12 h-12 mx-auto" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">未找到相关产品</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noResults}</h3>
                     <p className="text-gray-600">
-                      {searchTerm ? '尝试使用其他关键词搜索' : '该分类下暂无产品'}
+                      {searchTerm ? t.noResultsDesc : t.noProductsInCategory}
                     </p>
                   </div>
                 )}
