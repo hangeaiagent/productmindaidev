@@ -1,0 +1,15 @@
+{
+  "current_offset": 0,
+  "template_offset": 0,
+  "total_estimated": "unknown",
+  "stats": {
+    "generated": 0,
+    "skipped": 0,
+    "errors": 0,
+    "batches_completed": 0,
+    "start_time": "2025-05-27T17:14:52.520Z",
+    "last_update": "2025-05-27T17:14:52.524Z"
+  },
+  "error": "解析响应失败: Unexpected token 'T', \"TimeoutErr\"... is not valid JSON",
+  "failed_at": "2025-05-27T17:17:08.003Z"
+}

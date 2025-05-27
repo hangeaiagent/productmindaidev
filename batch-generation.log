@@ -1,0 +1,58 @@
+[2025-05-27T17:14:52.524Z] [INFO] 🚀 开始大规模批量模板生成任务
+[2025-05-27T17:14:52.540Z] [INFO] 任务参数: {
+  "user_id": "afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "languages": "zh,en",
+  "table": "user_projects",
+  "batch_size": 3,
+  "template_batch_size": 2,
+  "max_time": 25000,
+  "start_offset": 0,
+  "template_offset": 0,
+  "limit": "5",
+  "restart": false,
+  "templates": "0346ed34-aa1a-4727-b1a5-2e4b86114568"
+}
+[2025-05-27T17:14:52.544Z] [INFO] 
+=== 执行第 1 个批次 ===
+[2025-05-27T17:14:52.544Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:15:22.866Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:15:22.867Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-27T17:15:27.872Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:15:57.896Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:15:57.897Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-27T17:16:02.899Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:16:32.956Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:16:32.965Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-27T17:16:37.967Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:17:08.001Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:17:08.003Z] [ERROR] 批次 1 执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:17:08.004Z] [INFO] 进度已保存: 0/unknown
+[2025-05-27T17:17:08.004Z] [INFO] 继续执行下一批次...
+[2025-05-27T17:17:13.006Z] [INFO] 
+=== 执行第 2 个批次 ===
+[2025-05-27T17:17:13.007Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:23:33.279Z] [INFO] 🚀 开始大规模批量模板生成任务
+[2025-05-27T17:23:33.301Z] [INFO] 任务参数: {
+  "user_id": "afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "languages": "zh,en",
+  "table": "user_projects",
+  "batch_size": 2,
+  "template_batch_size": 1,
+  "max_time": 20000,
+  "start_offset": 0,
+  "template_offset": 0,
+  "limit": "3",
+  "restart": false,
+  "templates": "0a6f134b-44f0-496b-b396-04ba2c9daa96"
+}
+[2025-05-27T17:23:33.303Z] [INFO] 加载已保存的进度: 0/unknown
+[2025-05-27T17:23:33.304Z] [INFO] 从上次中断的位置继续执行
+[2025-05-27T17:23:33.304Z] [INFO] 
+=== 执行第 1 个批次 ===
+[2025-05-27T17:23:33.305Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:24:03.400Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:24:03.400Z] [INFO] 等待 3000ms 后重试 (1/3)
+[2025-05-27T17:24:06.408Z] [INFO] 执行批次: offset=0, template_offset=0
+[2025-05-27T17:24:36.430Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected token 'T', "TimeoutErr"... is not valid JSON
+[2025-05-27T17:24:36.430Z] [INFO] 等待 3000ms 后重试 (2/3)
+[2025-05-27T17:24:39.433Z] [INFO] 执行批次: offset=0, template_offset=0

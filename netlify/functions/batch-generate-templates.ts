@@ -146,7 +146,12 @@ const buildPromptFromTemplate = (template: DatabaseTemplate, projectData: any, l
 // AI服务调用函数
 const callAIService = async (prompt: string, language: string): Promise<string> => {
   try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    // 创建一个带超时的Promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('AI服务调用超时')), 10000); // 10秒超时
+    });
+
+    const fetchPromise = fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -160,10 +165,12 @@ const callAIService = async (prompt: string, language: string): Promise<string> 
             content: prompt
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 2000, // 减少token数量以加快响应
         temperature: 0.7
       })
     });
+
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
     if (!response.ok) {
       throw new Error(`AI API调用失败: ${response.status}`);
@@ -283,7 +290,20 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const testMode = allParams.test_mode === 'true' || allParams.test_mode === true;
     const demoMode = allParams.demo === 'true' || allParams.demo === true;
     
-    console.log('📋 生成参数:', { languages, templateIds, categoryCode, limit, userId, tableName, testMode, demoMode });
+    // 新增分批处理参数
+    const batchSize = parseInt(allParams.batch_size || '1'); // 每批处理的项目数 - 减少到1个
+    const templateBatchSize = parseInt(allParams.template_batch_size || '1'); // 每批处理的模板数 - 保持1个
+    const maxExecutionTime = parseInt(allParams.max_time || '15000'); // 最大执行时间(毫秒)，留15秒缓冲
+    const startOffset = parseInt(allParams.start_offset || '0'); // 开始偏移量
+    const templateOffset = parseInt(allParams.template_offset || '0'); // 模板偏移量
+    const autoNext = allParams.auto_next === 'true' || allParams.auto_next === true; // 是否自动继续下一批
+    
+    const startTime = Date.now();
+    
+    console.log('📋 生成参数:', { 
+      languages, templateIds, categoryCode, limit, userId, tableName, testMode, demoMode,
+      batchSize, templateBatchSize, maxExecutionTime, startOffset, templateOffset, autoNext
+    });
 
     // 演示模式：使用模拟数据测试双语生成
     if (demoMode) {
@@ -525,8 +545,7 @@ Language: English`;
     // 获取项目数据 - 根据表名和用户ID动态构建查询
     let query = supabase
       .from(tableName)
-      .select('*')
-      .limit(limit);
+      .select('*');
     
     // 如果指定了用户ID，添加用户筛选条件
     if (userId && tableName === 'user_projects') {
@@ -550,6 +569,12 @@ Language: English`;
       console.log(`🏷️ 筛选分类: ${categoryCode}`);
     }
     
+    // 添加分页支持
+    if (limit > 0) {
+      query = query.range(startOffset, startOffset + limit - 1);
+      console.log(`📄 分页查询: offset=${startOffset}, limit=${limit}`);
+    }
+    
     const { data: projects, error: projectsError } = await query;
     
     if (projectsError) {
@@ -559,6 +584,10 @@ Language: English`;
     if (!projects || projects.length === 0) {
       return {
         statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({
           success: true,
           message: '没有找到符合条件的项目',
@@ -566,7 +595,14 @@ Language: English`;
           skipped: 0,
           details: [],
           table_used: tableName,
-          user_id: userId
+          user_id: userId,
+          batch_info: {
+            start_offset: startOffset,
+            template_offset: templateOffset,
+            projects_in_batch: 0,
+            has_more_projects: false,
+            has_more_templates: false
+          }
         })
       };
     }
@@ -601,12 +637,32 @@ Language: English`;
       generated: 0,
       skipped: 0,
       errors: 0,
-      details: [] as any[]
+      details: [] as any[],
+      timeout_reached: false,
+      batch_completed: false
     };
 
+    // 分批处理模板
+    const templateBatch = selectedTemplates.slice(templateOffset, templateOffset + templateBatchSize);
+    console.log(`🎯 处理模板批次: ${templateOffset + 1}-${templateOffset + templateBatch.length}/${selectedTemplates.length}`);
+
     // 批量生成模板
-    for (const project of projects) {
-      for (const template of selectedTemplates) {
+    for (let projectIndex = 0; projectIndex < projects.length; projectIndex++) {
+      const project = projects[projectIndex];
+      
+      for (let templateIndex = 0; templateIndex < templateBatch.length; templateIndex++) {
+        const template = templateBatch[templateIndex];
+        
+        // 检查执行时间，如果接近超时则停止
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - startTime;
+        
+        if (elapsedTime > maxExecutionTime) {
+          console.log(`⏰ 接近超时限制 (${elapsedTime}ms > ${maxExecutionTime}ms)，停止处理`);
+          results.timeout_reached = true;
+          break;
+        }
+        
         try {
           // 检查是否已存在（智能跳过机制）
           const existingVersion = await checkExistingVersion(template.id, project.id, 'any');
@@ -729,9 +785,61 @@ Language: English`;
           });
         }
       }
+      
+      // 如果超时了，跳出项目循环
+      if (results.timeout_reached) {
+        break;
+      }
+    }
+
+    // 计算批次信息
+    const hasMoreTemplates = templateOffset + templateBatchSize < selectedTemplates.length;
+    const hasMoreProjects = startOffset + projects.length < (limit > 0 ? startOffset + limit : Infinity);
+    
+    // 如果当前批次完成且没有超时，标记为完成
+    if (!results.timeout_reached && !hasMoreTemplates && !hasMoreProjects) {
+      results.batch_completed = true;
     }
 
     console.log('🎉 批量生成完成!', results);
+
+    const response: any = {
+      success: true,
+      message: `批量生成完成！成功生成 ${results.generated} 个模板，跳过 ${results.skipped} 个，失败 ${results.errors} 个`,
+      templates_used: templateBatch.length,
+      projects_processed: projects.length,
+      table_used: tableName,
+      user_id: userId,
+      execution_time: Date.now() - startTime,
+      batch_info: {
+        start_offset: startOffset,
+        template_offset: templateOffset,
+        projects_in_batch: projects.length,
+        templates_in_batch: templateBatch.length,
+        has_more_projects: hasMoreProjects,
+        has_more_templates: hasMoreTemplates,
+        next_project_offset: hasMoreTemplates ? startOffset : startOffset + projects.length,
+        next_template_offset: hasMoreTemplates ? templateOffset + templateBatchSize : 0,
+        timeout_reached: results.timeout_reached,
+        batch_completed: results.batch_completed
+      },
+      ...results
+    };
+
+    // 如果启用自动继续且还有更多数据要处理
+    if (autoNext && !results.batch_completed && !results.timeout_reached) {
+      const nextOffset = hasMoreTemplates ? startOffset : startOffset + projects.length;
+      const nextTemplateOffset = hasMoreTemplates ? templateOffset + templateBatchSize : 0;
+      
+      response.next_batch_url = `${event.headers.host}${event.path}?` + new URLSearchParams({
+        ...allParams,
+        start_offset: nextOffset.toString(),
+        template_offset: nextTemplateOffset.toString(),
+        auto_next: 'true'
+      }).toString();
+      
+      console.log(`🔄 准备下一批次: project_offset=${nextOffset}, template_offset=${nextTemplateOffset}`);
+    }
 
     return {
       statusCode: 200,
@@ -739,15 +847,7 @@ Language: English`;
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({
-        success: true,
-        message: `批量生成完成！成功生成 ${results.generated} 个模板，跳过 ${results.skipped} 个，失败 ${results.errors} 个`,
-        templates_used: selectedTemplates.length,
-        projects_processed: projects.length,
-        table_used: tableName,
-        user_id: userId,
-        ...results
-      })
+      body: JSON.stringify(response)
     };
 
   } catch (error) {
