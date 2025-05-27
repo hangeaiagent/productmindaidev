@@ -38,6 +38,7 @@ function App() {
 
             {/* AI 产品参考页面 */}
             <Route path="/ai-products" element={<AIProductsPage />} />
+            <Route path="/ai-products/:categoryCode" element={<AIProductsPage />} />
 
             {/* 404 */}
             <Route path="*" element={<Navigate to="/" replace />} />

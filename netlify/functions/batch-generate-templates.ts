@@ -5,360 +5,363 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL!;
 const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 默认用户ID
-const DEFAULT_USER_ID = 'afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1';
+// 统一的模板类型定义（与前端保持一致）
+const TEMPLATE_TYPES = [
+  { code: 'prd', name: '产品需求文档 (PRD)', nameEn: 'Product Requirements Document (PRD)' },
+  { code: 'mrd', name: '市场需求文档 (MRD)', nameEn: 'Market Requirements Document (MRD)' },
+  { code: 'tech-arch', name: '技术架构文档', nameEn: 'Technical Architecture Document' },
+  { code: 'business-canvas', name: '商业模式画布', nameEn: 'Business Model Canvas' },
+  { code: 'user-journey', name: '用户体验地图', nameEn: 'User Experience Map' }
+];
 
-// 默认AI模型配置
-const DEFAULT_MODEL_CONFIG = {
-  temperature: 0.7,
-  maxTokens: 4000,
-  topP: 0.9,
-  frequencyPenalty: 0,
-  presencePenalty: 0
+// 统一的版本检查逻辑（与前端一致）
+const checkExistingVersion = async (templateType: string, projectId: string, language: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('template_versions')
+      .select('version_number')
+      .eq('template_type', templateType)
+      .eq('project_id', projectId)
+      .eq('language', language)
+      .order('version_number', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error('检查版本失败:', error);
+      return 1; // 默认版本
+    }
+
+    return data && data.length > 0 ? data[0].version_number + 1 : 1;
+  } catch (error) {
+    console.error('版本检查异常:', error);
+    return 1;
+  }
 };
 
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  created_at: string;
-}
-
-interface Template {
-  id: string;
-  name_zh: string;
-  name_en: string;
-  prompt_content: string;
-  category: {
-    name_zh: string;
-    name_en: string;
-  };
-}
-
-interface ExistingVersion {
-  template_id: string;
-  project_id: string;
-  is_active: boolean;
-}
-
-// 构建提示词
-function buildPrompt(template: Template, projectName: string, projectDescription: string, language: string = 'zh'): string {
-  const isZh = language === 'zh';
-  const templateName = isZh ? template.name_zh : template.name_en;
-  const categoryName = isZh ? template.category.name_zh : template.category.name_en;
-  
-  return `作为专业的产品经理，请根据以下模板和项目信息生成详细的${templateName}：
-
-项目信息：
-- 项目名称：${projectName}
-- 项目描述：${projectDescription}
-- 模板类型：${templateName}
-- 分类：${categoryName}
-
-模板要求：
-${template.prompt_content}
-
-请用${isZh ? '中文' : '英文'}输出，确保内容专业、详细、可操作。格式要求：
-1. 使用Markdown格式
-2. 包含清晰的标题和章节
-3. 提供具体的实施建议
-4. 结合项目特点定制内容
-
-请开始生成：`;
-}
-
-// 调用AI模型生成内容
-async function generateWithAI(prompt: string): Promise<string> {
+// 统一的AI生成逻辑（与前端保持一致）
+const generateTemplate = async (templateType: string, projectData: any, language: string = 'zh') => {
   try {
-    // 这里可以集成多种AI模型，目前使用默认的模拟生成
-    // 实际使用时可以替换为真实的AI API调用
+    console.log(`🤖 开始生成${language === 'zh' ? '中文' : '英文'}模板:`, templateType);
     
-    // 模拟AI生成的内容
-    const response = await simulateAIGeneration(prompt);
-    return response;
+    const templateConfig = TEMPLATE_TYPES.find(t => t.code === templateType);
+    if (!templateConfig) {
+      throw new Error(`未知的模板类型: ${templateType}`);
+    }
+
+    // 构建统一的提示词格式
+    const templateName = language === 'zh' ? templateConfig.name : templateConfig.nameEn;
+    const prompt = buildPrompt(templateType, projectData, language, templateName);
+    
+    console.log(`📝 构建提示词完成，长度: ${prompt.length}`);
+
+    // 使用AI生成内容
+    const content = await callAIService(prompt, language);
+    
+    console.log(`✅ ${templateName} 生成完成，内容长度: ${content.length}`);
+    return content;
+
+  } catch (error) {
+    console.error(`❌ 生成模板失败 (${templateType}):`, error);
+    throw error;
+  }
+};
+
+// 统一的提示词构建函数（与前端promptBuilder保持一致）
+const buildPrompt = (templateType: string, projectData: any, language: string, templateName: string) => {
+  const isEnglish = language === 'en';
+  
+  const basePrompt = isEnglish ? 
+    `You are a professional product manager. Please generate a detailed ${templateName} based on the following project information:` :
+    `你是一位专业的产品经理，请根据以下项目信息生成详细的${templateName}：`;
+
+  const projectInfo = isEnglish ?
+    `Project Name: ${projectData.name}\nProject Description: ${projectData.description}\nPrimary Category: ${projectData.primary_category}\nSecondary Category: ${projectData.secondary_category}` :
+    `项目名称：${projectData.name}\n项目描述：${projectData.description}\n主分类：${projectData.primary_category}\n子分类：${projectData.secondary_category}`;
+
+  // 根据模板类型添加特定要求
+  let specificRequirements = '';
+  
+  switch (templateType) {
+    case 'prd':
+      specificRequirements = isEnglish ?
+        `\nPlease include the following sections:\n1. Product Overview\n2. User Stories\n3. Functional Requirements\n4. Non-functional Requirements\n5. User Interface Requirements\n6. Data Requirements\n7. Integration Requirements\n8. Performance Requirements\n9. Security Requirements\n10. Testing Requirements` :
+        `\n请包含以下章节：\n1. 产品概述\n2. 用户故事\n3. 功能需求\n4. 非功能需求\n5. 用户界面需求\n6. 数据需求\n7. 集成需求\n8. 性能需求\n9. 安全需求\n10. 测试需求`;
+      break;
+    case 'mrd':
+      specificRequirements = isEnglish ?
+        `\nPlease include the following sections:\n1. Market Analysis\n2. Target Market\n3. Competitive Analysis\n4. Market Requirements\n5. Market Strategy\n6. Go-to-Market Plan\n7. Revenue Model\n8. Risk Analysis` :
+        `\n请包含以下章节：\n1. 市场分析\n2. 目标市场\n3. 竞争分析\n4. 市场需求\n5. 市场策略\n6. 上市计划\n7. 收入模式\n8. 风险分析`;
+      break;
+    case 'tech-arch':
+      specificRequirements = isEnglish ?
+        `\nPlease include the following sections:\n1. System Overview\n2. Architecture Principles\n3. Technology Stack\n4. System Components\n5. Data Architecture\n6. Security Architecture\n7. Performance Considerations\n8. Scalability Plan` :
+        `\n请包含以下章节：\n1. 系统概述\n2. 架构原则\n3. 技术栈\n4. 系统组件\n5. 数据架构\n6. 安全架构\n7. 性能考虑\n8. 扩展性计划`;
+      break;
+    case 'business-canvas':
+      specificRequirements = isEnglish ?
+        `\nPlease structure as a Business Model Canvas with:\n1. Key Partners\n2. Key Activities\n3. Key Resources\n4. Value Propositions\n5. Customer Relationships\n6. Channels\n7. Customer Segments\n8. Cost Structure\n9. Revenue Streams` :
+        `\n请按商业模式画布结构组织：\n1. 关键合作伙伴\n2. 关键活动\n3. 关键资源\n4. 价值主张\n5. 客户关系\n6. 渠道通路\n7. 客户细分\n8. 成本结构\n9. 收入来源`;
+      break;
+    case 'user-journey':
+      specificRequirements = isEnglish ?
+        `\nPlease include the following phases:\n1. Awareness Phase\n2. Consideration Phase\n3. Purchase/Signup Phase\n4. Onboarding Phase\n5. Usage Phase\n6. Support Phase\n7. Advocacy Phase\nFor each phase, describe user actions, emotions, pain points, and opportunities.` :
+        `\n请包含以下阶段：\n1. 认知阶段\n2. 考虑阶段\n3. 购买/注册阶段\n4. 引导阶段\n5. 使用阶段\n6. 支持阶段\n7. 推荐阶段\n对于每个阶段，请描述用户行为、情感、痛点和机会。`;
+      break;
+  }
+
+  const formatRequirements = isEnglish ?
+    `\nFormat requirements:\n- Use clear headings and subheadings\n- Provide detailed and actionable content\n- Include specific examples where applicable\n- Ensure professional presentation\n- Output should be comprehensive and ready for immediate use` :
+    `\n格式要求：\n- 使用清晰的标题和子标题\n- 提供详细且可操作的内容\n- 在适当的地方包含具体示例\n- 确保专业的呈现方式\n- 输出应该全面且可立即使用`;
+
+  return `${basePrompt}\n\n${projectInfo}${specificRequirements}${formatRequirements}`;
+};
+
+// AI服务调用函数
+const callAIService = async (prompt: string, language: string): Promise<string> => {
+  try {
+    // 这里可以集成不同的AI服务
+    // 目前使用模拟生成，实际使用时替换为真实AI API调用
+    
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.VITE_DEFAULT_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0.7
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI API调用失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || '生成内容为空';
     
   } catch (error) {
-    console.error('AI生成失败:', error);
-    throw new Error(`AI生成失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    console.error('AI服务调用失败:', error);
+    // 返回模拟内容作为后备
+    return generateMockContent(prompt, language);
   }
-}
+};
 
-// 模拟AI生成（实际使用时替换为真实AI API）
-async function simulateAIGeneration(prompt: string): Promise<string> {
-  // 这里可以集成OpenAI、Anthropic Claude、或其他AI模型
-  // 目前返回模拟内容
-  return `# 根据模板生成的内容
+// 模拟内容生成（用于测试和后备）
+const generateMockContent = (prompt: string, language: string): string => {
+  const timestamp = new Date().toLocaleString('zh-CN');
+  return language === 'zh' ? 
+    `# 模板文档\n\n本文档由AI自动生成于 ${timestamp}\n\n## 概述\n\n这是一个基于项目需求自动生成的模板文档。\n\n## 内容\n\n${prompt.substring(0, 200)}...\n\n## 结论\n\n此文档提供了完整的项目分析和建议。` :
+    `# Template Document\n\nThis document was automatically generated by AI at ${timestamp}\n\n## Overview\n\nThis is a template document automatically generated based on project requirements.\n\n## Content\n\n${prompt.substring(0, 200)}...\n\n## Conclusion\n\nThis document provides complete project analysis and recommendations.`;
+};
 
-## 概述
-这是基于项目需求和模板要求生成的专业文档内容。
-
-## 详细分析
-${prompt.substring(0, 200)}...
-
-## 结论和建议
-1. 基于项目特点制定具体方案
-2. 结合市场趋势进行优化
-3. 持续迭代和改进
-
----
-生成时间: ${new Date().toISOString()}
-`;
-}
-
-// 批量生成模板版本
-async function batchGenerateTemplates(userId: string, language: string = 'zh'): Promise<any> {
-  console.log(`🚀 开始批量生成模板，用户ID: ${userId}, 语言: ${language}`);
-  
+// 保存模板到数据库（与前端逻辑一致）
+const saveTemplate = async (templateData: any) => {
   try {
-    // 1. 获取用户的所有项目
-    const { data: projects, error: projectsError } = await supabase
-      .from('user_projects')
-      .select('id, name, description, created_at')
-      .eq('user_id', userId)
-      .not('name', 'is', null)
-      .not('name', 'eq', '')
-      .order('created_at', { ascending: false });
+    // 检查现有版本
+    const nextVersion = await checkExistingVersion(
+      templateData.template_type,
+      templateData.project_id,
+      templateData.language
+    );
 
+    // 保存到templates表
+    const { data: template, error: templateError } = await supabase
+      .from('templates')
+      .insert({
+        name: templateData.name,
+        type: templateData.template_type,
+        project_id: templateData.project_id,
+        language: templateData.language,
+        content: templateData.content,
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    if (templateError) {
+      console.error('保存模板失败:', templateError);
+      throw templateError;
+    }
+
+    // 保存版本信息到template_versions表
+    const { data: version, error: versionError } = await supabase
+      .from('template_versions')
+      .insert({
+        template_id: template.id,
+        template_type: templateData.template_type,
+        project_id: templateData.project_id,
+        language: templateData.language,
+        version_number: nextVersion,
+        content: templateData.content,
+        change_notes: `批量生成 - 版本 ${nextVersion}`,
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    if (versionError) {
+      console.error('保存版本失败:', versionError);
+      throw versionError;
+    }
+
+    console.log(`✅ 模板保存成功: ${templateData.name} (版本 ${nextVersion})`);
+    return { template, version };
+
+  } catch (error) {
+    console.error('保存模板异常:', error);
+    throw error;
+  }
+};
+
+// 主处理函数
+export const handler: Handler = async (event: HandlerEvent, context: HandlerContext): Promise<HandlerResponse> => {
+  try {
+    console.log('🚀 开始批量生成模板...');
+    
+    // 解析请求参数
+    const params = event.queryStringParameters || {};
+    const languages = params.languages ? params.languages.split(',') : ['zh', 'en'];
+    const templateTypes = params.types ? params.types.split(',') : TEMPLATE_TYPES.map(t => t.code);
+    const categoryCode = params.category || '';
+    const limit = parseInt(params.limit || '10');
+    
+    console.log('📋 生成参数:', { languages, templateTypes, categoryCode, limit });
+
+    // 获取项目数据
+    let query = supabase
+      .from('projects')
+      .select('*')
+      .limit(limit);
+    
+    if (categoryCode) {
+      query = query.or(`primary_category_code.eq.${categoryCode},secondary_category_code.eq.${categoryCode}`);
+    }
+    
+    const { data: projects, error: projectsError } = await query;
+    
     if (projectsError) {
-      throw new Error(`获取项目失败: ${projectsError.message}`);
+      throw new Error(`获取项目数据失败: ${projectsError.message}`);
     }
 
     if (!projects || projects.length === 0) {
       return {
-        success: true,
-        message: '该用户没有项目需要生成模板',
-        statistics: { totalProjects: 0, totalGenerated: 0, totalSkipped: 0 }
-      };
-    }
-
-    console.log(`📊 找到 ${projects.length} 个项目`);
-
-    // 2. 获取所有模板
-    const { data: templatesData, error: templatesError } = await supabase
-      .from('templates')
-      .select(`
-        id,
-        name_zh,
-        name_en,
-        prompt_content,
-        category:template_categories!inner (
-          name_zh,
-          name_en
-        )
-      `)
-      .order('created_at', { ascending: true });
-
-    if (templatesError) {
-      throw new Error(`获取模板失败: ${templatesError.message}`);
-    }
-
-    if (!templatesData || templatesData.length === 0) {
-      return {
-        success: true,
-        message: '系统中没有可用的模板',
-        statistics: { totalProjects: projects.length, totalGenerated: 0, totalSkipped: 0 }
-      };
-    }
-
-    // 转换模板数据格式
-    const templates: Template[] = templatesData.map(t => ({
-      id: t.id,
-      name_zh: t.name_zh,
-      name_en: t.name_en,
-      prompt_content: t.prompt_content,
-      category: {
-        name_zh: t.category[0]?.name_zh || '',
-        name_en: t.category[0]?.name_en || ''
-      }
-    }));
-
-    console.log(`📝 找到 ${templates.length} 个模板`);
-
-    // 3. 获取现有的模板版本
-    const { data: existingVersions, error: versionsError } = await supabase
-      .from('template_versions')
-      .select('template_id, project_id, is_active')
-      .in('project_id', projects.map(p => p.id));
-
-    if (versionsError) {
-      throw new Error(`获取现有版本失败: ${versionsError.message}`);
-    }
-
-    console.log(`🔍 找到 ${existingVersions?.length || 0} 个现有版本`);
-
-    // 4. 确定需要生成的模板版本
-    const toGenerate: Array<{ project: Project; template: Template }> = [];
-    
-    for (const project of projects) {
-      for (const template of templates) {
-        // 检查是否已存在活跃版本
-        const hasActiveVersion = existingVersions?.some(
-          (version: ExistingVersion) => 
-            version.template_id === template.id && 
-            version.project_id === project.id && 
-            version.is_active
-        );
-
-        if (!hasActiveVersion) {
-          toGenerate.push({ project, template });
-        }
-      }
-    }
-
-    console.log(`⏳ 需要生成 ${toGenerate.length} 个模板版本`);
-
-    if (toGenerate.length === 0) {
-      return {
-        success: true,
-        message: '所有项目的模板版本都已生成',
-        statistics: {
-          totalProjects: projects.length,
-          totalTemplates: templates.length,
-          totalGenerated: 0,
-          totalSkipped: projects.length * templates.length
-        }
-      };
-    }
-
-    // 5. 批量生成模板版本
-    const results = {
-      success: 0,
-      failed: 0,
-      errors: [] as string[]
-    };
-
-    for (let i = 0; i < toGenerate.length; i++) {
-      const { project, template } = toGenerate[i];
-      const templateName = language === 'zh' ? template.name_zh : template.name_en;
-      
-      console.log(`🔄 生成 ${i + 1}/${toGenerate.length}: ${project.name} - ${templateName}`);
-
-      try {
-        // 构建提示词
-        const prompt = buildPrompt(template, project.name, project.description || '', language);
-        
-        // 调用AI生成内容
-        const generatedContent = await generateWithAI(prompt);
-        
-        // 保存到数据库
-        const { error: insertError } = await supabase
-          .from('template_versions')
-          .insert({
-            template_id: template.id,
-            project_id: project.id,
-            input_content: project.description || '',
-            output_content: {
-              content: generatedContent,
-              annotations: []
-            },
-            created_by: userId,
-            is_active: true
-          });
-
-        if (insertError) {
-          throw new Error(`保存失败: ${insertError.message}`);
-        }
-
-        results.success++;
-        console.log(`✅ 成功生成: ${project.name} - ${templateName}`);
-
-        // 添加延迟避免过快调用
-        if (i < toGenerate.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-
-      } catch (error) {
-        const errorMessage = `${project.name} - ${templateName}: ${error instanceof Error ? error.message : '未知错误'}`;
-        results.failed++;
-        results.errors.push(errorMessage);
-        console.error(`❌ 生成失败: ${errorMessage}`);
-        
-        // 如果连续失败太多次，停止生成
-        if (results.failed > 10) {
-          console.log('❌ 连续失败次数过多，停止批量生成');
-          break;
-        }
-      }
-    }
-
-    return {
-      success: true,
-      message: '批量生成完成',
-      statistics: {
-        totalProjects: projects.length,
-        totalTemplates: templates.length,
-        totalToGenerate: toGenerate.length,
-        successCount: results.success,
-        failedCount: results.failed,
-        totalGenerated: results.success,
-        totalSkipped: (projects.length * templates.length) - toGenerate.length
-      },
-      errors: results.errors
-    };
-
-  } catch (error) {
-    console.error('❌ 批量生成失败:', error);
-    throw error;
-  }
-}
-
-export const handler: Handler = async (event: HandlerEvent, context: HandlerContext): Promise<HandlerResponse> => {
-  // 设置CORS头
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Content-Type': 'application/json'
-  };
-
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: ''
-    };
-  }
-
-  try {
-    const { queryStringParameters } = event;
-    const userId = queryStringParameters?.user_id || DEFAULT_USER_ID;
-    const language = queryStringParameters?.lang || 'zh';
-    const force = queryStringParameters?.force === 'true';
-
-    console.log(`🚀 批量生成模板请求: 用户=${userId}, 语言=${language}, 强制=${force}`);
-
-    // 验证语言参数
-    if (!['zh', 'en'].includes(language)) {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ 
-          success: false,
-          error: 'Unsupported language. Use "zh" or "en".' 
+        statusCode: 200,
+        body: JSON.stringify({
+          success: true,
+          message: '没有找到符合条件的项目',
+          generated: 0,
+          skipped: 0,
+          details: []
         })
       };
     }
 
-    // 执行批量生成
-    const result = await batchGenerateTemplates(userId, language);
+    console.log(`📊 找到 ${projects.length} 个项目，开始生成模板...`);
+
+    const results = {
+      generated: 0,
+      skipped: 0,
+      errors: 0,
+      details: [] as any[]
+    };
+
+    // 批量生成模板
+    for (const project of projects) {
+      for (const language of languages) {
+        for (const templateType of templateTypes) {
+          try {
+            // 检查是否已存在（智能跳过机制）
+            const existingVersion = await checkExistingVersion(templateType, project.id, language);
+            if (existingVersion > 1) {
+              console.log(`⏭️ 跳过已存在的模板: ${project.name} - ${templateType} (${language})`);
+              results.skipped++;
+              results.details.push({
+                project: project.name,
+                type: templateType,
+                language,
+                status: 'skipped',
+                reason: '已存在版本'
+              });
+              continue;
+            }
+
+            // 生成模板内容
+            const content = await generateTemplate(templateType, project, language);
+            
+            // 保存模板
+            const templateConfig = TEMPLATE_TYPES.find(t => t.code === templateType)!;
+            const templateName = `${project.name} - ${language === 'zh' ? templateConfig.name : templateConfig.nameEn}`;
+            
+            await saveTemplate({
+              name: templateName,
+              template_type: templateType,
+              project_id: project.id,
+              language,
+              content
+            });
+
+            results.generated++;
+            results.details.push({
+              project: project.name,
+              type: templateType,
+              language,
+              status: 'success',
+              content_length: content.length
+            });
+
+            console.log(`✅ 生成完成: ${templateName}`);
+
+          } catch (error) {
+            console.error(`❌ 生成失败: ${project.name} - ${templateType} (${language})`, error);
+            results.errors++;
+            results.details.push({
+              project: project.name,
+              type: templateType,
+              language,
+              status: 'error',
+              error: error instanceof Error ? error.message : '未知错误'
+            });
+          }
+        }
+      }
+    }
+
+    console.log('🎉 批量生成完成!', results);
 
     return {
       statusCode: 200,
-      headers,
-      body: JSON.stringify(result)
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        success: true,
+        message: `批量生成完成！成功生成 ${results.generated} 个模板，跳过 ${results.skipped} 个，失败 ${results.errors} 个`,
+        ...results
+      })
     };
 
   } catch (error) {
-    console.error('❌ 批量生成模板失败:', error);
-    
+    console.error('❌ 批量生成失败:', error);
     return {
       statusCode: 500,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({
         success: false,
-        error: '批量生成模板失败',
-        details: error instanceof Error ? error.message : String(error)
+        error: error instanceof Error ? error.message : '未知错误'
       })
     };
   }
-}; 
+};

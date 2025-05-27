@@ -115,19 +115,24 @@ const AIProductsPage: React.FC = () => {
   // 获取项目数据
   const fetchProjects = async (categoryCode?: string) => {
     try {
+      console.log('📊 开始获取项目数据，分类:', categoryCode || '全部');
       setLoading(true);
       let url = '/.netlify/functions/get-projects-by-category';
       if (categoryCode) {
         url += `?category=${encodeURIComponent(categoryCode)}`;
       }
       
+      console.log('🌐 请求URL:', url);
       const response = await fetch(url);
       const data = await response.json();
       if (data.success) {
+        console.log('✅ 获取项目成功，数量:', data.projects.length);
         setProjects(data.projects);
+      } else {
+        console.error('❌ 获取项目失败:', data.error);
       }
     } catch (error) {
-      console.error('获取项目失败:', error);
+      console.error('❌ 获取项目失败:', error);
     } finally {
       setLoading(false);
     }
@@ -140,6 +145,13 @@ const AIProductsPage: React.FC = () => {
   useEffect(() => {
     fetchProjects(selectedCategory);
   }, [selectedCategory]);
+
+  // 监听URL参数变化，同步分类状态
+  useEffect(() => {
+    if (categoryCode !== undefined) {
+      setSelectedCategory(categoryCode);
+    }
+  }, [categoryCode]);
 
   // 构建分类树
   const buildCategoryTree = () => {
@@ -167,8 +179,17 @@ const AIProductsPage: React.FC = () => {
 
   // 选择分类
   const selectCategory = (categoryCode: string) => {
+    console.log('🎯 选择分类:', categoryCode);
     setSelectedCategory(categoryCode);
-    navigate(`/ai-products/${categoryCode}`);
+    
+    // 更新URL，但保持在当前页面
+    if (categoryCode === '') {
+      // 选择全部分类时，导航到基础路径
+      navigate('/ai-products', { replace: true });
+    } else {
+      // 选择具体分类时，导航到带参数的路径
+      navigate(`/ai-products/${categoryCode}`, { replace: true });
+    }
   };
 
   // 过滤项目
