@@ -73,46 +73,7 @@ const Header: React.FC = () => {
           <h1 className="text-xl font-bold">ProductMind AI</h1>
         </div>
 
-        <div className="relative w-full max-w-md mx-4">
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-200" />
-            <input
-              type="text"
-              placeholder={t('search.placeholder')}
-              value={searchQuery}
-              onChange={handleSearch}
-              className="w-full bg-indigo-700 rounded-full py-2 pl-10 pr-10 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            {searchQuery && (
-              <button
-                onClick={clearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-              >
-                <XMarkIcon className="h-5 w-5 text-indigo-200 hover:text-white" />
-              </button>
-            )}
-          </div>
-
-          {isSearchOpen && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 mt-2 bg-white rounded-md shadow-lg overflow-hidden z-20">
-              <div className="max-h-96 overflow-y-auto">
-                {searchResults.map((template) => (
-                  <button
-                    key={template.id}
-                    className="w-full text-left px-4 py-3 hover:bg-indigo-50 border-b border-gray-100 text-gray-800"
-                    onClick={() => handleSelectResult(template.id)}
-                  >
-                    <p className="font-medium">{template.title}</p>
-                    <p className="text-sm text-gray-500">{template.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
         <div className="flex items-center space-x-4">
-          <ModelSettings />
           <LanguageSwitch />
           {isAuthenticated ? (
             <button
@@ -137,6 +98,18 @@ const Header: React.FC = () => {
               </Link>
             </div>
           )}
+          <Link
+            to="/dashboard"
+            className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200"
+          >
+            {language === 'zh' ? '我的产品' : 'My Products'}
+          </Link>
+          <Link
+            to="/ai-products"
+            className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200"
+          >
+            {language === 'zh' ? 'AI产品参考' : 'AI Products'}
+          </Link>
           <a
             href="https://github.com/hangeaiagent/productmindaidev"
             target="_blank"
@@ -159,13 +132,6 @@ const Header: React.FC = () => {
               <path d="M9 18c-4.51 2-5-2-7-2" />
             </svg>
           </a>
-          <button
-            onClick={handleAIFundingSearch}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
-          >
-            <Search className="w-4 h-4 mr-2" />
-            {t('搜索AI融资项目')}
-          </button>
         </div>
       </div>
     </header>

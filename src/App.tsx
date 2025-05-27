@@ -7,6 +7,8 @@ import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import Auth from './components/Auth';
+import HomePage from './components/HomePage';
+import AIProductsPage from './components/AIProductsPage';
 
 function App() {
   return (
@@ -16,8 +18,13 @@ function App() {
           <Routes>
             <Route path="/login" element={<Auth />} />
             <Route path="/register" element={<Auth />} />
+
+            {/* 首页 */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* 产品管理 Dashboard 页面 */}
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <div className="flex flex-col min-h-screen">
                   <Header />
@@ -28,6 +35,12 @@ function App() {
                 </div>
               }
             />
+
+            {/* AI 产品参考页面 */}
+            <Route path="/ai-products" element={<AIProductsPage />} />
+
+            {/* 404 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppProvider>
       </AuthProvider>
