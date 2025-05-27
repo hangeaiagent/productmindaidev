@@ -1,25 +1,25 @@
-# 批量生成模板使用指南
+# 批量生成模板使用指南 (数据库驱动版)
 
 ## 🎯 概述
 
-批量生成模板功能允许您一次性为多个AI产品项目生成各种类型的产品文档模板。系统支持中英双语生成，智能版本管理，以及详细的进度跟踪。
+批量生成模板功能现已升级为**数据库驱动**，动态从 `templates` 表获取模板信息和提示词内容。系统支持中英双语生成，智能版本管理，以及详细的进度跟踪。
 
 ## 📋 功能特性
 
-### ✅ 支持的模板类型
-- **PRD** - 产品需求文档 (Product Requirements Document)
-- **MRD** - 市场需求文档 (Market Requirements Document) 
-- **tech-arch** - 技术架构文档 (Technical Architecture Document)
-- **business-canvas** - 商业模式画布 (Business Model Canvas)
-- **user-journey** - 用户体验地图 (User Experience Map)
+### ✅ 数据库驱动的模板系统
+- **动态模板获取** - 从 `templates` 表实时获取模板列表
+- **提示词管理** - 使用数据库中的 `prompt_content` 字段
+- **模板分类** - 支持按 `category_id` 分类管理
+- **多语言支持** - `name_zh/name_en` 双语名称
+- **版本控制** - 基于 `template_versions` 表的版本管理
 
 ### 🌍 多语言支持
-- **中文 (zh)** - 完整的中文模板生成
-- **英文 (en)** - 专业的英文模板生成
+- **中文 (zh)** - 使用 `name_zh` 和中文适配的提示词
+- **英文 (en)** - 使用 `name_en` 和英文适配的提示词
 
 ### 🔄 智能特性
-- **版本管理** - 自动版本号递增，避免覆盖
-- **智能跳过** - 已存在的模板自动跳过
+- **版本管理** - 基于 `template_id` 的自动版本递增
+- **智能跳过** - 已存在版本的模板自动跳过
 - **错误处理** - 详细的错误日志和恢复机制
 - **进度跟踪** - 实时生成进度和状态反馈
 
@@ -28,17 +28,17 @@
 ### 方法1: 直接函数调用（推荐）
 
 ```bash
-# 基础批量生成（默认10个项目，中英双语，所有模板类型）
-curl "https://你的netlify域名.netlify.app/.netlify/functions/batch-generate-templates"
+# 基础批量生成（使用数据库中的所有模板）
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates"
 
-# 指定参数的批量生成
-curl "https://你的netlify域名.netlify.app/.netlify/functions/batch-generate-templates?limit=20&languages=zh,en&types=prd,mrd&category=1020"
+# 指定特定模板ID（从数据库templates表获取）
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?limit=20&languages=zh,en&templates=0346ed34-aa1a-4727-b1a5-2e4b86114568,0a6f134b-44f0-496b-b396-04ba2c9daa96"
 ```
 
 ### 方法2: 浏览器直接访问
 
 ```
-https://你的netlify域名.netlify.app/.netlify/functions/batch-generate-templates
+https://productmindai.com/.netlify/functions/batch-generate-templates
 ```
 
 ### 方法3: 本地开发环境
@@ -57,160 +57,154 @@ curl "http://localhost:8888/.netlify/functions/batch-generate-templates"
 |------|------|--------|------|------|
 | `limit` | number | 10 | 处理的项目数量 | `limit=50` |
 | `languages` | string | zh,en | 生成语言，逗号分隔 | `languages=zh` |
-| `types` | string | 全部 | 模板类型，逗号分隔 | `types=prd,mrd` |
-| `category` | string | 空 | 分类筛选条件 | `category=1020` |
+| `templates` | string | 全部 | 模板ID列表，逗号分隔 | `templates=uuid1,uuid2` |
+| `category` | string | 空 | 项目分类筛选条件 | `category=1020` |
 
 ### 📝 参数组合示例
 
 ```bash
-# 只生成中文PRD文档，限制5个项目
-curl "https://你的域名/.netlify/functions/batch-generate-templates?limit=5&languages=zh&types=prd"
+# 使用特定模板生成中文文档
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?limit=5&languages=zh&templates=0346ed34-aa1a-4727-b1a5-2e4b86114568"
 
 # 为特定分类生成所有模板
-curl "https://你的域名/.netlify/functions/batch-generate-templates?category=1020&limit=20"
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?category=1020&limit=20"
 
-# 只生成英文商业文档
-curl "https://你的域名/.netlify/functions/batch-generate-templates?languages=en&types=business-canvas,mrd"
+# 使用多个模板生成英文文档
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?languages=en&templates=0a6f134b-44f0-496b-b396-04ba2c9daa96,22a6333e-d310-45ae-9a41-7163e0afff60"
+```
+
+## 📋 获取可用模板列表
+
+### 查询数据库模板
+
+```sql
+-- 查看所有可用模板
+SELECT id, name_zh, name_en, description_zh, description_en
+FROM templates 
+ORDER BY no;
+
+-- 按分类查看模板
+SELECT t.id, t.name_zh, t.name_en, tc.name_zh as category_name
+FROM templates t
+JOIN template_categories tc ON t.category_id = tc.id
+ORDER BY tc.name_zh, t.no;
+```
+
+### 常用模板ID参考
+
+根据数据库中的模板数据：
+
+```bash
+# 市场趋势分析
+templates=0346ed34-aa1a-4727-b1a5-2e4b86114568
+
+# 竞品分析报告  
+templates=0a6f134b-44f0-496b-b396-04ba2c9daa96
+
+# 功能优先级排序
+templates=22a6333e-d310-45ae-9a41-7163e0afff60
+
+# MVP功能定义
+templates=3ba30b8d-be77-4a90-a4a7-93d78143f338
+
+# 产品路线图规划
+templates=82d0deef-9a45-4ec8-86e3-15171f97db6c
 ```
 
 ## 📈 进度查看
 
 ### 1. 实时日志查看
 
-**Netlify部署环境**：
-```bash
-# 查看函数日志
-netlify functions:log batch-generate-templates
-```
-
 **本地开发环境**：
-- 在终端中直接查看实时输出日志
-
-### 2. 日志内容解读
-
 ```
-🚀 开始批量生成模板...
-📋 生成参数: {"languages":["zh","en"],"templateTypes":["prd","mrd"],"categoryCode":"","limit":10}
+📚 从数据库获取模板列表...
+✅ 成功获取 17 个模板
+📋 选择模板数量: 17
 📊 找到 10 个项目，开始生成模板...
-🤖 开始生成中文模板: prd
-📝 构建提示词完成，长度: 1205
-✅ 产品需求文档 (PRD) 生成完成，内容长度: 2841
-✅ 模板保存成功: OpenAI ChatGPT - 产品需求文档 (PRD) (版本 1)
-✅ 生成完成: OpenAI ChatGPT - 产品需求文档 (PRD)
-⏭️ 跳过已存在的模板: OpenAI ChatGPT - mrd (zh)
-🎉 批量生成完成! {"generated":1,"skipped":1,"errors":0,"details":[...]}
+🤖 开始生成中文模板: 市场趋势预测
+🎯 使用模板: 市场趋势预测
+📝 构建提示词完成，长度: 1340
+✅ 市场趋势预测 生成完成，内容长度: 2150
+✅ 模板版本保存成功: OpenAI ChatGPT - 市场趋势预测 (版本 1)
 ```
 
-### 3. 数据库检查
+### 2. 数据库检查
 
 ```sql
--- 查看生成的模板
-SELECT name, type, language, created_at 
-FROM templates 
-ORDER BY created_at DESC 
+-- 查看最新生成的模板版本
+SELECT tv.*, t.name_zh, t.name_en
+FROM template_versions tv
+JOIN templates t ON tv.template_id = t.id
+ORDER BY tv.created_at DESC 
 LIMIT 20;
 
--- 查看版本信息
-SELECT template_type, project_id, language, version_number, status
-FROM template_versions 
-ORDER BY created_at DESC 
-LIMIT 20;
+-- 查看生成统计
+SELECT 
+  t.name_zh,
+  COUNT(*) as version_count,
+  MAX(tv.created_at) as latest_generation
+FROM template_versions tv
+JOIN templates t ON tv.template_id = t.id
+WHERE tv.created_at > NOW() - INTERVAL '1 hour'
+GROUP BY t.id, t.name_zh
+ORDER BY version_count DESC;
 ```
 
 ## 🔄 后台运行特性
 
 ### ✅ 浏览器关闭后继续运行
 
-**是的！批量生成支持后台运行，主要原因：**
+**完全支持后台运行：**
 
-1. **服务器端执行** - 函数在Netlify服务器上运行，不依赖浏览器
-2. **无状态设计** - 每次调用都是独立的，不需要保持连接
-3. **数据库持久化** - 所有生成结果直接保存到Supabase数据库
+1. **服务器端执行** - 函数在Netlify服务器运行
+2. **数据库持久化** - 结果保存到 `template_versions` 表
+3. **智能恢复** - 重启后自动跳过已生成的版本
 
-### 📊 后台运行监控
+### 📊 监控示例
 
 ```bash
-# 方法1: 定期检查数据库
-# 通过查询最新的template_versions表记录来监控进度
+# 分批执行不同模板类型
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?templates=0346ed34-aa1a-4727-b1a5-2e4b86114568,0a6f134b-44f0-496b-b396-04ba2c9daa96&limit=10"
 
-# 方法2: 设置webhook通知（可选）
-# 在函数中添加完成通知逻辑
-
-# 方法3: 分批执行（推荐大量数据）
-# 将大批量任务分解为多个小批次
-curl "https://你的域名/.netlify/functions/batch-generate-templates?limit=10&category=1020"
-curl "https://你的域名/.netlify/functions/batch-generate-templates?limit=10&category=1030"
+curl "https://productmindai.com/.netlify/functions/batch-generate-templates?templates=22a6333e-d310-45ae-9a41-7163e0afff60,3ba30b8d-be77-4a90-a4a7-93d78143f338&limit=10"
 ```
 
-## ⚡ 性能优化建议
+## 📚 数据库模板系统优势
 
-### 1. 分批处理
-```bash
-# 避免一次处理过多项目，建议每批10-50个
-limit=20  # 推荐值
-```
+### 🎯 **动态管理**
+- ✅ 无需修改代码即可添加新模板
+- ✅ 通过数据库管理模板内容和提示词
+- ✅ 支持模板分类和排序
 
-### 2. 错误恢复
-```bash
-# 如果部分失败，可以重新运行，系统会自动跳过已生成的模板
-# 智能跳过机制确保不会重复生成
-```
+### 🔄 **版本控制**
+- ✅ 基于 `template_id` 的精确版本管理
+- ✅ 支持模板更新后的增量生成
+- ✅ 完整的生成历史记录
 
-### 3. 资源监控
-```bash
-# 监控Netlify函数执行时间和内存使用
-# 大批量任务建议分时段执行
-```
+### 🌍 **多语言支持**
+- ✅ 数据库级别的双语支持
+- ✅ 自动语言适配和提示词调整
+- ✅ 灵活的本地化管理
 
 ## 🚨 注意事项
 
 ### ⚠️ 重要提醒
 
-1. **函数超时** - Netlify免费版函数执行时间限制10秒，付费版25秒
-2. **并发限制** - 避免同时启动多个批量生成任务
-3. **API配额** - 注意AI服务的API调用限制
-4. **存储空间** - 大量模板会占用数据库存储空间
+1. **模板依赖** - 确保数据库中有可用的模板数据
+2. **权限配置** - 确保函数有读取 `templates` 表的权限  
+3. **模板格式** - 提示词应该包含项目信息的占位符逻辑
+4. **版本管理** - 使用正确的 `template_id` 进行版本跟踪
 
 ### 🔧 故障排除
 
 | 问题 | 原因 | 解决方案 |
 |------|------|----------|
-| 函数超时 | 处理项目过多 | 减少limit参数值 |
-| AI生成失败 | API密钥问题 | 检查环境变量配置 |
-| 数据库连接失败 | Supabase配置 | 验证数据库连接参数 |
-| 内存不足 | 大批量处理 | 分批执行，减小批次大小 |
-
-## 📚 示例场景
-
-### 场景1: 新项目全量生成
-```bash
-# 为前20个项目生成所有类型的中英文模板
-curl "https://你的域名/.netlify/functions/batch-generate-templates?limit=20&languages=zh,en"
-```
-
-### 场景2: 特定分类补充
-```bash
-# 为AI工具分类生成商业文档
-curl "https://你的域名/.netlify/functions/batch-generate-templates?category=1020&types=business-canvas,mrd&languages=en"
-```
-
-### 场景3: 中文文档批量生成
-```bash
-# 快速生成中文PRD文档
-curl "https://你的域名/.netlify/functions/batch-generate-templates?languages=zh&types=prd&limit=50"
-```
-
-## 📞 技术支持
-
-如果遇到问题，请检查：
-
-1. **环境变量** - 确保AI API密钥和数据库配置正确
-2. **网络连接** - 确保服务器可以访问外部API
-3. **数据库权限** - 确保Supabase权限配置正确
-4. **函数日志** - 查看详细的错误信息
+| 未找到可用模板 | templates表为空 | 检查数据库数据 |
+| 模板ID无效 | 指定的模板不存在 | 验证模板ID有效性 |
+| 权限错误 | 数据库访问权限 | 检查RLS策略配置 |
+| 提示词格式错误 | prompt_content格式问题 | 检查模板提示词内容 |
 
 ---
 
-*最后更新：2024年12月* 
-
-*文档版本：v2.0* 
+*最后更新：2024年12月*  
+*文档版本：v3.0 - 数据库驱动版* 

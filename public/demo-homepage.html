@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductMind AI - Homepage Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(to right, #2563eb, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .backdrop-blur {
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-white/80 backdrop-blur border-b border-gray-200 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold gradient-text">
+                        ProductMind AI
+                    </span>
+                </div>
+
+                <!-- Navigation Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Language Toggle -->
+                    <button 
+                        id="langToggle"
+                        class="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                        title="Switch Language"
+                    >
+                        <i data-lucide="languages" class="w-4 h-4"></i>
+                        <span id="langText" class="text-sm font-medium">中文</span>
+                    </button>
+
+                    <!-- GitHub Link -->
+                    <button 
+                        onclick="window.open('https://github.com/your-username/productmindai', '_blank')"
+                        class="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                        title="GitHub"
+                    >
+                        <i data-lucide="github" class="w-4 h-4"></i>
+                        <span class="text-sm font-medium hidden md:block">GitHub</span>
+                    </button>
+
+                    <!-- Login Button -->
+                    <button 
+                        onclick="handleLogin()"
+                        class="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                    >
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span id="loginText" class="text-sm font-medium">Login</span>
+                    </button>
+
+                    <!-- Register Button -->
+                    <button 
+                        onclick="handleRegister()"
+                        class="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors duration-200"
+                    >
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                        <span id="registerText" class="text-sm font-medium">Register</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-16">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl font-bold text-gray-900 mb-6">
+                <span class="gradient-text" id="mainTitle">
+                    ProductMind AI
+                </span>
+            </h1>
+            <p id="subtitle" class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Professional AI Product Management Platform. Discover 425+ quality AI products, access 25 professional templates, and enhance your product management efficiency.
+            </p>
+            
+            <!-- Main Navigation Buttons -->
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center max-w-4xl mx-auto">
+                
+                <!-- My Products Button -->
+                <div 
+                    onclick="window.location.href='/dashboard'"
+                    class="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 w-full md:w-96"
+                >
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6 mx-auto group-hover:bg-blue-200 transition-colors duration-300">
+                            <i data-lucide="database" class="w-8 h-8 text-blue-600"></i>
+                        </div>
+                        
+                        <h3 id="myProductsTitle" class="text-2xl font-bold text-gray-900 mb-4">My Products</h3>
+                        <p id="myProductsDesc" class="text-gray-600 mb-6 leading-relaxed">
+                            Manage your product projects with AI-powered analysis, requirement management, and decision support. Access professional product management document templates.
+                        </p>
+                        
+                        <div class="flex items-center justify-center text-blue-600 font-semibold group-hover:text-blue-700 transition-colors duration-300">
+                            <span id="myProductsAction">Enter Product Management</span>
+                            <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Products Button -->
+                <div 
+                    onclick="window.location.href='/ai-products'"
+                    class="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-purple-200 w-full md:w-96"
+                >
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6 mx-auto group-hover:bg-purple-200 transition-colors duration-300">
+                            <i data-lucide="sparkles" class="w-8 h-8 text-purple-600"></i>
+                        </div>
+                        
+                        <h3 id="aiProductsTitle" class="text-2xl font-bold text-gray-900 mb-4">AI Product Reference</h3>
+                        <p id="aiProductsDesc" class="text-gray-600 mb-6 leading-relaxed">
+                            Explore 425+ curated AI product cases, categorized by functionality, business models, and success stories. Get product inspiration and market insights.
+                        </p>
+                        
+                        <div class="flex items-center justify-center text-purple-600 font-semibold group-hover:text-purple-700 transition-colors duration-300">
+                            <span id="aiProductsAction">Browse AI Product Library</span>
+                            <i data-lucide="arrow-right" class="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="grid md:grid-cols-3 gap-8 mt-20">
+            <div class="text-center p-6">
+                <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4 mx-auto">
+                    <i data-lucide="globe" class="w-6 h-6 text-green-600"></i>
+                </div>
+                <h4 id="feature1Title" class="text-lg font-semibold text-gray-900 mb-2">425+ AI Products</h4>
+                <p id="feature1Desc" class="text-gray-600">Quality AI product cases across 11 major categories</p>
+            </div>
+            
+            <div class="text-center p-6">
+                <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4 mx-auto">
+                    <i data-lucide="bar-chart-3" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <h4 id="feature2Title" class="text-lg font-semibold text-gray-900 mb-2">25 Professional Templates</h4>
+                <p id="feature2Desc" class="text-gray-600">Essential documents including PRD, MRD, BRD for product management</p>
+            </div>
+            
+            <div class="text-center p-6">
+                <div class="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-4 mx-auto">
+                    <i data-lucide="sparkles" class="w-6 h-6 text-purple-600"></i>
+                </div>
+                <h4 id="feature3Title" class="text-lg font-semibold text-gray-900 mb-2">AI-Powered Analysis</h4>
+                <p id="feature3Desc" class="text-gray-600">Data-driven product insights and decision support</p>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="bg-white rounded-3xl p-8 mt-16 shadow-lg border border-gray-100">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div>
+                    <div class="text-3xl font-bold text-blue-600 mb-2">425+</div>
+                    <div id="stat1" class="text-gray-600">AI Products</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-purple-600 mb-2">25</div>
+                    <div id="stat2" class="text-gray-600">Templates</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-green-600 mb-2">11</div>
+                    <div id="stat3" class="text-gray-600">Categories</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-bold text-orange-600 mb-2">100%</div>
+                    <div id="stat4" class="text-gray-600">Free to Use</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Language state (default: English)
+        let currentLanguage = 'en';
+
+        // Content for both languages
+        const content = {
+            en: {
+                mainTitle: 'ProductMind AI',
+                subtitle: 'Professional AI Product Management Platform. Discover 425+ quality AI products, access 25 professional templates, and enhance your product management efficiency.',
+                myProductsTitle: 'My Products',
+                myProductsDesc: 'Manage your product projects with AI-powered analysis, requirement management, and decision support. Access professional product management document templates.',
+                myProductsAction: 'Enter Product Management',
+                aiProductsTitle: 'AI Product Reference',
+                aiProductsDesc: 'Explore 425+ curated AI product cases, categorized by functionality, business models, and success stories. Get product inspiration and market insights.',
+                aiProductsAction: 'Browse AI Product Library',
+                feature1Title: '425+ AI Products',
+                feature1Desc: 'Quality AI product cases across 11 major categories',
+                feature2Title: '25 Professional Templates',
+                feature2Desc: 'Essential documents including PRD, MRD, BRD for product management',
+                feature3Title: 'AI-Powered Analysis',
+                feature3Desc: 'Data-driven product insights and decision support',
+                stat1: 'AI Products',
+                stat2: 'Templates',
+                stat3: 'Categories',
+                stat4: 'Free to Use',
+                login: 'Login',
+                register: 'Register',
+                langText: '中文'
+            },
+            zh: {
+                mainTitle: 'ProductMind AI',
+                subtitle: '专业的AI产品管理平台，为产品经理提供完整的工具和资源库。探索425+优质AI产品，获取25个专业模板，提升产品管理效率。',
+                myProductsTitle: '我的产品',
+                myProductsDesc: '管理您的产品项目，使用AI工具进行产品分析、需求管理和决策支持。获取专业的产品管理文档模板。',
+                myProductsAction: '进入产品管理',
+                aiProductsTitle: 'AI产品参考',
+                aiProductsDesc: '探索425+精选AI产品案例，按分类查看产品功能、商业模式和成功案例。获取产品灵感和市场洞察。',
+                aiProductsAction: '浏览AI产品库',
+                feature1Title: '425+ AI产品',
+                feature1Desc: '涵盖11个主要分类的优质AI产品案例',
+                feature2Title: '25个专业模板',
+                feature2Desc: 'PRD、MRD、BRD等产品管理必备文档',
+                feature3Title: 'AI智能分析',
+                feature3Desc: '基于数据的产品洞察和决策支持',
+                stat1: 'AI产品案例',
+                stat2: '专业模板',
+                stat3: '产品分类',
+                stat4: '免费使用',
+                login: '登录',
+                register: '注册',
+                langText: 'EN'
+            }
+        };
+
+        // Update content based on language
+        function updateContent() {
+            const lang = content[currentLanguage];
+            
+            // Update all text elements
+            Object.keys(lang).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = lang[key];
+                }
+            });
+        }
+
+        // Language toggle handler
+        document.getElementById('langToggle').addEventListener('click', function() {
+            currentLanguage = currentLanguage === 'en' ? 'zh' : 'en';
+            updateContent();
+            
+            // Update page language attribute
+            document.documentElement.lang = currentLanguage;
+        });
+
+        // Login handler
+        function handleLogin() {
+            const message = currentLanguage === 'en' 
+                ? 'Login functionality will be implemented' 
+                : '登录功能将会实现';
+            alert(message);
+        }
+
+        // Register handler
+        function handleRegister() {
+            const message = currentLanguage === 'en' 
+                ? 'Register functionality will be implemented' 
+                : '注册功能将会实现';
+            alert(message);
+        }
+
+        // Initialize with default content
+        updateContent();
+    </script>
+</body>
+</html> 

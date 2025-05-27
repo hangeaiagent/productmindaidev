@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProductMind AI - 导航系统演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-600 mb-4">ProductMind AI 导航系统</h1>
+            <p class="text-xl text-gray-600">完整的AI产品管理平台导航演示</p>
+        </div>
+
+        <!-- 系统统计 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">📊 系统概览</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-600">493</div>
+                    <div class="text-gray-600">AI产品总数</div>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-3xl font-bold text-green-600">11</div>
+                    <div class="text-gray-600">一级分类</div>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-600">34</div>
+                    <div class="text-gray-600">二级分类</div>
+                </div>
+                <div class="text-center p-4 bg-orange-50 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-600">25</div>
+                    <div class="text-gray-600">专业模板</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导航路径演示 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">🗺️ 导航路径</h2>
+            <div class="space-y-4">
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="w-24 text-sm font-medium text-gray-600">首页</div>
+                    <div class="flex-1">
+                        <a href="/" class="text-blue-600 hover:underline">/ (首页 - 我的产品 | AI产品参考)</a>
+                    </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="w-24 text-sm font-medium text-gray-600">产品库</div>
+                    <div class="flex-1">
+                        <a href="/ai-products" class="text-blue-600 hover:underline">/ai-products (AI产品参考主页)</a>
+                    </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="w-24 text-sm font-medium text-gray-600">分类页</div>
+                    <div class="flex-1">
+                        <a href="/ai-products/10" class="text-blue-600 hover:underline">/ai-products/10 (图像处理分类)</a>
+                    </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="w-24 text-sm font-medium text-gray-600">子分类</div>
+                    <div class="flex-1">
+                        <a href="/ai-products/1010" class="text-blue-600 hover:underline">/ai-products/1010 (图片背景移除)</a>
+                    </div>
+                </div>
+                <div class="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <div class="w-24 text-sm font-medium text-gray-600">详情页</div>
+                    <div class="flex-1">
+                        <a href="/products/af4d3885-7ba3-45e5-a44a-f29d02640c78" class="text-blue-600 hover:underline" target="_blank">
+                            /products/{id} (SEO优化产品详情页)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要分类展示 -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-4">🏷️ 主要分类</h2>
+            <div id="categories" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 分类将通过JavaScript动态加载 -->
+            </div>
+        </div>
+
+        <!-- 热门项目展示 -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">🔥 热门项目</h2>
+            <div id="projects" class="space-y-4">
+                <!-- 项目将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+
+        // 加载分类数据
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${API_BASE}/.netlify/functions/get-categories`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('categories');
+                    const primaryCategories = data.categories.filter(cat => cat.category_level === 1);
+                    
+                    container.innerHTML = primaryCategories.map(category => `
+                        <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-semibold text-gray-900">${category.category_name}</h3>
+                                <span class="bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">${category.project_count || 0}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">分类代码: ${category.category_code}</p>
+                            <a href="/ai-products/${category.category_code}" 
+                               class="text-blue-600 hover:underline text-sm">查看分类 →</a>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+
+        // 加载项目数据
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/.netlify/functions/get-projects-by-category?limit=5`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const container = document.getElementById('projects');
+                    
+                    container.innerHTML = data.projects.map(project => `
+                        <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-900 mb-2">${project.name}</h3>
+                                    <p class="text-gray-600 text-sm mb-3 line-clamp-2">${project.description || '暂无描述'}</p>
+                                    <div class="flex space-x-2">
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">${project.primary_category}</span>
+                                        ${project.secondary_category ? `<span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">${project.secondary_category}</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <a href="/products/${project.id}" 
+                                       target="_blank"
+                                       class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors">
+                                        查看详情
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('加载项目失败:', error);
+            }
+        }
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadProjects();
+        });
+    </script>
+</body>
+</html> 

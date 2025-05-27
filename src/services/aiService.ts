@@ -96,7 +96,7 @@ export async function generateStream(
   const messages: AIMessage[] = [
     {
       role: 'system',
-      content: '你是一个专业的产品经理AI助手。请用markdown格式输出分析结果。'
+      content: '你是一个专业的产品经理AI助手。'
     },
     {
       role: 'user',

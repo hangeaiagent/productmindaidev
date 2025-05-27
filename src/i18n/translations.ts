@@ -1,17 +1,14 @@
-import { Translations } from '../types';
+type Translations = {
+  [key: string]: {
+    en: string;
+    zh: string;
+  };
+};
 
 export const translations: Translations = {
-  'search.placeholder': {
-    en: 'Search templates...',
-    zh: '搜索模板...',
-  },
   'ai.model': {
     en: 'AI Model:',
     zh: 'AI 模型：',
-  },
-  'model.settings': {
-    en: 'Model Settings',
-    zh: '模型设置',
   },
   'active': {
     en: 'Active',
@@ -74,8 +71,8 @@ export const translations: Translations = {
     zh: '下载分析报告',
   },
   'assistant.description': {
-    en: 'Your AI-powered product management assistant',
-    zh: '您的AI驱动产品管理助手',
+    en: 'Where AI Understands the Heart of Product Building!',
+    zh: 'Where AI Understands the Heart of Product Building!',
   },
   'current.model': {
     en: 'Current Model:',

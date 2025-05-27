@@ -353,7 +353,25 @@ const ProjectSelector: React.FC = () => {
       updated_at: new Date().toISOString(),
       is_default: false,
       is_open_source: false,
-      model_locked: false
+      model_locked: false,
+      // AI Funding 相关字段的默认值
+      company_info: '',
+      funding_info: '',
+      company_website: '',
+      funding_amount: '',
+      funding_round: '',
+      funding_date: null,
+      investors: [],
+      company_location: '',
+      industry_tags: [],
+      employee_count: '',
+      founding_date: null,
+      source_url: '',
+      source_name: '',
+      source_title: '',
+      source_date: null,
+      processed_at: null,
+      metadata: {}
     } as unknown as Project;
 
     setCurrentProject(emptyProject);
@@ -422,14 +440,32 @@ const ProjectSelector: React.FC = () => {
 
       // 准备数据库数据
       const projectData = {
-        name: currentProject.name, // 保持兼容性
-        description: currentProject.description || '', // 保持兼容性
+        name: currentProject.name,
+        description: currentProject.description || '',
         name_zh: sourceLang === 'zh' ? currentProject.name : translatedName,
         name_en: sourceLang === 'en' ? currentProject.name : translatedName,
         description_zh: sourceLang === 'zh' ? currentProject.description : translatedDesc,
         description_en: sourceLang === 'en' ? currentProject.description : translatedDesc,
         source_language: sourceLang,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        // AI Funding 相关字段
+        company_info: currentProject.company_info || '',
+        funding_info: currentProject.funding_info || '',
+        company_website: currentProject.company_website || '',
+        funding_amount: currentProject.funding_amount || '',
+        funding_round: currentProject.funding_round || '',
+        funding_date: currentProject.funding_date || null,
+        investors: currentProject.investors || [],
+        company_location: currentProject.company_location || '',
+        industry_tags: currentProject.industry_tags || [],
+        employee_count: currentProject.employee_count || '',
+        founding_date: currentProject.founding_date || null,
+        source_url: currentProject.source_url || '',
+        source_name: currentProject.source_name || '',
+        source_title: currentProject.source_title || '',
+        source_date: currentProject.source_date || null,
+        processed_at: currentProject.processed_at || null,
+        metadata: currentProject.metadata || {}
       };
 
       logger.debug('准备保存项目数据', {

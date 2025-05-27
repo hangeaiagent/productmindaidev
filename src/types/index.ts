@@ -77,6 +77,24 @@ export interface Project {
   is_default?: boolean;
   is_open_source?: boolean;
   model_locked?: boolean;
+  // AI Funding 相关字段
+  company_info?: string;
+  funding_info?: string;
+  company_website?: string;
+  funding_amount?: string;
+  funding_round?: string;
+  funding_date?: string | null;
+  investors?: string[];
+  company_location?: string;
+  industry_tags?: string[];
+  employee_count?: string;
+  founding_date?: string | null;
+  source_url?: string;
+  source_name?: string;
+  source_title?: string;
+  source_date?: string | null;
+  processed_at?: string | null;
+  metadata?: any;
 }
 
 export interface ProjectAnalysis {

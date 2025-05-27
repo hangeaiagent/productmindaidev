@@ -29,10 +29,35 @@ const PromptForm: React.FC = () => {
       id: '',
       name: '',
       description: '',
-      description: '',
+      name_zh: '',
+      name_en: '',
+      description_zh: '',
+      description_en: '',
+      source_language: language === 'zh' ? 'zh' : 'en',
       user_id: user?.id || '',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      is_default: false,
+      is_open_source: false,
+      model_locked: false,
+      // AI Funding 相关字段的默认值
+      company_info: '',
+      funding_info: '',
+      company_website: '',
+      funding_amount: '',
+      funding_round: '',
+      funding_date: null,
+      investors: [],
+      company_location: '',
+      industry_tags: [],
+      employee_count: '',
+      founding_date: null,
+      source_url: '',
+      source_name: '',
+      source_title: '',
+      source_date: null,
+      processed_at: null,
+      metadata: {}
     });
   };
 

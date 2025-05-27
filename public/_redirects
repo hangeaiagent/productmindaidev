@@ -1,0 +1,35 @@
+# 中文产品页面路由
+/products/:id /.netlify/functions/generate-seo-pages?id=:id&lang=zh 200
+
+# 英文产品页面路由  
+/en/products/:id /.netlify/functions/generate-seo-pages?id=:id&lang=en 200
+
+# 模板生成路由
+/templates/:id /.netlify/functions/generate-templates?id=:id&lang=zh 200
+/en/templates/:id /.netlify/functions/generate-templates?id=:id&lang=en 200
+
+# 批量生成模板路由
+/batch-generate /.netlify/functions/batch-generate-templates?lang=zh 200
+/en/batch-generate /.netlify/functions/batch-generate-templates?lang=en 200
+
+# 演示版本批量生成模板路由
+/demo/batch-generate /.netlify/functions/batch-generate-templates-demo?lang=zh 200
+/en/demo/batch-generate /.netlify/functions/batch-generate-templates-demo?lang=en 200
+
+# SEO文件
+/sitemap.xml /.netlify/functions/generate-sitemap 200
+/robots.txt /.netlify/functions/generate-robots 200
+
+# API接口重定向
+/api/categories /.netlify/functions/get-categories 200
+/api/projects /.netlify/functions/get-projects-by-category 200
+/api/batch-generate /.netlify/functions/batch-generate-templates 200
+/api/demo/batch-generate /.netlify/functions/batch-generate-templates-demo 200
+
+# SPA路由支持 - 必须放在最后
+/dashboard /index.html 200
+/ai-products /index.html 200
+/ai-products/* /index.html 200
+
+# 默认路由
+/* /index.html 200

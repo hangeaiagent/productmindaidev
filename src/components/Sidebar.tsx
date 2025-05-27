@@ -68,11 +68,12 @@ const Sidebar: React.FC = () => {
         </ul>
       </div>
       
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 pb-8 border-t border-gray-200 bg-gradient-to-b from-white to-gray-50">
         <p className="text-xs text-gray-500">
           ProductMind AI © 2025
-          <br />
-          {t('assistant.description')}
+        </p>
+        <p className="mt-3 text-sm font-medium text-indigo-600 italic leading-relaxed">
+          Where AI Understands the Heart of Product Building!
         </p>
       </div>
     </div>
