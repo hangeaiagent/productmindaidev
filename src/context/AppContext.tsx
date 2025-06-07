@@ -5,7 +5,8 @@ import { generateStream } from '../services/aiService';
 import { logger } from '../utils/logger';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
-import type { AIModel, Language, GeneratedOutput, ModelConfig, Template, Project } from '../types/index';
+import type { AIModel, Language, GeneratedOutput, ModelConfig } from '../types/index';
+import type { Template, Project } from '../types';
 import debounce from 'lodash/debounce';
 import { translationService } from '../services/translationService';
 import { toast } from 'react-hot-toast';
@@ -26,7 +27,7 @@ export interface AppContextType {
   setStreamingOutput: (output: string) => void;
   selectedModel: AIModel;
   setSelectedModel: (model: AIModel) => void;
-  modelConfigs: Record<AIModel, ModelConfig>;
+  modelConfigs: Partial<Record<AIModel, ModelConfig>>;
   updateModelConfig: (model: AIModel, config: ModelConfig) => void;
   templates: Template[];
   categories: any[];
@@ -63,7 +64,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
   const { user } = useAuth();
   const [selectedModel, setSelectedModel] = useState<AIModel>('deepseek');
-  const [modelConfigs, setModelConfigs] = useState<Record<AIModel, ModelConfig>>({
+  const [modelConfigs, setModelConfigs] = useState<Partial<Record<AIModel, ModelConfig>>>({
     deepseek: DEFAULT_MODEL_CONFIG
   });
   
@@ -234,12 +235,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const templateToUse = template || selectedTemplate;
     const projectId = currentProject?.id;
     
-    logger.log('开始生成输出（双语版本）', { 
+    logger.log('🚀 开始生成输出（基于网站语言设置的双语版本）', { 
       templateId: templateToUse?.id,
       modelType: selectedModel,
       inputLength: input.length,
       projectId,
-      currentLanguage: language
+      websiteLanguage: language,
+      inputPreview: input.substring(0, 100)
     });
 
     if (!templateToUse) {
@@ -256,79 +258,85 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
 
-    const config = modelConfigs[selectedModel];
-    if (!config) {
-      // 如果没有配置，使用默认配置
-      const defaultConfig = { ...DEFAULT_MODEL_CONFIG };
-      updateModelConfig(selectedModel, defaultConfig);
-    }
+    const config = modelConfigs[selectedModel] || DEFAULT_MODEL_CONFIG;
 
     setIsLoading(true);
     setError(null);
     setStreamingOutput('');
 
     try {
-      // 检测输入语言
-      const inputLanguage = await translationService.detectLanguage(input);
-      const sourceLang = inputLanguage;
-      const targetLang = sourceLang === 'zh' ? 'en' : 'zh';
+      // 🔄 修改：使用当前网站设置的语言作为主要语言，而不是检测输入内容的语言
+      const primaryLang = language; // 使用当前网站设置的语言
+      const secondaryLang = primaryLang === 'zh' ? 'en' : 'zh';
 
-      logger.debug('生成内容语言检测', {
-        inputLanguage,
-        sourceLang,
-        targetLang,
-        inputPreview: input.substring(0, 100)
+      logger.log('📋 语言设置策略（基于网站设置）', {
+        websiteLanguage: language,
+        primaryLang,
+        secondaryLang,
+        strategy: '使用网站设置语言作为主要语言'
       });
 
-      // 生成主要语言版本的内容
-      const mainPrompt = buildPrompt(
+      // 🎯 生成主要语言版本的内容（基于网站设置的语言）
+      const primaryPrompt = buildPrompt(
         templateToUse,
         currentProject?.name || '未命名项目',
         input,
-        sourceLang
+        primaryLang
       );
 
-      logger.log('开始生成主要语言版本', {
-        templateName: language === 'zh' ? templateToUse.name_zh : templateToUse.name_en,
-        promptLength: mainPrompt.length,
-        sourceLang
+      logger.log('🔥 开始生成主要语言版本（网站设置语言）', {
+        templateName: primaryLang === 'zh' ? templateToUse.name_zh : templateToUse.name_en,
+        promptLength: primaryPrompt.length,
+        primaryLang,
+        websiteLanguage: language
       });
 
-      const mainStream = await generateStream(selectedModel, config, mainPrompt);
-      const mainReader = mainStream.getReader();
-      const mainDecoder = new TextDecoder();
-      let mainOutput = '';
+      const primaryStream = await generateStream(selectedModel, config, primaryPrompt);
+      const primaryReader = primaryStream.getReader();
+      const primaryDecoder = new TextDecoder();
+      let primaryOutput = '';
 
       while (true) {
-        const { done, value } = await mainReader.read();
+        const { done, value } = await primaryReader.read();
         if (done) break;
         
-        const chunk = mainDecoder.decode(value);
-        mainOutput += chunk;
-        setStreamingOutput(mainOutput);
-        logger.debug('收到主要语言流式输出块', { chunkLength: chunk.length });
+        const chunk = primaryDecoder.decode(value);
+        primaryOutput += chunk;
+        setStreamingOutput(primaryOutput);
+        logger.debug('📥 收到主要语言流式输出块', { 
+          chunkLength: chunk.length,
+          primaryLang,
+          totalLength: primaryOutput.length
+        });
       }
 
-      logger.log('主要语言版本生成完成', { 
-        outputLength: mainOutput.length,
-        sourceLang
+      logger.log('✅ 主要语言版本生成完成', { 
+        outputLength: primaryOutput.length,
+        primaryLang,
+        websiteLanguage: language
       });
 
-      // 翻译输入内容并生成另一种语言版本
-      logger.debug('开始翻译输入内容', { sourceLang, targetLang });
-      const translatedInput = await translationService.translate(input, sourceLang, targetLang);
+      // 🌐 翻译输入内容并生成另一种语言版本
+      logger.log('🔄 开始翻译输入内容到另一种语言', { 
+        fromLang: primaryLang, 
+        toLang: secondaryLang,
+        inputLength: input.length
+      });
+      
+      const translatedInput = await translationService.translate(input, primaryLang, secondaryLang);
       
       const secondaryPrompt = buildPrompt(
         templateToUse,
         currentProject?.name || '未命名项目',
         translatedInput,
-        targetLang
+        secondaryLang
       );
 
-      logger.log('开始生成另一种语言版本', {
+      logger.log('🔥 开始生成另一种语言版本', {
         translatedInputLength: translatedInput.length,
         promptLength: secondaryPrompt.length,
-        targetLang
+        secondaryLang,
+        translationPreview: translatedInput.substring(0, 100)
       });
 
       const secondaryStream = await generateStream(selectedModel, config, secondaryPrompt);
@@ -342,17 +350,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         
         const chunk = secondaryDecoder.decode(value);
         secondaryOutput += chunk;
-        logger.debug('收到次要语言流式输出块', { chunkLength: chunk.length });
+        logger.debug('📥 收到次要语言流式输出块', { 
+          chunkLength: chunk.length,
+          secondaryLang,
+          totalLength: secondaryOutput.length
+        });
       }
 
-      logger.log('另一种语言版本生成完成', { 
+      logger.log('✅ 另一种语言版本生成完成', { 
         outputLength: secondaryOutput.length,
-        targetLang
+        secondaryLang
       });
 
-      // 准备保存的数据结构
-      const mainOutputObj = {
-        content: mainOutput,
+      // 📦 准备保存的数据结构
+      const primaryOutputObj = {
+        content: primaryOutput,
         annotations: []
       };
 
@@ -361,29 +373,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         annotations: []
       };
 
-      // 根据源语言确定哪个是中文，哪个是英文
-      const outputContentZh = sourceLang === 'zh' ? mainOutputObj : secondaryOutputObj;
-      const outputContentEn = sourceLang === 'en' ? mainOutputObj : secondaryOutputObj;
+      // 🏷️ 根据网站设置的语言确定哪个是中文，哪个是英文
+      const outputContentZh = primaryLang === 'zh' ? primaryOutputObj : secondaryOutputObj;
+      const outputContentEn = primaryLang === 'en' ? primaryOutputObj : secondaryOutputObj;
 
-      logger.debug('准备保存双语版本', {
-        sourceLang,
-        targetLang,
+      logger.log('💾 准备保存双语版本数据', {
+        websiteLanguage: language,
+        primaryLang,
+        secondaryLang,
         zhContentLength: outputContentZh.content.length,
-        enContentLength: outputContentEn.content.length
+        enContentLength: outputContentEn.content.length,
+        strategy: '基于网站设置语言的双语生成'
       });
 
       try {
-        // 创建新的模板版本，包含双语内容
+        // 💾 创建新的模板版本，包含双语内容
         const { data: versionData, error: versionError } = await supabase
           .from('template_versions')
           .insert({
             template_id: templateToUse.id,
             project_id: projectId,
             input_content: input,
-            output_content: mainOutputObj,          // 保持兼容性，存储主要语言版本
-            output_content_zh: outputContentZh,     // 中文版本
-            output_content_en: outputContentEn,     // 英文版本
-            source_language: sourceLang,
+            output_content: primaryOutputObj,        // 保持兼容性，存储主要语言版本（网站设置语言）
+            output_content_zh: outputContentZh,      // 中文版本
+            output_content_en: outputContentEn,      // 英文版本
+            source_language: primaryLang,            // 修改：使用网站设置语言作为源语言
             created_by: user?.id,
             is_active: true
           })
@@ -391,33 +405,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .single();
 
         if (versionError) {
-          logger.error('创建模板版本失败', {
+          logger.error('❌ 创建模板版本失败', {
             error: versionError.message,
             details: versionError,
             templateId: templateToUse.id,
+            websiteLanguage: language,
+            primaryLang
           });
           throw versionError;
         }
 
-        logger.log('双语分析结果已成功保存', {
+        logger.log('🎉 双语分析结果已成功保存', {
           projectId,
           versionId: versionData?.id,
           templateId: templateToUse.id,
-          sourceLang,
-          targetLang
+          websiteLanguage: language,
+          primaryLang,
+          secondaryLang,
+          strategy: '基于网站设置语言'
         });
 
-        // 重新加载项目历史记录
+        // 🔄 重新加载项目历史记录
         await loadProjectHistory(projectId);
 
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : '保存分析结果失败';
-        logger.error('保存双语分析结果时发生错误', {
+        logger.error('❌ 保存双语分析结果时发生错误', {
           error: errorMsg,
           projectId,
           templateId: templateToUse.id,
-          sourceLang,
-          targetLang
+          websiteLanguage: language,
+          primaryLang,
+          secondaryLang
         });
         setError(language === 'zh' ? 
           '分析结果生成成功，但保存失败。请稍后重试。' : 
@@ -425,8 +444,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         );
       }
       
-      // 更新生成的输出列表（显示当前语言版本）
-      const displayOutput = language === sourceLang ? mainOutput : secondaryOutput;
+      // 📋 更新生成的输出列表（显示当前网站语言版本）
+      const displayOutput = primaryOutput; // 直接显示主要语言版本（网站设置语言）
       const newOutput: GeneratedOutput = {
         id: Date.now().toString(),
         promptId: templateToUse.id,
@@ -439,15 +458,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
 
       setGeneratedOutputs(prev => [newOutput, ...prev]);
-      logger.log('双语输出已保存到历史记录', { 
+      logger.log('📝 双语输出已保存到历史记录', { 
         outputId: newOutput.id,
-        displayLanguage: language,
-        sourceLang,
-        targetLang
+        websiteLanguage: language,
+        primaryLang,
+        secondaryLang,
+        displayStrategy: '显示网站设置语言版本'
       });
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : '生成过程中发生错误';
-      logger.error('双语生成失败', error);
+      logger.error('❌ 双语生成失败', {
+        error: errorMsg,
+        websiteLanguage: language,
+        inputPreview: input.substring(0, 100)
+      });
       setError(errorMsg);
     } finally {
       setIsLoading(false);
@@ -488,18 +512,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logger.log('AI融资项目搜索完成', { results: data });
       
       // 显示成功消息
-      toast({
-        title: '搜索完成',
-        description: `成功更新${data.count}条AI融资项目数据`,
-        status: 'success',
-      });
+      toast.success(`搜索完成：成功更新${data.count}条AI融资项目数据`);
     } catch (error) {
       logger.error('AI融资项目搜索失败', { error });
-      toast({
-        title: '搜索失败',
-        description: error instanceof Error ? error.message : '未知错误',
-        status: 'error',
-      });
+      toast.error(`搜索失败：${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
