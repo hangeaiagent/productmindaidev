@@ -14,10 +14,81 @@ interface AuthFormData {
 
 const Auth: React.FC = () => {
   logger.log('渲染认证组件');
-  const { language, setLanguage } = useAppContext();
+  const { language } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  
+  // 添加调试日志
+  console.log('🌐 Auth组件当前语言状态:', language);
+  console.log('📍 当前路径:', location.pathname);
+  
+  // 多语言文案配置
+  const content = {
+    zh: {
+      loginTitle: '登录账号',
+      registerTitle: '创建账号',
+      verifyTitle: '验证邮箱',
+      noAccount: '还没有账号？',
+      hasAccount: '已有账号？',
+      registerNow: '立即注册',
+      loginNow: '立即登录',
+      verifyDesc: '请输入发送到您邮箱的验证码',
+      emailPlaceholder: '邮箱地址',
+      passwordPlaceholder: '密码',
+      confirmPasswordPlaceholder: '确认密码',
+      verificationCodePlaceholder: '请输入验证码',
+      processing: '处理中...',
+      login: '登录',
+      register: '注册',
+      verify: '验证邮箱',
+      codeSentTo: '验证码已发送至',
+      sending: '发送中...',
+      resend: '重新发送',
+      resendAfter: '秒后重发',
+      emailOrPasswordError: '邮箱或密码错误',
+      passwordMismatch: '两次输入的密码不一致',
+      passwordTooShort: '密码长度至少为6位',
+      registerFailed: '注册失败，请稍后重试',
+      codeResent: '验证码已重新发送',
+      sendCodeFailed: '发送验证码失败，请稍后重试',
+      invalidCode: '验证码无效或已过期'
+    },
+    en: {
+      loginTitle: 'Sign In',
+      registerTitle: 'Create Account',
+      verifyTitle: 'Verify Email',
+      noAccount: 'Don\'t have an account?',
+      hasAccount: 'Already have an account?',
+      registerNow: 'Sign Up',
+      loginNow: 'Sign In',
+      verifyDesc: 'Please enter the verification code sent to your email',
+      emailPlaceholder: 'Email address',
+      passwordPlaceholder: 'Password',
+      confirmPasswordPlaceholder: 'Confirm password',
+      verificationCodePlaceholder: 'Enter verification code',
+      processing: 'Processing...',
+      login: 'Sign In',
+      register: 'Sign Up',
+      verify: 'Verify Email',
+      codeSentTo: 'Code sent to',
+      sending: 'Sending...',
+      resend: 'Resend',
+      resendAfter: 's until resend',
+      emailOrPasswordError: 'Invalid email or password',
+      passwordMismatch: 'Passwords do not match',
+      passwordTooShort: 'Password must be at least 6 characters',
+      registerFailed: 'Registration failed, please try again',
+      codeResent: 'Verification code resent',
+      sendCodeFailed: 'Failed to send verification code, please try again',
+      invalidCode: 'Invalid or expired verification code'
+    }
+  };
+  
+  const t = content[language];
+  console.log('📝 当前使用的文案语言:', language, Object.keys(t).length, '项文案');
+
+  const initialAuthMode = location.pathname === '/register' ? 'register' : 'login';
+  const [authMode, setAuthMode] = useState<'login' | 'register'>(initialAuthMode);
   const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
@@ -64,12 +135,15 @@ const Auth: React.FC = () => {
         throw error;
       } else {
         logger.log('登录成功，准备跳转');
-        // 获取之前的路径或默认到首页
-        const from = location.state?.from || '/';
-        navigate(from, { replace: true });
+        const from = location.state?.from || location.pathname;
+        if (from === '/login' || from === '/register') {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
-      setError('邮箱或密码错误');
+      setError(t.emailOrPasswordError);
       logger.error('邮箱登录失败', error);
     } finally {
       setIsLoading(false);
@@ -81,7 +155,7 @@ const Auth: React.FC = () => {
     setError(null);
     
     if (countdown > 0) {
-      setError(`请等待 ${countdown} 秒后再次发送验证码`);
+      setError(`Please wait ${countdown} seconds before sending code again`);
       return;
     }
 
@@ -89,11 +163,11 @@ const Auth: React.FC = () => {
 
     try {
       if (formData.password !== formData.confirmPassword) {
-        throw new Error('两次输入的密码不一致');
+        throw new Error(t.passwordMismatch);
       }
 
       if (formData.password.length < 6) {
-        throw new Error('密码长度至少为6位');
+        throw new Error(t.passwordTooShort);
       }
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -106,7 +180,7 @@ const Auth: React.FC = () => {
       setShowVerification(true);
       setCountdown(60);
     } catch (error) {
-      setError(error instanceof Error ? error.message : '注册失败，请稍后重试');
+      setError(error instanceof Error ? error.message : t.registerFailed);
       logger.error('注册失败', error);
     } finally {
       setIsLoading(false);
@@ -115,7 +189,7 @@ const Auth: React.FC = () => {
 
   const handleResendCode = async () => {
     if (countdown > 0) {
-      setError(`请等待 ${countdown} 秒后再次发送验证码`);
+      setError(`Please wait ${countdown} seconds before sending code again`);
       return;
     }
 
@@ -131,9 +205,9 @@ const Auth: React.FC = () => {
       if (error) throw error;
 
       setCountdown(60);
-      setError('验证码已重新发送');
+      setError(t.codeResent);
     } catch (error) {
-      setError('发送验证码失败，请稍后重试');
+      setError(t.sendCodeFailed);
     } finally {
       setIsResending(false);
     }
@@ -155,10 +229,15 @@ const Auth: React.FC = () => {
         throw error;
       } else {
         logger.log('邮箱验证成功，准备跳转');
-        navigate('/', { replace: true });
+        const from = location.state?.from || location.pathname;
+        if (from === '/login' || from === '/register') {
+          navigate('/dashboard', { replace: true });
+        } else {
+          navigate(from, { replace: true });
+        }
       }
     } catch (error) {
-      setError('验证码无效或已过期');
+      setError(t.invalidCode);
       logger.error('验证码验证失败', error);
     } finally {
       setIsLoading(false);
@@ -173,29 +252,29 @@ const Auth: React.FC = () => {
             <Bot className="h-12 w-12 text-indigo-600" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {showVerification ? '验证邮箱' : 
-              authMode === 'login' ? '登录账号' : '创建账号'}
+            {showVerification ? t.verifyTitle : 
+              authMode === 'login' ? t.loginTitle : t.registerTitle}
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {showVerification ? '请输入发送到您邮箱的验证码' :
+            {showVerification ? t.verifyDesc :
               authMode === 'login' ? (
                 <>
-                  还没有账号？
+                  {t.noAccount}
                   <button
                     onClick={() => setAuthMode('register')}
                     className="ml-1 font-medium text-indigo-600 hover:text-indigo-500"
                   >
-                    立即注册
+                    {t.registerNow}
                   </button>
                 </>
               ) : (
                 <>
-                  已有账号？
+                  {t.hasAccount}
                   <button
                     onClick={() => setAuthMode('login')}
                     className="ml-1 font-medium text-indigo-600 hover:text-indigo-500"
                   >
-                    立即登录
+                    {t.loginNow}
                   </button>
                 </>
               )
@@ -215,7 +294,7 @@ const Auth: React.FC = () => {
             {showVerification ? (
               <div>
                 <label htmlFor="verification-code" className="sr-only">
-                  验证码
+                  {t.verificationCodePlaceholder}
                 </label>
                 <input
                   id="verification-code"
@@ -223,13 +302,13 @@ const Auth: React.FC = () => {
                   type="text"
                   required
                   className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="请输入验证码"
+                  placeholder={t.verificationCodePlaceholder}
                   value={formData.verificationCode}
                   onChange={handleInputChange}
                 />
                 <div className="mt-2 flex justify-between items-center text-sm">
                   <span className="text-gray-500">
-                    验证码已发送至 {formData.email}
+                    {t.codeSentTo} {formData.email}
                   </span>
                   <button
                     type="button"
@@ -239,9 +318,9 @@ const Auth: React.FC = () => {
                       (countdown > 0 || isResending) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
-                    {isResending ? '发送中...' : 
-                     countdown > 0 ? `${countdown}秒后重发` : 
-                     '重新发送'}
+                    {isResending ? t.sending : 
+                     countdown > 0 ? `${countdown}${t.resendAfter}` : 
+                     t.resend}
                   </button>
                 </div>
               </div>
@@ -249,7 +328,7 @@ const Auth: React.FC = () => {
               <>
                 <div>
                   <label htmlFor="email" className="sr-only">
-                    邮箱地址
+                    {t.emailPlaceholder}
                   </label>
                   <input
                     id="email"
@@ -258,14 +337,14 @@ const Auth: React.FC = () => {
                     autoComplete="email"
                     required
                     className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="邮箱地址"
+                    placeholder={t.emailPlaceholder}
                     value={formData.email}
                     onChange={handleInputChange}
                   />
                 </div>
                 <div>
                   <label htmlFor="password" className="sr-only">
-                    密码
+                    {t.passwordPlaceholder}
                   </label>
                   <input
                     id="password"
@@ -276,7 +355,7 @@ const Auth: React.FC = () => {
                     className={`appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
                       authMode === 'register' ? '' : 'rounded-b-md'
                     }`}
-                    placeholder="密码"
+                    placeholder={t.passwordPlaceholder}
                     value={formData.password}
                     onChange={handleInputChange}
                   />
@@ -284,7 +363,7 @@ const Auth: React.FC = () => {
                 {authMode === 'register' && (
                   <div>
                     <label htmlFor="confirm-password" className="sr-only">
-                      确认密码
+                      {t.confirmPasswordPlaceholder}
                     </label>
                     <input
                       id="confirm-password"
@@ -293,7 +372,7 @@ const Auth: React.FC = () => {
                       autoComplete="new-password"
                       required
                       className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="确认密码"
+                      placeholder={t.confirmPasswordPlaceholder}
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                     />
@@ -311,9 +390,9 @@ const Auth: React.FC = () => {
                 isLoading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
             >
-              {isLoading ? '处理中...' : 
-                showVerification ? '验证邮箱' :
-                authMode === 'login' ? '登录' : '注册'}
+              {isLoading ? t.processing : 
+                showVerification ? t.verify :
+                authMode === 'login' ? t.login : t.register}
             </button>
           </div>
         </form>
@@ -321,6 +400,5 @@ const Auth: React.FC = () => {
     </div>
   );
 };
-
 
 export default Auth

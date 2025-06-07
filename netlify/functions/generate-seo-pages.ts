@@ -16,17 +16,6 @@ const productTemplatesCN = [
   '市场策略文档', '产品风险评估'
 ];
 
-// 25个产品管理模板 - 英文版
-const productTemplatesEN = [
-  'PRD-Product Requirements Document', 'MRD-Market Requirements Document', 'BRD-Business Requirements Document',
-  'Competitive Analysis Report', 'User Persona Analysis', 'User Experience Map', 'Product Roadmap',
-  'Feature Priority Matrix', 'SWOT Analysis', 'Business Model Canvas', 'Value Proposition Canvas',
-  'User Story Map', 'MVP Definition Document', 'Product Metrics', 'Product Launch Plan',
-  'Product Operations Strategy', 'User Feedback Analysis', 'Product Iteration Plan', 'Technical Architecture Document',
-  'Data Analysis Report', 'Product Testing Plan', 'Launch Checklist', 'Product Retrospective Report',
-  'Market Strategy Document', 'Product Risk Assessment'
-];
-
 interface Project {
   id: string;
   name: string;
@@ -37,547 +26,392 @@ interface Project {
   created_at: string;
 }
 
-interface LanguageConfig {
-  lang: string;
-  langCode: string;
-  templates: string[];
-  texts: {
-    title: string;
-    subtitle: string;
-    productOverview: string;
-    downloadCenter: string;
-    downloadAll: string;
-    downloadTemplate: string;
-    professionalTemplates: string;
-    freeDownload: string;
-    onlineAccess: string;
-    unlimitedUse: string;
-    breadcrumbHome: string;
-    footerTitle: string;
-    footerDescription: string;
-    copyright: string;
-  };
-}
-
-const languageConfigs: Record<string, LanguageConfig> = {
-  zh: {
-    lang: '中文',
-    langCode: 'zh-CN',
-    templates: productTemplatesCN,
-    texts: {
-      title: 'AI产品管理文档 | 免费下载25个模板',
-      subtitle: '专业AI产品管理文档包 | 25个精品模板免费下载',
-      productOverview: '产品概述',
-      downloadCenter: '📦 文档模板下载中心',
-      downloadAll: '🚀 一键下载全部文档 (ZIP格式)',
-      downloadTemplate: '📥 下载此模板',
-      professionalTemplates: '专业模板',
-      freeDownload: '免费下载',
-      onlineAccess: '在线访问',
-      unlimitedUse: '无限使用',
-      breadcrumbHome: '首页',
-      footerTitle: 'AI产品管理平台',
-      footerDescription: '专注于提供最专业的AI产品管理文档和模板服务',
-      copyright: '© 2025 AI产品管理平台. 保留所有权利.'
-    }
-  },
-  en: {
-    lang: 'English',
-    langCode: 'en-US',
-    templates: productTemplatesEN,
-    texts: {
-      title: 'AI Product Management Docs | Free Download 25 Templates',
-      subtitle: 'Professional AI Product Management Document Package | 25 Premium Templates Free Download',
-      productOverview: 'Product Overview',
-      downloadCenter: '📦 Document Template Download Center',
-      downloadAll: '🚀 Download All Documents (ZIP Format)',
-      downloadTemplate: '📥 Download Template',
-      professionalTemplates: 'Professional Templates',
-      freeDownload: 'Free Download',
-      onlineAccess: 'Online Access',
-      unlimitedUse: 'Unlimited Use',
-      breadcrumbHome: 'Home',
-      footerTitle: 'AI Product Management Platform',
-      footerDescription: 'Dedicated to providing the most professional AI product management documents and template services',
-      copyright: '© 2025 AI Product Management Platform. All rights reserved.'
-    }
-  }
-};
-
-// 生成产品概要
-function generateProductSummary(project: Project, language: string = 'zh'): string {
+// 生成带下载功能的产品页面
+function generateProductPageWithDownload(project: Project, language: string = 'zh', templates: any[]): string {
   const cleanName = project.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s]/g, '').trim();
-  const category = project.primary_category || (language === 'zh' ? 'AI产品' : 'AI Product');
-  const subCategory = project.secondary_category || (language === 'zh' ? '智能应用' : 'Smart Application');
-  
-  if (language === 'zh') {
-    return `
-      <p><strong>🎯 产品核心价值：</strong>${cleanName}是一款${category}领域的创新AI产品，专注于${subCategory}相关功能的优化和提升。</p>
-      <p><strong>🚀 主要功能特点：</strong></p>
-      <ul>
-          <li>✨ 智能化的产品管理流程优化</li>
-          <li>📚 完整的文档模板体系支持</li>
-          <li>📊 数据驱动的决策分析能力</li>
-          <li>👥 团队协作和项目管理功能</li>
-          <li>🤖 AI智能辅助和自动化特性</li>
-      </ul>
-      <p><strong>💼 应用场景：</strong>适用于产品经理、项目经理、创业团队等需要专业产品管理文档的用户群体。</p>
-    `;
-  } else {
-    return `
-      <p><strong>🎯 Core Product Value:</strong> ${cleanName} is an innovative AI product in the ${category} field, focusing on optimizing ${subCategory}-related functions.</p>
-      <p><strong>🚀 Main Features:</strong></p>
-      <ul>
-          <li>✨ Intelligent product management process optimization</li>
-          <li>📚 Complete document template system support</li>
-          <li>📊 Data-driven decision analysis capabilities</li>
-          <li>👥 Team collaboration and project management functions</li>
-          <li>🤖 AI intelligent assistance and automation features</li>
-      </ul>
-      <p><strong>💼 Application Scenarios:</strong> Suitable for product managers, project managers, startup teams who need professional product management documents.</p>
-    `;
-  }
-}
-
-// 生成SEO优化的HTML页面
-function generateProductPage(project: Project, summary: string, language: string = 'zh'): string {
-  const config = languageConfigs[language];
-  const cleanName = project.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5\s]/g, '').trim();
-  const pageTitle = `${cleanName} - ${config.texts.title}`;
-  const metaDescription = language === 'zh' 
-    ? `${cleanName}产品管理完整文档包，包含PRD、MRD、BRD等25个专业模板。AI智能生成，助力产品成功。`
-    : `${cleanName} complete product management document package, including 25 professional templates such as PRD, MRD, BRD. AI-generated to help product success.`;
-  const keywords = language === 'zh'
-    ? `${cleanName}, AI产品, 产品管理, PRD文档, 产品需求文档, ${project.primary_category}, ${project.secondary_category}`
-    : `${cleanName}, AI Product, Product Management, PRD Document, Product Requirements Document, ${project.primary_category}, ${project.secondary_category}`;
-  
-  const baseUrl = 'https://ai-products.netlify.app';
-  const langPrefix = language === 'en' ? '/en' : '';
-  const otherLang = language === 'zh' ? 'en' : 'zh';
-  const otherLangPrefix = language === 'zh' ? '/en' : '';
   
   return `<!DOCTYPE html>
-<html lang="${config.langCode}">
+<html lang="${language === 'zh' ? 'zh-CN' : 'en-US'}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="index, follow">
-    
-    <!-- SEO Meta Tags -->
-    <title>${pageTitle}</title>
-    <meta name="description" content="${metaDescription}">
-    <meta name="keywords" content="${keywords}">
-    <meta name="author" content="${config.texts.footerTitle}">
-    
-    <!-- Language and Alternate Links -->
-    <link rel="alternate" href="${baseUrl}${langPrefix}/products/${project.id}" hreflang="${config.langCode}">
-    <link rel="alternate" href="${baseUrl}${otherLangPrefix}/products/${project.id}" hreflang="${languageConfigs[otherLang].langCode}">
-    
-    <!-- Open Graph Tags -->
-    <meta property="og:title" content="${pageTitle}">
-    <meta property="og:description" content="${metaDescription}">
-    <meta property="og:type" content="product">
-    <meta property="og:url" content="${baseUrl}${langPrefix}/products/${project.id}">
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="${baseUrl}${langPrefix}/products/${project.id}">
-    
-    <!-- CSS -->
+    <title>${cleanName} - AI产品管理文档</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #1a202c;
-            background: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
         }
-        
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 0;
-            text-align: center;
-            position: relative;
-        }
-        
-        .lang-switcher {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .lang-switcher a {
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            font-size: 14px;
-        }
-        
-        .lang-switcher a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-        
-        .lang-switcher .active {
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .header h1 {
-            font-size: clamp(2rem, 5vw, 3rem);
-            margin: 0 0 16px 0;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .header .subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .breadcrumb {
             background: white;
-            padding: 16px 0;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 0.9rem;
-        }
-        
-        .breadcrumb a {
-            color: #4299e1;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .breadcrumb a:hover {
-            color: #2b6cb0;
-        }
-        
-        .main-content {
-            margin: 30px auto;
-        }
-        
-        .product-info {
-            background: white;
-            border-radius: 12px;
             padding: 40px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
-        .product-info h2 {
-            color: #2d3748;
-            margin-bottom: 20px;
-            font-size: 1.75rem;
-            border-bottom: 3px solid #4299e1;
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
         }
-        
-        .summary {
-            background: #f7fafc;
-            padding: 25px;
-            border-radius: 8px;
-            border-left: 4px solid #4299e1;
-            margin: 20px 0;
-        }
-        
-        .summary ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        
-        .summary li {
-            margin: 8px 0;
-        }
-        
-        .stats {
+        .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin: 30px 0;
         }
-        
-        .stat-card {
-            text-align: center;
-            padding: 25px;
-            background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
-            border-radius: 12px;
-            transition: transform 0.3s ease;
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #4299e1;
-            margin-bottom: 5px;
-        }
-        
-        .download-section {
-            background: white;
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
-        }
-        
-        .download-all-btn {
-            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-            color: white;
-            padding: 20px 40px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 700;
-            width: 100%;
-            margin: 25px 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-        }
-        
-        .download-all-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
-        }
-        
-        .template-grid {
+        .template-list {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
             margin: 30px 0;
         }
-        
-        .template-card {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 25px;
-            transition: all 0.3s ease;
+        .template-item {
             background: white;
-        }
-        
-        .template-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border-color: #4299e1;
-        }
-        
-        .template-card h3 {
-            color: #2d3748;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
-        }
-        
-        .template-card p {
-            color: #718096;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-        
-        .download-btn {
-            background: #48bb78;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e3f2fd;
             transition: all 0.3s ease;
-            width: 100%;
         }
-        
-        .download-btn:hover {
-            background: #38a169;
-            transform: translateY(-1px);
+        .template-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        
-        .footer {
-            background: #2d3748;
+        .download-btn {
+            background: #4CAF50;
             color: white;
-            padding: 50px 0;
-            text-align: center;
-            margin-top: 80px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.3s ease;
         }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 15px;
-            }
-            
-            .product-info,
-            .download-section {
-                padding: 25px;
-            }
-            
-            .template-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .lang-switcher {
-                position: static;
-                justify-content: center;
-                margin-bottom: 20px;
-            }
+        .download-btn:hover {
+            background: #45a049;
+        }
+        .download-all-btn {
+            background: #2196F3;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+        .download-all-btn:hover {
+            background: #1976D2;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <div class="lang-switcher">
-            <a href="${baseUrl}/products/${project.id}" class="${language === 'zh' ? 'active' : ''}">中文</a>
-            <a href="${baseUrl}/en/products/${project.id}" class="${language === 'en' ? 'active' : ''}">English</a>
-        </div>
-        <div class="container">
-            <h1>${cleanName}</h1>
-            <p class="subtitle">${config.texts.subtitle}</p>
-        </div>
-    </header>
-    
-    <nav class="breadcrumb">
-        <div class="container">
-            <a href="${langPrefix}/">${config.texts.breadcrumbHome}</a> > 
-            <a href="${langPrefix}/category/${encodeURIComponent(project.primary_category)}">${project.primary_category}</a> > 
-            <span>${cleanName}</span>
-        </div>
-    </nav>
-    
     <div class="container">
-        <div class="main-content">
-            <article class="product-info">
-                <h2>${config.texts.productOverview}</h2>
-                <p>${project.description || (language === 'zh' ? '这是一款创新的AI产品，为您提供专业的产品管理解决方案。' : 'This is an innovative AI product that provides professional product management solutions.')}</p>
-                
-                <div class="summary">
-                    ${summary}
-                </div>
-                
-                <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-number">25</div>
-                        <div>${config.texts.professionalTemplates}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">100%</div>
-                        <div>${config.texts.freeDownload}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">24/7</div>
-                        <div>${config.texts.onlineAccess}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">∞</div>
-                        <div>${config.texts.unlimitedUse}</div>
-                    </div>
-                </div>
-            </article>
+        <h1>📋 ${cleanName}</h1>
+        
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>🎯 产品信息</h3>
+                <p><strong>名称：</strong>${project.name}</p>
+                <p><strong>分类：</strong>${project.primary_category || '未分类'}</p>
+                <p><strong>子分类：</strong>${project.secondary_category || '无'}</p>
+                <p><strong>描述：</strong>${project.description || '暂无描述'}</p>
+            </div>
             
-            <section class="download-section">
-                <h2>${config.texts.downloadCenter}</h2>
-                <p>${language === 'zh' ? '获取完整的产品管理文档包，包含25个由资深产品经理精心设计的专业模板：' : 'Get the complete product management document package, including 25 professional templates carefully designed by senior product managers:'}</p>
-                
-                <button class="download-all-btn" onclick="downloadAll('${language}')">
-                    ${config.texts.downloadAll}
-                </button>
-                
-                <div class="template-grid">
-                    ${config.templates.map((template, index) => `
-                        <div class="template-card">
-                            <h3>📄 ${template}</h3>
-                            <p>${language === 'zh' ? `专业的${template}模板，包含完整的框架结构和填写指南` : `Professional ${template} template with complete framework structure and filling guide`}</p>
-                            <button class="download-btn" onclick="downloadTemplate('${template}', ${index + 1}, '${language}')">
-                                ${config.texts.downloadTemplate}
-                            </button>
-                        </div>
-                    `).join('')}
+            <div class="info-card">
+                <h3>📊 模板统计</h3>
+                <p><strong>可用模板：</strong>${templates.length} 个</p>
+                <p><strong>类型：</strong>产品管理文档</p>
+                <p><strong>格式：</strong>Markdown</p>
+                <p><strong>语言：</strong>中文 / English</p>
+            </div>
+        </div>
+
+        <button class="download-all-btn" onclick="downloadAll('${language}')">
+            🚀 一键下载全部模板 (${templates.length}个)
+        </button>
+
+        <h2>📚 可用模板列表</h2>
+        <div class="template-list">
+            ${templates.map(template => `
+                <div class="template-item">
+                    <h4>📄 ${template.name_zh || template.name_en || 'Unknown Template'}</h4>
+                    <p style="color: #666; font-size: 14px;">${template.description || '专业的产品管理模板'}</p>
+                    <p style="color: #888; font-size: 12px;">分类: ${template.category || '通用'}</p>
+                    <p style="color: #999; font-size: 10px;">模板ID: ${template.id}</p>
+                    <button class="download-btn" onclick="downloadTemplate('${template.id}', '${(template.name_zh || template.name_en || 'template').replace(/'/g, "\\'")}', '${language}')">
+                        📥 下载此模板
+                    </button>
                 </div>
-            </section>
+            `).join('')}
+        </div>
+
+        <div style="margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 6px; text-align: center;">
+            <p><strong>© 2025 AI产品管理平台</strong></p>
+            <p>专业的产品管理文档解决方案</p>
         </div>
     </div>
-    
-    <footer class="footer">
-        <div class="container">
-            <h3>${config.texts.footerTitle}</h3>
-            <p>${config.texts.footerDescription}</p>
-            <p style="margin-top: 20px; opacity: 0.8;">${config.texts.copyright}</p>
-        </div>
-    </footer>
-    
+
     <script>
-        function downloadTemplate(templateName, index, language) {
-            const content = generateTemplateContent(templateName, language);
-            downloadFile(\`\${templateName}.md\`, content);
+        const projectData = {
+            id: '${project.id}',
+            name: '${cleanName}',
+            description: '${project.description || ''}',
+            primaryCategory: '${project.primary_category || ''}',
+            secondaryCategory: '${project.secondary_category || ''}'
+        };
+        
+        const dbTemplates = ${JSON.stringify(templates)};
+        console.log('模板已加载:', dbTemplates.length, '个');
+        
+        // 内容格式化函数
+        function formatOutput(rawContent) {
+            if (!rawContent) return '';
+            
+            let content = rawContent;
+            
+            // 简单的JSON解析循环
+            for (let i = 0; i < 5; i++) {
+                if (typeof content === 'string') {
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (parsed && typeof parsed === 'object' && parsed.content) {
+                            content = parsed.content;
+                            continue;
+                        }
+                    } catch (e) {
+                        break;
+                    }
+                }
+                
+                if (typeof content === 'object' && content !== null && content.content) {
+                    content = content.content;
+                    continue;
+                }
+                
+                break;
+            }
+            
+            // 转换为字符串并清理
+            if (typeof content !== 'string') {
+                content = String(content);
+            }
+            
+            // 简单的字符串清理
+            content = content
+                .split('\\\\n').join('\\n')
+                .split('\\\\"').join('"')
+                .split('\\\\t').join('\\t')
+                .trim();
+            
+            return content;
         }
         
+        // 生成安全文件名
+        function generateSafeFileName(templateName, templateId) {
+            let baseName = templateName || templateId || 'template';
+            
+            // 简单的字符清理，不使用复杂正则表达式
+            let safeName = '';
+            for (let i = 0; i < baseName.length; i++) {
+                const char = baseName[i];
+                // 保留中文、英文、数字、空格、连字符、下划线
+                if (/[a-zA-Z0-9\\u4e00-\\u9fa5\\s\\-_]/.test(char)) {
+                    safeName += char;
+                }
+            }
+            
+            // 空格转下划线
+            safeName = safeName.split(' ').join('_');
+            
+            // 限制长度
+            if (safeName.length > 50) {
+                safeName = safeName.substring(0, 50);
+            }
+            
+            return safeName + '.md';
+        }
+        
+        // 添加版权信息
+        function addCopyrightFooter(content) {
+            const currentTime = new Date().toLocaleString('zh-CN');
+            const footer = '\\n\\n---\\n\\n' +
+                          '**文档信息**\\n\\n' +
+                          '- 生成时间: ' + currentTime + '\\n' +
+                          '- 产品名称: ' + projectData.name + '\\n' +
+                          '- 项目分类: ' + (projectData.primaryCategory || '未分类') + '\\n\\n' +
+                          '*本文档由AI产品管理平台自动生成，仅供参考使用。*\\n\\n' +
+                          '© 2025 AI产品管理平台 - 专业的产品管理文档解决方案';
+            
+            return content + footer;
+        }
+        
+        // 下载单个模板
+        async function downloadTemplate(templateId, templateName, language) {
+            console.log('🔄 下载模板请求:');
+            console.log('  - templateId:', templateId);
+            console.log('  - templateName:', templateName);
+            console.log('  - language:', language);
+            
+            try {
+                // 1. 尝试从数据库获取内容
+                const dbUrl = '/.netlify/functions/get-template-content' +
+                    '?projectId=' + encodeURIComponent(projectData.id) +
+                    '&templateId=' + encodeURIComponent(templateId) +
+                    '&lang=' + encodeURIComponent(language);
+                
+                console.log('📡 数据库查询URL:', dbUrl);
+                
+                const dbRes = await fetch(dbUrl);
+                let finalContent = '';
+                
+                if (dbRes.ok) {
+                    const data = await dbRes.json();
+                    console.log('📊 数据库响应:', data);
+                    if (data.success && data.content) {
+                        console.log('✅ 从数据库获取内容成功');
+                        finalContent = data.content;
+                    } else {
+                        console.log('❌ 数据库无有效内容');
+                    }
+                } else {
+                    console.log('❌ 数据库查询失败，状态码:', dbRes.status);
+                }
+                
+                // 2. 如果数据库没有内容且不是默认模板，尝试AI生成
+                if (!finalContent && !templateId.startsWith('default-')) {
+                    console.log('🤖 数据库无内容，尝试AI生成');
+                    const aiRes = await fetch('/.netlify/functions/generate-ai-template', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            projectId: projectData.id,
+                            projectName: projectData.name,
+                            projectDescription: projectData.description,
+                            primaryCategory: projectData.primaryCategory,
+                            secondaryCategory: projectData.secondaryCategory,
+                            templateId: templateId,
+                            language: language
+                        })
+                    });
+                    
+                    if (aiRes.ok) {
+                        const aiData = await aiRes.json();
+                        console.log('🤖 AI响应:', aiData);
+                        if (aiData.success && aiData.content) {
+                            console.log('✅ AI生成成功');
+                            finalContent = aiData.content;
+                            
+                            // 异步保存到数据库（仅对真实模板ID）
+                            if (!templateId.startsWith('default-')) {
+                                fetch('/.netlify/functions/save-template-content', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        projectId: projectData.id,
+                                        templateId: templateId,
+                                        content: finalContent,
+                                        language: language
+                                    })
+                                }).catch(err => console.log('💾 保存失败:', err));
+                            }
+                        } else {
+                            console.log('❌ AI生成失败');
+                        }
+                    } else {
+                        console.log('❌ AI请求失败，状态码:', aiRes.status);
+                    }
+                }
+                
+                // 3. 如果还是没有内容，生成默认模板
+                if (!finalContent) {
+                    console.log('📝 使用默认模板生成');
+                    finalContent = generateDefaultTemplate(templateName, language);
+                }
+                
+                // 4. 格式化内容并下载
+                const formattedContent = formatOutput(finalContent);
+                const contentWithFooter = addCopyrightFooter(formattedContent);
+                const fileName = generateSafeFileName(templateName, templateId);
+                
+                console.log('💾 准备下载文件:', fileName);
+                downloadFile(fileName, contentWithFooter);
+                
+            } catch (error) {
+                console.error('❌ 下载错误:', error);
+                alert('下载失败: ' + error.message);
+            }
+        }
+        
+        // 批量下载所有模板
         function downloadAll(language) {
-            const templates = ${JSON.stringify(config.templates)};
-            templates.forEach((template, index) => {
+            console.log('批量下载', dbTemplates.length, '个模板');
+            
+            dbTemplates.forEach((template, index) => {
                 setTimeout(() => {
-                    const content = generateTemplateContent(template, language);
-                    downloadFile(\`\${template}.md\`, content);
-                }, index * 100);
+                    const templateName = template.name_zh || template.name_en || 'Template';
+                    downloadTemplate(template.id, templateName, language);
+                }, index * 1000); // 每秒下载一个，避免服务器压力
             });
         }
         
-        function generateTemplateContent(templateName, language) {
-            const currentTime = new Date().toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US');
-            const isZh = language === 'zh';
+        // 生成默认模板内容
+        function generateDefaultTemplate(templateName, language) {
+            const currentTime = new Date().toLocaleString('zh-CN');
             
-            return \`# \${templateName}
-
-## \${isZh ? '📋 基本信息' : '📋 Basic Information'}
-- **\${isZh ? '产品名称' : 'Product Name'}**: ${cleanName}
-- **\${isZh ? '分类' : 'Category'}**: ${project.primary_category} > ${project.secondary_category}
-- **\${isZh ? '生成时间' : 'Generated Time'}**: \${currentTime}
-- **\${isZh ? '模板版本' : 'Template Version'}**: v1.0
-
-## \${isZh ? '📖 模板说明' : '📖 Template Description'}
-\${isZh 
-  ? \`这是一个专业的\${templateName}模板，专为${cleanName}项目定制。\`
-  : \`This is a professional \${templateName} template customized for ${cleanName} project.\`
-}
-
-## \${isZh ? '🎯 使用指南' : '🎯 Usage Guide'}
-\${isZh ? '1. 根据项目需求填写相关内容' : '1. Fill in relevant content according to project needs'}
-\${isZh ? '2. 参考示例进行调整和优化' : '2. Adjust and optimize with reference to examples'}
-\${isZh ? '3. 与团队成员共享和协作' : '3. Share and collaborate with team members'}
-
----
-© 2025 ${config.texts.footerTitle}
-\`;
+            return '# ' + templateName + '\\n\\n' +
+                   '## 基本信息\\n\\n' +
+                   '- **产品名称**: ' + projectData.name + '\\n' +
+                   '- **模板类型**: ' + templateName + '\\n' +
+                   '- **生成时间**: ' + currentTime + '\\n' +
+                   '- **版本**: v1.0\\n\\n' +
+                   '## 模板说明\\n\\n' +
+                   '这是一个专业的' + templateName + '模板，专为' + projectData.name + '项目定制。\\n\\n' +
+                   '## 使用指南\\n\\n' +
+                   '1. 根据项目需求填写相关内容\\n' +
+                   '2. 参考示例进行调整和优化\\n' +
+                   '3. 与团队成员共享和协作\\n' +
+                   '4. 定期更新和维护文档内容\\n\\n' +
+                   '## 模板内容\\n\\n' +
+                   '请在此处填写' + templateName + '的具体内容。\\n\\n' +
+                   '这个模板为您提供了标准的框架结构，您可以根据项目的实际需求进行调整和完善。\\n\\n' +
+                   '---\\n\\n' +
+                   '*此模板由AI产品管理平台生成，请根据实际需求进行调整。*';
         }
         
+        // 文件下载函数
         function downloadFile(filename, content) {
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/markdown;charset=utf-8,' + encodeURIComponent(content));
-            element.setAttribute('download', filename);
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
+            console.log('下载文件:', filename);
+            
+            try {
+                const element = document.createElement('a');
+                const file = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+                element.href = URL.createObjectURL(file);
+                element.download = filename;
+                element.style.display = 'none';
+                
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+                
+                URL.revokeObjectURL(element.href);
+                console.log('下载完成:', filename);
+                
+            } catch (error) {
+                console.error('下载失败:', error);
+                alert('下载失败: ' + filename);
+            }
         }
     </script>
 </body>
@@ -585,143 +419,107 @@ function generateProductPage(project: Project, summary: string, language: string
 }
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext): Promise<HandlerResponse> => {
-  console.log('🚀 开始生成中英双语SEO优化的AI产品页面...');
+  console.log('🚀 开始生成简化版SEO页面...');
   
   try {
     const { queryStringParameters } = event;
     const projectId = queryStringParameters?.id;
     const language = queryStringParameters?.lang || 'zh';
-    const limit = parseInt(queryStringParameters?.limit || '10');
-    
-    // 验证语言参数
-    if (!['zh', 'en'].includes(language)) {
+
+    if (!projectId) {
       return {
         statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ error: 'Unsupported language. Use "zh" or "en".' })
+        body: JSON.stringify({ error: '缺少项目ID参数' })
       };
     }
-    
-    let projects: Project[];
-    
-    if (projectId) {
-      // 生成单个项目页面
-      const { data, error } = await supabase
-        .from('user_projects')
-        .select('*')
-        .eq('id', projectId)
-        .single();
-      
-      if (error || !data) {
-        return {
-          statusCode: 404,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ error: language === 'zh' ? '项目不存在' : 'Project not found' })
-        };
-      }
-      
-      projects = [data as Project];
-    } else {
-      // 获取所有项目
-      const { data, error } = await supabase
-        .from('user_projects')
-        .select('*')
-        .not('name', 'is', null)
-        .not('name', 'eq', '')
-        .order('created_at', { ascending: false })
-        .limit(limit);
-      
-      if (error) {
-        throw new Error(`获取项目数据失败: ${error.message}`);
-      }
-      
-      projects = (data as Project[]) || [];
+
+    console.log('📦 获取项目数据:', projectId);
+
+    // 查询项目信息
+    const { data: project, error } = await supabase
+      .from('user_projects')
+      .select('*')
+      .eq('id', projectId)
+      .single();
+
+    if (error || !project) {
+      console.log('❌ 项目未找到:', error);
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: '项目未找到' })
+      };
     }
-    
-    console.log(`📊 找到 ${projects.length} 个项目，语言: ${language}`);
-    
-    const generatedPages: Array<{
+
+    console.log('✅ 成功获取项目:', project.name);
+
+    // 查询可用的模板
+    let templateList: Array<{
       id: string;
-      name: string;
-      language: string;
-      title: string;
-      url: string;
+      name_zh: string;
+      name_en: string;
+      description: string;
+      category: string;
     }> = [];
     
-    for (const project of projects) {
-      try {
-        const summary = generateProductSummary(project, language);
-        const htmlContent = generateProductPage(project, summary, language);
-        
-        generatedPages.push({
-          id: project.id,
-          name: project.name,
-          language,
-          title: `${project.name} - ${language === 'zh' ? 'AI产品管理文档' : 'AI Product Management Docs'}`,
-          url: `${language === 'en' ? '/en' : ''}/products/${project.id}`
-        });
-        
-        console.log(`✅ 生成${language === 'zh' ? '中文' : '英文'}页面: ${project.name}`);
-      } catch (pageError) {
-        console.error(`❌ 生成页面失败 ${project.id}:`, pageError);
+    try {
+      const { data: templates, error: templateError } = await supabase
+        .from('templates')
+        .select('id, name_zh, name_en, description_zh, description_en, category')
+        .eq('is_active', true)
+        .order('name_zh');
+
+      if (templateError) {
+        console.log('⚠️ 模板查询错误:', templateError);
+      } else {
+        // 处理数据库模板，选择合适的描述字段
+        templateList = (templates || []).map(t => ({
+          id: t.id,
+          name_zh: t.name_zh,
+          name_en: t.name_en,
+          description: language === 'zh' ? (t.description_zh || t.description_en || '专业的产品管理模板') : (t.description_en || t.description_zh || 'Professional product management template'),
+          category: t.category || '产品管理'
+        }));
+        console.log('📋 从数据库获取到模板数量:', templateList.length);
       }
+    } catch (dbError) {
+      console.log('⚠️ 数据库连接问题:', dbError);
     }
-    
-    // 如果是单个项目，直接返回HTML
-    if (projectId && projects.length > 0) {
-      const project = projects[0];
-      const summary = generateProductSummary(project, language);
-      const htmlContent = generateProductPage(project, summary, language);
-      
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'text/html; charset=utf-8',
-          'Cache-Control': 'public, max-age=3600',
-          'Content-Language': language
-        },
-        body: htmlContent
-      };
+
+    // 如果数据库查询失败或没有模板，使用默认模板列表
+    if (templateList.length === 0) {
+      console.log('📋 使用默认模板列表');
+      templateList = productTemplatesCN.map((name, index) => ({
+        id: `default-${index + 1}`,
+        name_zh: name,
+        name_en: name,
+        description: `专业的${name}模板`,
+        category: '产品管理'
+      }));
     }
-    
+
+    console.log('📊 最终模板数量:', templateList.length);
+
+    // 生成页面
+    const pageHtml = generateProductPageWithDownload(project, language, templateList);
+
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=300'
       },
-      body: JSON.stringify({
-        success: true,
-        message: `${language === 'zh' ? '中英双语' : 'Bilingual'} SEO页面生成完成`,
-        language,
-        statistics: {
-          totalGenerated: generatedPages.length,
-          totalProjects: projects.length
-        },
-        pages: generatedPages.map(page => ({
-          id: page.id,
-          name: page.name,
-          language: page.language,
-          title: page.title,
-          url: page.url
-        }))
-      })
+      body: pageHtml
     };
-    
+
   } catch (error) {
-    console.error('❌ 生成失败:', error);
+    console.error('❌ 生成页面失败:', error);
     return {
       statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        error: 'SEO页面生成失败 / SEO page generation failed',
-        details: error instanceof Error ? error.message : String(error)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        error: '服务器错误',
+        details: error instanceof Error ? error.message : '未知错误'
       })
     };
   }
-};
+}; 

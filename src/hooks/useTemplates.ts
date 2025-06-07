@@ -32,6 +32,7 @@ export function useTemplates(projectId?: string) {
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('template_categories')
           .select('*')
+          .eq('isshow', 1)
           .order('no');
 
         if (categoriesError) {
@@ -162,6 +163,7 @@ export function useTemplates(projectId?: string) {
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('template_categories')
           .select('*')
+          .eq('isshow', 1)
           .order('no');
 
         if (categoriesError) throw categoriesError;

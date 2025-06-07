@@ -1,0 +1,233 @@
+2025-05-31 20:19:21 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-05-31 20:19:22 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:19:22 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-05-31 20:19:22 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-05-31 20:19:22 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:21:32 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/template-generation/stats/afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:21:32 [INFO]: 🔍 获取项目模板生成统计... {
+  "service": "productmind-backend",
+  "user_id": "afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1"
+}
+2025-05-31 20:21:35 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/template-generation/stats/afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "statusCode": 200,
+  "duration": "2956ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:25:11 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-05-31 20:25:11 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:25:11 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-05-31 20:25:11 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-05-31 20:25:11 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:25:32 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:25:32 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 51.638392773,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 295993344,
+    "heapTotal": 241491968,
+    "heapUsed": 206577008,
+    "external": 9179675,
+    "arrayBuffers": 5121077
+  },
+  "pid": 55250
+}
+2025-05-31 20:25:32 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "17ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:25:46 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/project/05bd5aa2-b005-47c6-bf9a-55be29eebf2e/versions?limit=3",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:25:46 [INFO]: 🧪 查询项目模板版本... {
+  "service": "productmind-backend",
+  "projectId": "05bd5aa2-b005-47c6-bf9a-55be29eebf2e",
+  "limit": "3"
+}
+2025-05-31 20:25:49 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/project/05bd5aa2-b005-47c6-bf9a-55be29eebf2e/versions?limit=3",
+  "statusCode": 200,
+  "duration": "2993ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:43:51 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-05-31 20:43:51 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:43:51 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-05-31 20:43:51 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-05-31 20:43:51 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:47:11 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:47:11 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 216.891751432,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 39862272,
+    "heapTotal": 204115968,
+    "heapUsed": 197934040,
+    "external": 8976940,
+    "arrayBuffers": 4918342
+  },
+  "pid": 56065
+}
+2025-05-31 20:47:11 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "32ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:55:16 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-05-31 20:55:16 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:55:16 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-05-31 20:55:16 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-05-31 20:55:16 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-05-31 20:55:38 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:55:38 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 34.063389156,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 191320064,
+    "heapTotal": 240594944,
+    "heapUsed": 208170224,
+    "external": 9139629,
+    "arrayBuffers": 5081031
+  },
+  "pid": 56336
+}
+2025-05-31 20:55:38 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "30ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:55:55 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/project/05bd5aa2-b005-47c6-bf9a-55be29eebf2e/versions?limit=3",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 20:55:55 [INFO]: 🧪 查询项目模板版本... {
+  "service": "productmind-backend",
+  "projectId": "05bd5aa2-b005-47c6-bf9a-55be29eebf2e",
+  "limit": "3"
+}
+2025-05-31 20:55:58 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/test/project/05bd5aa2-b005-47c6-bf9a-55be29eebf2e/versions?limit=3",
+  "statusCode": 200,
+  "duration": "3060ms",
+  "ip": "::ffff:127.0.0.1",
+  "userAgent": "curl/8.7.1"
+}
+2025-05-31 22:39:26 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-05-31 22:39:26 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-05-31 22:39:26 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-05-31 22:39:26 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-05-31 22:39:26 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-05-31 22:40:20 [INFO]: 收到 SIGTERM 信号，开始优雅关闭... {
+  "service": "productmind-backend"
+}

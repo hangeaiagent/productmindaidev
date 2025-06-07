@@ -1,0 +1,349 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ProductMind AI AWS Backend - ECS Fargate 部署模板'
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: 选择要部署的VPC
+  
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 选择至少两个不同可用区的私有子网
+  
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: 选择至少两个不同可用区的公有子网（用于负载均衡器）
+  
+  DomainName:
+    Type: String
+    Description: 应用域名（可选）
+    Default: ""
+  
+  CertificateArn:
+    Type: String
+    Description: SSL证书ARN（可选）
+    Default: ""
+
+Resources:
+  # ECR 仓库
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: productmind-aws-backend
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+
+  # ECS 集群
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: productmind-cluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+
+  # CloudWatch 日志组
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/productmind-aws-backend
+      RetentionInDays: 7
+
+  # ECS 任务执行角色
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Policies:
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:productmind/*'
+
+  # ECS 任务角色
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AppPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt LogGroup.Arn
+
+  # 安全组 - ALB
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 负载均衡器安全组
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  # 安全组 - ECS 任务
+  TaskSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS任务安全组
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+
+  # 应用负载均衡器
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: productmind-alb
+      Scheme: internet-facing
+      Type: application
+      Subnets: !Ref PublicSubnetIds
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+
+  # 目标组
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: productmind-tg
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+
+  # HTTP 监听器
+  HTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  # HTTPS 监听器（如果提供了证书）
+  HTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Condition: HasCertificate
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: !Ref CertificateArn
+
+  # ECS 任务定义
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: productmind-aws-backend
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1024
+      ExecutionRoleArn: !Ref TaskExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: productmind-backend
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/productmind-aws-backend:latest'
+          PortMappings:
+            - ContainerPort: 3000
+              Protocol: tcp
+          Essential: true
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: '3000'
+            - Name: API_VERSION
+              Value: v1
+          Secrets:
+            - Name: SUPABASE_URL
+              ValueFrom: !Ref SupabaseUrlSecret
+            - Name: SUPABASE_ANON_KEY
+              ValueFrom: !Ref SupabaseAnonKeySecret
+            - Name: JWT_SECRET
+              ValueFrom: !Ref JwtSecretSecret
+            - Name: DEEPSEEK_API_KEY
+              ValueFrom: !Ref DeepSeekApiKeySecret
+            - Name: OPENAI_API_KEY
+              ValueFrom: !Ref OpenAiApiKeySecret
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+          HealthCheck:
+            Command:
+              - CMD-SHELL
+              - curl -f http://localhost:3000/health || exit 1
+            Interval: 30
+            Timeout: 5
+            Retries: 3
+            StartPeriod: 60
+
+  # ECS 服务
+  ECSService:
+    Type: AWS::ECS::Service
+    DependsOn: HTTPListener
+    Properties:
+      ServiceName: productmind-service
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref TaskDefinition
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - !Ref TaskSecurityGroup
+          Subnets: !Ref SubnetIds
+          AssignPublicIp: DISABLED
+      LoadBalancers:
+        - ContainerName: productmind-backend
+          ContainerPort: 3000
+          TargetGroupArn: !Ref TargetGroup
+
+  # Secrets Manager 密钥
+  SupabaseUrlSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: productmind/supabase-url
+      Description: Supabase URL
+      SecretString: !Sub |
+        {
+          "SUPABASE_URL": "${SupabaseUrl}"
+        }
+
+  SupabaseAnonKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: productmind/supabase-anon-key
+      Description: Supabase Anonymous Key
+      SecretString: !Sub |
+        {
+          "SUPABASE_ANON_KEY": "${SupabaseAnonKey}"
+        }
+
+  JwtSecretSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: productmind/jwt-secret
+      Description: JWT Secret Key
+      GenerateSecretString:
+        SecretStringTemplate: '{}'
+        GenerateStringKey: 'JWT_SECRET'
+        PasswordLength: 64
+        ExcludeCharacters: ' "\'@/\'
+
+  DeepSeekApiKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: productmind/deepseek-api-key
+      Description: DeepSeek API Key
+      SecretString: !Sub |
+        {
+          "DEEPSEEK_API_KEY": "${DeepSeekApiKey}"
+        }
+
+  OpenAiApiKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: productmind/openai-api-key
+      Description: OpenAI API Key
+      SecretString: !Sub |
+        {
+          "OPENAI_API_KEY": "${OpenAiApiKey}"
+        }
+
+Conditions:
+  HasCertificate: !Not [!Equals [!Ref CertificateArn, ""]]
+
+Outputs:
+  LoadBalancerDNS:
+    Description: 负载均衡器DNS名称
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub '${AWS::StackName}-LoadBalancerDNS'
+
+  ECRRepositoryURI:
+    Description: ECR仓库URI
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepository}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ECRRepositoryURI'
+
+  ECSClusterName:
+    Description: ECS集群名称
+    Value: !Ref ECSCluster
+    Export:
+      Name: !Sub '${AWS::StackName}-ECSClusterName'
+
+  ECSServiceName:
+    Description: ECS服务名称
+    Value: !Ref ECSService
+    Export:
+      Name: !Sub '${AWS::StackName}-ECSServiceName' 

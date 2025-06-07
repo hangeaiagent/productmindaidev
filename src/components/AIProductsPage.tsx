@@ -399,7 +399,7 @@ const AIProductsPage: React.FC = () => {
                         <div className="flex items-center space-x-3 mb-3">
                           <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                             <button
-                              onClick={() => window.open(`/products/${project.id}`, '_blank')}
+                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
                               className="text-left"
                             >
                               {project.name}
@@ -424,20 +424,21 @@ const AIProductsPage: React.FC = () => {
                           <span>
                             {t.createdAt} {new Date(project.created_at).toLocaleDateString(language === 'en' ? 'en-US' : 'zh-CN')}
                           </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank');
+                            }}
+                            className="px-3 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                          >
+                            {language === 'zh' ? '生成模板' : 'Generate Templates'}
+                          </button>
                         </div>
                       </div>
 
                       <div className="flex flex-col space-y-2 ml-6">
                         <button
-                          onClick={() => window.open(`/products/${project.id}`, '_blank')}
-                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <span>{t.viewDetails}</span>
-                          <ExternalLink className="w-4 h-4 ml-2" />
-                        </button>
-                        
-                        <button
-                          onClick={() => window.open(`/products/${project.id}`, '_blank')}
+                          onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
                           className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <Download className="w-4 h-4 mr-2" />

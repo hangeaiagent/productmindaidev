@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (event === 'SIGNED_IN') {
           logger.log('用户已登录', { userId: session?.user?.id });
-          navigate('/', { replace: true });
+          // navigate('/', { replace: true }); // 注释掉自动跳转首页
         } else if (event === 'SIGNED_OUT') {
           logger.log('用户已登出');
           navigate('/login', { replace: true });

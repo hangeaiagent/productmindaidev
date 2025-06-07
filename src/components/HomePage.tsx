@@ -71,15 +71,11 @@ const HomePage: React.FC = () => {
   };
 
   const handleLogin = () => {
-    console.log('🔐 登录按钮被点击');
-    console.log('当前语言:', language);
-    alert(language === 'en' ? 'Login functionality will be implemented' : '登录功能将会实现');
+    navigate('/login');
   };
 
   const handleRegister = () => {
-    console.log('📝 注册按钮被点击');
-    console.log('当前语言:', language);
-    alert(language === 'en' ? 'Register functionality will be implemented' : '注册功能将会实现');
+    navigate('/register');
   };
 
   const handleGithub = () => {

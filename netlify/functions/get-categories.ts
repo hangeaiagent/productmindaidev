@@ -24,20 +24,122 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
   try {
     console.log('📚 获取分类数据...');
+    
+    // 添加环境变量检查
+    console.log('🔧 环境变量检查:', {
+      supabaseUrl: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : '未设置',
+      supabaseKey: supabaseKey ? `${supabaseKey.substring(0, 10)}...` : '未设置',
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey
+    });
 
-    // 获取所有分类数据
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase环境变量未正确配置');
+    }
+
+    // 测试Supabase连接
+    console.log('🔗 测试Supabase连接...');
+    
+    // 查询分类数据
     const { data: categories, error } = await supabase
       .from('user_projectscategory')
       .select('*')
-      .order('sort_order', { ascending: true });
+      .order('category_level')
+      .order('sort_order');
 
     if (error) {
-      throw new Error(`获取分类数据失败: ${error.message}`);
+      console.error('❌ 分类查询错误详情:', {
+        message: error.message,
+        details: error.details || error.stack || String(error),
+        hint: error.hint || '',
+        code: error.code || ''
+      });
+      throw new Error(`获取分类数据失败: ${error.message} (代码: ${error.code || ''})`);
     }
 
     console.log(`✅ 成功获取 ${categories?.length || 0} 个分类`);
+    
+    // 如果没有集成AI编程分类，添加它们
+    let allCategories = categories || [];
+    
+    // 检查是否已存在集成AI编程分类
+    const hasAIProgramming = allCategories.some(cat => cat.category_name === '集成AI编程');
+    
+    if (!hasAIProgramming) {
+      console.log('📋 添加集成AI编程分类...');
+      
+      // 添加一级分类：集成AI编程
+      const primaryCategory = {
+        id: 'ai-programming-1000',
+        category_code: '1000', 
+        category_name: '集成AI编程',
+        parent_category_code: null,
+        category_level: 1,
+        sort_order: 1000,
+        project_count: 0
+      };
+      
+      // 添加二级分类
+      const secondaryCategories = [
+        {
+          id: 'ai-programming-1001',
+          category_code: '1001',
+          category_name: '代码生成',
+          parent_category_code: '1000',
+          category_level: 2,
+          sort_order: 1001,
+          project_count: 0
+        },
+        {
+          id: 'ai-programming-1002', 
+          category_code: '1002',
+          category_name: '代码审查',
+          parent_category_code: '1000',
+          category_level: 2,
+          sort_order: 1002,
+          project_count: 0
+        },
+        {
+          id: 'ai-programming-1003',
+          category_code: '1003', 
+          category_name: '自动化测试',
+          parent_category_code: '1000',
+          category_level: 2,
+          sort_order: 1003,
+          project_count: 0
+        },
+        {
+          id: 'ai-programming-1004',
+          category_code: '1004',
+          category_name: '文档生成',
+          parent_category_code: '1000', 
+          category_level: 2,
+          sort_order: 1004,
+          project_count: 0
+        },
+        {
+          id: 'ai-programming-1005',
+          category_code: '1005',
+          category_name: '智能调试',
+          parent_category_code: '1000',
+          category_level: 2, 
+          sort_order: 1005,
+          project_count: 0
+        }
+      ];
+      
+      // 合并到现有分类中
+      allCategories = [
+        ...allCategories,
+        primaryCategory,
+        ...secondaryCategories
+      ];
+      
+      console.log('✅ 集成AI编程分类添加完成');
+    }
 
     // 统计每个分类的项目数量
+    console.log('📊 开始统计项目数量...');
     const { data: projectCounts, error: countError } = await supabase
       .from('user_projects')
       .select('primary_category_code, secondary_category_code')
@@ -45,7 +147,13 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       .not('name', 'eq', '');
 
     if (countError) {
-      console.warn('获取项目计数失败:', countError);
+      console.warn('⚠️ 获取项目计数失败:', {
+        message: countError.message,
+        details: countError.details,
+        hint: countError.hint,
+        code: countError.code
+      });
+      // 项目计数失败不影响主要功能，继续执行
     }
 
     // 计算分类项目数量
@@ -60,10 +168,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     });
 
     // 为分类添加项目数量
-    const categoriesWithCounts = categories?.map(category => ({
+    const categoriesWithCounts = allCategories.map(category => ({
       ...category,
       project_count: categoryCounts[category.category_code] || 0
     }));
+
+    console.log('✅ 分类数据处理完成');
 
     return {
       statusCode: 200,
@@ -82,7 +192,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     };
 
   } catch (error) {
-    console.error('❌ 获取分类数据失败:', error);
+    console.error('❌ 获取分类数据失败:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
     
     return {
       statusCode: 500,
@@ -90,7 +204,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       body: JSON.stringify({
         success: false,
         error: '获取分类数据失败',
-        details: error instanceof Error ? error.message : String(error)
+        details: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
       })
     };
   }

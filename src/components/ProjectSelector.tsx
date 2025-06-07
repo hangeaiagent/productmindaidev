@@ -189,6 +189,7 @@ const ProjectSelector: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = searchParams.get('projectId');
+  const isPublic = searchParams.get('isPublic') === 'true';
   const [projects, setProjects] = useState<Project[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -251,14 +252,38 @@ const ProjectSelector: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
+    if (user || isPublic) {
       loadProjects();
     }
-  }, [user]);
+  }, [user, isPublic]);
 
   useEffect(() => {
-    if (projects.length > 0) {
-      // 如果当前已经选中了项目，保持选中状态
+    if (isPublic && projectId) {
+      // 公共项目模式：直接根据projectId加载单个项目
+      const loadPublicProject = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('user_projects')
+            .select('*')
+            .eq('id', projectId)
+            .single();
+            
+          if (error) {
+            throw error;
+          }
+          
+          if (data) {
+            setCurrentProject(data as unknown as Project);
+          }
+        } catch (err) {
+          console.error('加载公共项目失败:', err);
+          setError(language === 'zh' ? '加载项目失败' : 'Failed to load project');
+        }
+      };
+      
+      loadPublicProject();
+    } else if (projects.length > 0) {
+      // 私有项目模式：原有逻辑
       if (currentProject?.id) {
         const project = projects.find(p => p.id === currentProject.id);
         if (project) {
@@ -284,7 +309,7 @@ const ProjectSelector: React.FC = () => {
         setSearchParams({ projectId: defaultProject.id });
       }
     }
-  }, [projects, projectId]);
+  }, [projects, projectId, isPublic]);
 
   // 添加重置生成状态的函数
   const resetGenerationState = () => {
@@ -303,16 +328,24 @@ const ProjectSelector: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      if (!user?.id) {
+      if (!user?.id && !isPublic) {
         setProjects([]);
         return;
       }
       
-      const { data, error: fetchError } = await supabase
-        .from('user_projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      let query = supabase.from('user_projects').select('*');
+      
+      // 如果是公共项目模式，只加载当前projectId的项目
+      if (isPublic && projectId) {
+        query = query.eq('id', projectId);
+      } else if (!isPublic && user?.id) {
+        // 私有项目模式，按用户ID过滤
+        query = query.eq('user_id', user.id);
+      }
+      
+      query = query.order('created_at', { ascending: false });
+      
+      const { data, error: fetchError } = await query;
 
       if (fetchError) {
         throw new Error(language === 'zh' ? 

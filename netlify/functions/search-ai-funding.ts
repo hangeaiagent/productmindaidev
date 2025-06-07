@@ -227,12 +227,12 @@ async function searchWithSerper(source: typeof searchSources[0]): Promise<any[]>
     });
 
     return searchResults.map((item: any) => ({
-      title: item.title,
-      link: item.link,
-      snippet: item.snippet,
+          title: item.title,
+          link: item.link,
+          snippet: item.snippet,
       date: standardizeDate(item.date) || new Date().toISOString().split('T')[0],
-      weight: source.weight,
-      source: source.name
+          weight: source.weight,
+          source: source.name
     }));
   } catch (error) {
     logger.error(`${source.name} search failed`, {
@@ -547,7 +547,7 @@ async function processSearchResults(searchResults: any[]): Promise<ProcessedResu
         if (!aiAnalysis) {
           throw new Error('AI analysis failed');
         }
-
+        
         logger.debug('AI分析完成', {
           title: item.title,
           originalName: projectInfo.project_name,
@@ -587,7 +587,7 @@ async function processSearchResults(searchResults: any[]): Promise<ProcessedResu
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           metadata: {
-            ai_analysis_metadata: {
+          ai_analysis_metadata: {
               confidence_score: confidenceScore,
               processing_time: Date.now() - itemStartTime,
               name_source: confidenceScore > 0.8 ? 'intelligent_search' : 'extracted',
@@ -599,17 +599,17 @@ async function processSearchResults(searchResults: any[]): Promise<ProcessedResu
                 official_website: aiAnalysis.officialWebsite
               }
             },
-            processing_metadata: {
-              total_processing_time: Date.now() - itemStartTime,
-              processing_steps: [
-                {
+          processing_metadata: {
+            total_processing_time: Date.now() - itemStartTime,
+            processing_steps: [
+              {
                   step: "项目信息提取",
                   timestamp: new Date().toISOString(),
                   duration: Date.now() - itemStartTime
-                },
-                {
+              },
+              {
                   step: "AI智能分析",
-                  timestamp: new Date().toISOString(),
+                timestamp: new Date().toISOString(),
                   duration: Date.now() - itemStartTime
                 },
                 {

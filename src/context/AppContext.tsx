@@ -59,7 +59,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [language, setLanguage] = useState<Language>(() => {
     // 尝试从 localStorage 获取语言偏好
     const savedLanguage = localStorage.getItem('userLanguagePreference');
-    return (savedLanguage as Language) || 'zh';
+    return (savedLanguage as Language) || 'en'; // 默认英文
   });
   const { user } = useAuth();
   const [selectedModel, setSelectedModel] = useState<AIModel>('deepseek');

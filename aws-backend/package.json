@@ -1,0 +1,65 @@
+{
+  "name": "productmind-aws-backend",
+  "version": "1.0.0",
+  "description": "ProductMind AI AWS ECS Fargate Backend Service",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "test": "jest",
+    "docker:build": "docker build -t productmind-backend .",
+    "docker:run": "docker run -p 3000:3000 productmind-backend",
+    "deploy:dev": "aws ecs update-service --cluster productmind-dev --service productmind-backend-dev --force-new-deployment",
+    "deploy:prod": "aws ecs update-service --cluster productmind-prod --service productmind-backend-prod --force-new-deployment"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "bull": "^4.12.2",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "date-fns": "^3.0.6",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "lodash": "^4.17.21",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "redis": "^4.6.12",
+    "uuid": "^9.0.1",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@types/bull": "^4.10.0",
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.8",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/lodash": "^4.14.202",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "productmind",
+    "ai",
+    "aws",
+    "ecs",
+    "fargate",
+    "backend"
+  ],
+  "author": "ProductMind AI Team",
+  "license": "MIT"
+}

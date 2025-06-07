@@ -1,0 +1,8 @@
+{
+  "name": "productmind-backend-build",
+  "source": {
+    "type": "S3",
+    "location": "productmind-backend-source/source.tar.gz",
+    "buildspec": "version: 0.2\nphases:\n  pre_build:\n    commands:\n      - echo Logging in to Amazon ECR...\n      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com\n      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/productmind-backend-repo\n      - IMAGE_TAG=latest\n  build:\n    commands:\n      - echo Build started on `date`\n      - echo Building the Docker image...\n      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .\n  post_build:\n    commands:\n      - echo Build completed on `date`\n      - echo Pushing the Docker image...\n      - docker push $REPOSITORY_URI:$IMAGE_TAG\n      - echo Writing image definitions file...\n      - printf '{\"ImageURI\":\"%s\"}' $REPOSITORY_URI:$IMAGE_TAG > imageDefinitions.json\nartifacts:\n  files:\n    - imageDefinitions.json"
+  }
+} 

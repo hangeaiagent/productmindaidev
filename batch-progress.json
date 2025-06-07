@@ -1,15 +1,25 @@
 {
   "current_offset": 0,
-  "template_offset": 0,
+  "template_offset": 1,
   "total_estimated": "unknown",
   "stats": {
     "generated": 0,
-    "skipped": 0,
+    "skipped": 2,
     "errors": 0,
-    "batches_completed": 0,
+    "batches_completed": 1,
     "start_time": "2025-05-27T17:14:52.520Z",
-    "last_update": "2025-05-27T17:14:52.524Z"
+    "last_update": "2025-05-27T17:52:57.599Z"
   },
-  "error": "解析响应失败: Unexpected token 'T', \"TimeoutErr\"... is not valid JSON",
-  "failed_at": "2025-05-27T17:17:08.003Z"
+  "last_batch_info": {
+    "start_offset": 0,
+    "template_offset": 0,
+    "projects_in_batch": 2,
+    "templates_in_batch": 1,
+    "has_more_projects": false,
+    "has_more_templates": true,
+    "next_project_offset": 0,
+    "next_template_offset": 1,
+    "timeout_reached": false,
+    "batch_completed": false
+  }
 }

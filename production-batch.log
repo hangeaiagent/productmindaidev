@@ -1,0 +1,153 @@
+[2025-05-27T18:00:14.390Z] [INFO] 🚀 开始生产环境大规模批量模板生成任务
+[2025-05-27T18:00:14.403Z] [INFO] 🌐 目标域名: http://productmindai.com
+[2025-05-27T18:00:14.406Z] [INFO] 任务参数: {
+  "user_id": "afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "languages": "zh,en",
+  "table": "user_projects",
+  "batch_size": 1,
+  "template_batch_size": 1,
+  "max_time": 25000,
+  "start_offset": 0,
+  "template_offset": 0,
+  "limit": 10,
+  "restart": true
+}
+[2025-05-27T18:00:14.412Z] [INFO] 
+=== 执行第 1 个生产环境批次 ===
+[2025-05-27T18:00:14.413Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-27T18:00:14.415Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-27T18:00:43.689Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-27T18:00:43.690Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-27T18:00:48.692Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-27T18:00:48.692Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-27T18:01:19.704Z] [ERROR] 批次执行失败: read ETIMEDOUT
+[2025-05-27T18:01:19.707Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-27T18:01:24.710Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-27T18:01:24.711Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-27T20:01:47.565Z] [ERROR] 批次执行失败: read ETIMEDOUT
+[2025-05-27T20:01:47.566Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-27T20:01:52.560Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-27T20:01:52.560Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-27T20:02:21.476Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-27T20:02:21.477Z] [ERROR] 批次 1 执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-27T20:02:21.479Z] [INFO] 进度已保存: 0/unknown
+[2025-05-27T20:02:21.479Z] [INFO] 继续执行下一批次...
+[2025-05-27T20:02:26.480Z] [INFO] 
+=== 执行第 2 个生产环境批次 ===
+[2025-05-27T20:02:26.481Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-27T20:02:26.482Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-27T22:02:24.036Z] [ERROR] 批次执行失败: 请求超时
+[2025-05-27T22:02:24.174Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-28T00:02:28.017Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T00:02:28.154Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T00:02:57.463Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T00:02:57.464Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-28T00:03:02.466Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T00:03:02.467Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:20:36.176Z] [ERROR] 批次执行失败: read ETIMEDOUT
+[2025-05-28T03:20:36.177Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-28T03:20:39.815Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:20:39.817Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:20:39.820Z] [ERROR] 批次执行失败: getaddrinfo ENOTFOUND productmindai.com
+[2025-05-28T03:20:39.821Z] [ERROR] 批次 2 执行失败: getaddrinfo ENOTFOUND productmindai.com
+[2025-05-28T03:20:39.832Z] [INFO] 进度已保存: 0/unknown
+[2025-05-28T03:20:39.832Z] [INFO] 继续执行下一批次...
+[2025-05-28T03:20:44.837Z] [INFO] 
+=== 执行第 3 个生产环境批次 ===
+[2025-05-28T03:20:44.838Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:20:44.839Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:36:46.721Z] [ERROR] 批次执行失败: read ETIMEDOUT
+[2025-05-28T03:36:46.723Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-28T03:36:51.725Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:36:51.726Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:37:21.258Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:37:21.262Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-28T03:37:26.282Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:37:26.289Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:37:55.333Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:37:55.335Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-28T03:38:00.336Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:38:00.336Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:38:29.274Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:38:29.275Z] [ERROR] 批次 3 执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:38:29.279Z] [INFO] 进度已保存: 0/unknown
+[2025-05-28T03:38:29.281Z] [INFO] 继续执行下一批次...
+[2025-05-28T03:38:34.284Z] [INFO] 
+=== 执行第 4 个生产环境批次 ===
+[2025-05-28T03:38:34.285Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:38:34.286Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:39:03.264Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:39:03.265Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-28T03:39:08.267Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:39:08.267Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:39:37.220Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:39:37.220Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-28T03:39:42.224Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:39:42.225Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:40:11.406Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:40:11.408Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-28T03:40:16.409Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:40:16.410Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:40:45.492Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:40:45.492Z] [ERROR] 批次 4 执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:40:45.496Z] [INFO] 进度已保存: 0/unknown
+[2025-05-28T03:40:45.496Z] [INFO] 继续执行下一批次...
+[2025-05-28T03:40:50.496Z] [INFO] 
+=== 执行第 5 个生产环境批次 ===
+[2025-05-28T03:40:50.497Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:40:50.498Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:41:20.428Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:41:20.429Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-28T03:41:25.431Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:41:25.431Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:41:54.244Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:41:54.244Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-28T03:41:59.244Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:41:59.245Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:42:28.236Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:42:28.236Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-28T03:42:33.237Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T03:42:33.238Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T03:43:02.324Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:43:02.325Z] [ERROR] 批次 5 执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T03:43:02.326Z] [INFO] 进度已保存: 0/unknown
+[2025-05-28T03:43:02.327Z] [ERROR] 连续错误次数过多，停止执行
+[2025-05-28T03:43:02.328Z] [INFO] 
+🎉 生产环境大规模批量生成任务完成！
+[2025-05-28T03:43:02.328Z] [INFO] 最终统计:
+[2025-05-28T03:43:02.329Z] [INFO]    总生成: 0 个模板
+[2025-05-28T03:43:02.330Z] [INFO]    总跳过: 0 个模板
+[2025-05-28T03:43:02.332Z] [INFO]    总错误: 0 个模板
+[2025-05-28T03:43:02.334Z] [INFO]    总批次: 0 个
+[2025-05-28T03:43:02.336Z] [INFO]    总耗时: 34967947ms
+[2025-05-28T03:43:02.340Z] [INFO] 进度文件已清理
+[2025-05-28T05:50:29.072Z] [INFO] 🚀 开始生产环境大规模批量模板生成任务
+[2025-05-28T05:50:29.089Z] [INFO] 🌐 目标域名: http://productmindai.com
+[2025-05-28T05:50:29.089Z] [INFO] 任务参数: {
+  "user_id": "afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1",
+  "languages": "zh,en",
+  "table": "user_projects",
+  "batch_size": 1,
+  "template_batch_size": 1,
+  "max_time": 25000,
+  "start_offset": 0,
+  "template_offset": 0,
+  "limit": 10,
+  "restart": true
+}
+[2025-05-28T05:50:29.091Z] [INFO] 
+=== 执行第 1 个生产环境批次 ===
+[2025-05-28T05:50:29.095Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T05:50:29.095Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T05:50:59.079Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T05:50:59.079Z] [INFO] 等待 5000ms 后重试 (1/3)
+[2025-05-28T05:51:04.080Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T05:51:04.081Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T05:51:33.208Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T05:51:33.210Z] [INFO] 等待 5000ms 后重试 (2/3)
+[2025-05-28T05:51:38.210Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T05:51:38.211Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true
+[2025-05-28T05:52:07.407Z] [ERROR] 批次执行失败: 解析响应失败: Unexpected end of JSON input
+[2025-05-28T05:52:07.407Z] [INFO] 等待 5000ms 后重试 (3/3)
+[2025-05-28T05:52:12.408Z] [INFO] 执行生产环境批次: offset=0, template_offset=0
+[2025-05-28T05:52:12.409Z] [INFO] 请求URL: http://productmindai.com/.netlify/functions/batch-generate-templates?user_id=afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&languages=zh%2Cen&table=user_projects&batch_size=1&template_batch_size=1&max_time=25000&start_offset=0&template_offset=0&limit=10&restart=true

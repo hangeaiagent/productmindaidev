@@ -8,6 +8,7 @@ export interface Template {
   description_en: string;
   description_zh: string;
   prompt_content: string;
+  mdcprompt?: string;  // 新增：用于生成cursor规则文件的提示词模板
   created_at: string;
   updated_at: string;
   no: number;
@@ -32,6 +33,8 @@ export interface TemplateVersion {
     content: string;
     annotations: any[];
   };
+  mdcpromptcontent_zh?: string;  // 新增：cursor规则文件的中文内容
+  mdcpromptcontent_en?: string;  // 新增：cursor规则文件的英文内容
   source_language: 'zh' | 'en';
   created_at: string;
   updated_at: string;
@@ -60,6 +63,7 @@ export interface TemplateCategory {
   created_at: string;
   updated_at: string;
   no: number;
+  isshow?: number;
 }
 
 export interface Project {
