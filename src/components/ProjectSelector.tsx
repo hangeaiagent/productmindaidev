@@ -1149,7 +1149,7 @@ ${copyrightText}
         if (deleteError) throw deleteError;
       }
 
-      // 获取所有模板，包括分类信息，且isshow=1
+      // 获取所有模板，包括分类信息，且template_categories.isshow=1
       const { data: sortedTemplates, error: templatesError } = await supabase
         .from('templates')
         .select(`
@@ -1167,7 +1167,7 @@ ${copyrightText}
             output_content
           )
         `)
-        .eq('isshow', 1)
+        .eq('category.isshow', 1)
         .order('category(no)', { ascending: true })
         .order('no', { ascending: true });
 
