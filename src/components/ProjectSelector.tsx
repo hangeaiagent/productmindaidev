@@ -16,6 +16,8 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { FunctionCaller } from '../utils/functionCaller';
 import { translationService } from '../services/translationService';
+import { generateStream } from '../services/aiService';
+import { buildPrompt } from '../utils/promptBuilder';
 
 // 转换 Markdown 为 Word 文档
 const convertMarkdownToDocx = async (markdown: string): Promise<Document> => {
@@ -197,6 +199,8 @@ const ProjectSelector: React.FC = () => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+  const [isGeneratingCursor, setIsGeneratingCursor] = useState(false);
+  const [isDownloadingCursor, setIsDownloadingCursor] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [totalTemplates, setTotalTemplates] = useState(0);
   const [showGenerationSummary, setShowGenerationSummary] = useState(false);
@@ -873,6 +877,195 @@ ${copyrightText}
     setTimeout(() => {
       setError(null);
     }, 3000);
+  };
+
+  // 生成并下载Cursor文件的函数
+  const handleGenerateAndDownloadCursor = async () => {
+    if (!currentProject?.id) {
+      setError(language === 'zh' ? '请先选择或创建一个项目' : 'Please select or create a project first');
+      return;
+    }
+
+    if (!currentProject?.description) {
+      setError(language === 'zh' ? '请先输入产品描述' : 'Please enter product description first');
+      return;
+    }
+
+    setIsGeneratingCursor(true);
+    setError(null);
+
+    try {
+      logger.log('开始生成Cursor文件', { projectId: currentProject.id });
+
+      // 获取所有模板，包括mdcprompt字段
+      const { data: templates, error: templatesError } = await supabase
+        .from('templates')
+        .select('*')
+        .not('mdcprompt', 'is', null);
+
+      if (templatesError) throw templatesError;
+
+      if (!templates || templates.length === 0) {
+        setError(language === 'zh' ? '没有找到包含Cursor提示词的模板' : 'No templates with Cursor prompts found');
+        return;
+      }
+
+      // 检查或生成每个模板的Cursor内容
+      const cursorContents: { templateName: string; content: string }[] = [];
+
+      for (const template of templates) {
+        if (!template.mdcprompt) continue;
+
+        // 检查是否已存在该模板的Cursor内容
+        const { data: existingVersion, error: versionError } = await supabase
+          .from('template_versions')
+          .select('mdcpromptcontent_en')
+          .eq('template_id', template.id)
+          .eq('project_id', currentProject.id)
+          .not('mdcpromptcontent_en', 'is', null)
+          .single();
+
+        let cursorContent = '';
+
+        if (existingVersion && existingVersion.mdcpromptcontent_en) {
+          // 使用已存在的内容
+          cursorContent = existingVersion.mdcpromptcontent_en;
+          logger.log('使用已存在的Cursor内容', { templateId: template.id });
+        } else {
+          // 生成新的Cursor内容
+          logger.log('生成新的Cursor内容', { templateId: template.id });
+          
+          const cursorPrompt = buildPrompt(
+            template,
+            currentProject.name || '未命名项目',
+            currentProject.description,
+            'en'
+          );
+
+          // 使用mdcprompt字段作为系统提示词
+          const messages = [
+            {
+              role: 'system' as const,
+              content: template.mdcprompt
+            },
+            {
+              role: 'user' as const,
+              content: cursorPrompt
+            }
+          ];
+
+          const config = {
+            id: 'deepseek' as const,
+            name: 'DeepSeek',
+            version: 'deepseek-chat',
+            apiKey: 'sk-567abb67b99d4a65acaa2d9ed06c3782',
+            useSystemCredit: true
+          };
+
+          const stream = await generateStream('deepseek', config, cursorPrompt);
+          const reader = stream.getReader();
+          const decoder = new TextDecoder();
+          let generatedContent = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            generatedContent += chunk;
+          }
+
+          cursorContent = generatedContent;
+
+          // 保存到数据库
+          const { error: saveError } = await supabase
+            .from('template_versions')
+            .upsert({
+              template_id: template.id,
+              project_id: currentProject.id,
+              input_content: currentProject.description,
+              mdcpromptcontent_en: cursorContent,
+              created_by: user?.id,
+              is_active: true,
+              version_number: 1
+            });
+
+          if (saveError) {
+            logger.error('保存Cursor内容失败', { error: saveError, templateId: template.id });
+          } else {
+            logger.log('Cursor内容保存成功', { templateId: template.id });
+          }
+        }
+
+        if (cursorContent) {
+          const templateName = template.name_en || template.name_zh || 'unnamed';
+          cursorContents.push({
+            templateName,
+            content: cursorContent
+          });
+        }
+      }
+
+      if (cursorContents.length === 0) {
+        setError(language === 'zh' ? '没有生成任何Cursor内容' : 'No Cursor content generated');
+        return;
+      }
+
+      // 开始下载过程
+      setIsDownloadingCursor(true);
+      setIsGeneratingCursor(false);
+
+      // 创建ZIP文件
+      const zip = new JSZip();
+      
+      // 添加项目信息文件
+      const readmeContent = `# ${currentProject.name || ''} - Cursor Rules\n\n${currentProject.description || ''}\n\n${language === 'zh' ? '生成时间' : 'Generated at'}：${new Date().toLocaleString()}`;
+      zip.file('README.md', readmeContent);
+
+      // 添加每个模板的.mdc文件
+      for (const { templateName, content } of cursorContents) {
+        const safeTemplateName = templateName
+          .replace(/[<>:"/\\|?*]/g, '')
+          .replace(/\s+/g, '_');
+        
+        const fileName = `${safeTemplateName}.mdc`;
+        zip.file(fileName, content);
+        logger.log('添加Cursor文件', { fileName, contentLength: content.length });
+      }
+
+      // 生成并下载ZIP文件
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      
+      const safeProjectName = currentProject.name
+        .replace(/[<>:"/\\|?*]/g, '')
+        .replace(/\s+/g, '_');
+      
+      const downloadUrl = URL.createObjectURL(zipContent);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${safeProjectName}_Cursor_Rules_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+
+      logger.log('Cursor文件下载完成', { 
+        projectName: currentProject.name, 
+        filesCount: cursorContents.length 
+      });
+
+    } catch (err) {
+      logger.error('生成或下载Cursor文件失败', { 
+        error: err, 
+        message: err instanceof Error ? err.message : '未知错误'
+      });
+      const errorMessage = err instanceof Error ? err.message : 
+        language === 'zh' ? '生成或下载Cursor文件失败' : 'Failed to generate or download Cursor files';
+      setError(errorMessage);
+    } finally {
+      setIsGeneratingCursor(false);
+      setIsDownloadingCursor(false);
+    }
   };
 
   const handleGenerateAll = async () => {
@@ -1556,6 +1749,34 @@ ${copyrightText}
                 <>
                   <Play className="w-4 h-4 mr-2" />
                   {language === 'zh' ? '全部生成' : 'Generate All'}
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                if (!isAuthenticated) {
+                  navigate('/login');
+                  return;
+                }
+                handleGenerateAndDownloadCursor();
+              }}
+              disabled={isGeneratingCursor || isDownloadingCursor || !currentProject?.id}
+              className={`flex items-center px-3 py-2 ${
+                isGeneratingCursor || isDownloadingCursor || !currentProject?.id
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-purple-500 hover:bg-purple-600'
+              } text-white rounded`}
+            >
+              {isGeneratingCursor || isDownloadingCursor ? (
+                <>
+                  <SafeLoader className="w-4 h-4 mr-2 animate-spin" />
+                  {language === 'zh' ? '处理中...' : 'Processing...'}
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 mr-2" />
+                  {language === 'zh' ? '下载Cursor文件' : 'Download Cursor Files'}
                 </>
               )}
             </button>
