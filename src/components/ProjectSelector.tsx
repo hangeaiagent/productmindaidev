@@ -897,11 +897,12 @@ ${copyrightText}
     try {
       logger.log('开始生成Cursor文件', { projectId: currentProject.id });
 
-      // 获取所有模板，包括mdcprompt字段
+      // 获取所有模板，包括mdcprompt字段，且isshow=1
       const { data: templates, error: templatesError } = await supabase
         .from('templates')
         .select('*')
-        .not('mdcprompt', 'is', null);
+        .not('mdcprompt', 'is', null)
+        .eq('isshow', 1);
 
       if (templatesError) throw templatesError;
 
@@ -1148,7 +1149,7 @@ ${copyrightText}
         if (deleteError) throw deleteError;
       }
 
-      // 获取所有模板，包括分类信息
+      // 获取所有模板，包括分类信息，且isshow=1
       const { data: sortedTemplates, error: templatesError } = await supabase
         .from('templates')
         .select(`
@@ -1166,6 +1167,7 @@ ${copyrightText}
             output_content
           )
         `)
+        .eq('isshow', 1)
         .order('category(no)', { ascending: true })
         .order('no', { ascending: true });
 
