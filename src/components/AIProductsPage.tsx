@@ -6,6 +6,9 @@ interface Category {
   id: string;
   category_code: string;
   category_name: string;
+  category_name_en?: string;
+  display_name?: string;
+  category_name_zh?: string;
   parent_category_code: string | null;
   category_level: number;
   sort_order: number;
@@ -16,6 +19,12 @@ interface Project {
   id: string;
   name: string;
   description: string;
+  name_zh?: string;
+  description_zh?: string;
+  name_en?: string;
+  description_en?: string;
+  name_display?: string;
+  description_display?: string;
   primary_category: string;
   secondary_category: string;
   primary_category_code: string;
@@ -97,7 +106,7 @@ const AIProductsPage: React.FC = () => {
   // 获取分类数据
   const fetchCategories = async () => {
     try {
-      const response = await fetch('/.netlify/functions/get-categories');
+      const response = await fetch(`/.netlify/functions/get-categories?language=${language}`);
       const data = await response.json();
       if (data.success) {
         setCategories(data.categories);
@@ -115,11 +124,11 @@ const AIProductsPage: React.FC = () => {
   // 获取项目数据
   const fetchProjects = async (categoryCode?: string) => {
     try {
-      console.log('📊 开始获取项目数据，分类:', categoryCode || '全部');
+      console.log('📊 开始获取项目数据，分类:', categoryCode || '全部', '语言:', language);
       setLoading(true);
-      let url = '/.netlify/functions/get-projects-by-category';
+      let url = `/.netlify/functions/get-projects-by-category?language=${language}`;
       if (categoryCode) {
-        url += `?category=${encodeURIComponent(categoryCode)}`;
+        url += `&category=${encodeURIComponent(categoryCode)}`;
       }
       
       console.log('🌐 请求URL:', url);
@@ -140,11 +149,11 @@ const AIProductsPage: React.FC = () => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     fetchProjects(selectedCategory);
-  }, [selectedCategory]);
+  }, [selectedCategory, language]);
 
   // 监听URL参数变化，同步分类状态
   useEffect(() => {
@@ -335,7 +344,7 @@ const AIProductsPage: React.FC = () => {
                           <ChevronRight className="w-4 h-4 text-gray-400 mr-2" />
                         )}
                         <span className="font-medium text-gray-900">
-                          {primaryCategory.category_name}
+                          {primaryCategory.display_name || primaryCategory.category_name}
                         </span>
                       </div>
                       <span className="text-sm text-gray-500">
@@ -357,7 +366,7 @@ const AIProductsPage: React.FC = () => {
                               : 'hover:bg-gray-50'
                           }`}
                         >
-                          <span className="text-sm">{secondaryCategory.category_name}</span>
+                          <span className="text-sm">{secondaryCategory.display_name || secondaryCategory.category_name}</span>
                           <span className="text-xs text-gray-500">
                             {secondaryCategory.project_count || 0}
                           </span>
@@ -375,7 +384,7 @@ const AIProductsPage: React.FC = () => {
             {/* 分类信息头部 */}
             <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {selectedCategoryInfo ? selectedCategoryInfo.category_name : t.allProducts}
+                {selectedCategoryInfo ? (selectedCategoryInfo.display_name || selectedCategoryInfo.category_name) : t.allProducts}
               </h2>
               <p className="text-gray-600">
                 {t.totalProducts.replace('{count}', filteredProjects.length.toString())}

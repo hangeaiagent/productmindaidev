@@ -23,7 +23,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   try {
-    console.log('📚 获取分类数据...');
+    // 获取语言参数
+    const { queryStringParameters } = event;
+    const language = queryStringParameters?.language || 'zh'; // 默认中文
+    
+    console.log(`📚 获取分类数据... 语言: ${language}`);
     
     // 添加环境变量检查
     console.log('🔧 环境变量检查:', {
@@ -40,7 +44,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     // 测试Supabase连接
     console.log('🔗 测试Supabase连接...');
     
-    // 查询分类数据
+    // 查询分类数据，包含多语言字段
     const { data: categories, error } = await supabase
       .from('user_projectscategory')
       .select('*')
@@ -73,6 +77,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         id: 'ai-programming-1000',
         category_code: '1000', 
         category_name: '集成AI编程',
+        category_name_en: 'AI Programming Integration',
         parent_category_code: null,
         category_level: 1,
         sort_order: 1000,
@@ -85,6 +90,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           id: 'ai-programming-1001',
           category_code: '1001',
           category_name: '代码生成',
+          category_name_en: 'Code Generation',
           parent_category_code: '1000',
           category_level: 2,
           sort_order: 1001,
@@ -94,6 +100,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           id: 'ai-programming-1002', 
           category_code: '1002',
           category_name: '代码审查',
+          category_name_en: 'Code Review',
           parent_category_code: '1000',
           category_level: 2,
           sort_order: 1002,
@@ -103,6 +110,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           id: 'ai-programming-1003',
           category_code: '1003', 
           category_name: '自动化测试',
+          category_name_en: 'Automated Testing',
           parent_category_code: '1000',
           category_level: 2,
           sort_order: 1003,
@@ -112,6 +120,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           id: 'ai-programming-1004',
           category_code: '1004',
           category_name: '文档生成',
+          category_name_en: 'Documentation Generation',
           parent_category_code: '1000', 
           category_level: 2,
           sort_order: 1004,
@@ -121,6 +130,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           id: 'ai-programming-1005',
           category_code: '1005',
           category_name: '智能调试',
+          category_name_en: 'Intelligent Debugging',
           parent_category_code: '1000',
           category_level: 2, 
           sort_order: 1005,
@@ -167,13 +177,23 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       }
     });
 
-    // 为分类添加项目数量
-    const categoriesWithCounts = allCategories.map(category => ({
-      ...category,
-      project_count: categoryCounts[category.category_code] || 0
-    }));
+    // 为分类添加项目数量并处理多语言显示
+    const categoriesWithCounts = allCategories.map(category => {
+      const displayName = language === 'en' 
+        ? (category.category_name_en || category.category_name)
+        : category.category_name;
+      
+      return {
+        ...category,
+        project_count: categoryCounts[category.category_code] || 0,
+        display_name: displayName,
+        // 保留原始字段以便前端可以获取完整信息
+        category_name_zh: category.category_name,
+        category_name_en: category.category_name_en || category.category_name
+      };
+    });
 
-    console.log('✅ 分类数据处理完成');
+    console.log(`✅ 分类数据处理完成，使用语言: ${language}`);
 
     return {
       statusCode: 200,

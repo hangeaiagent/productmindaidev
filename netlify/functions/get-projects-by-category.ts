@@ -26,18 +26,23 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     const { queryStringParameters } = event;
     const categoryCode = queryStringParameters?.category;
     const search = queryStringParameters?.search;
+    const language = queryStringParameters?.language || 'zh'; // 默认中文
     const limit = parseInt(queryStringParameters?.limit || '50');
     const offset = parseInt(queryStringParameters?.offset || '0');
 
-    console.log(`📊 获取项目数据 - 分类: ${categoryCode || '全部'}, 搜索: ${search || '无'}`);
+    console.log(`📊 获取项目数据 - 分类: ${categoryCode || '全部'}, 搜索: ${search || '无'}, 语言: ${language}`);
 
-    // 构建查询
+    // 构建查询，包含多语言字段
     let query = supabase
       .from('user_projects')
       .select(`
         id,
         name,
         description,
+        name_zh,
+        description_zh,
+        name_en,
+        description_en,
         primary_category,
         secondary_category,
         primary_category_code,
@@ -67,6 +72,26 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       throw new Error(`获取项目数据失败: ${error.message}`);
     }
 
+    // 处理多语言项目数据
+    const processedProjects = projects?.map(project => {
+      const displayName = language === 'en'
+        ? (project.name_en || project.name_zh || project.name)
+        : (project.name_zh || project.name);
+      
+      const displayDescription = language === 'en'
+        ? (project.description_en || project.description_zh || project.description)
+        : (project.description_zh || project.description);
+
+      return {
+        ...project,
+        name: displayName,
+        description: displayDescription,
+        // 保留原始字段以便前端可以获取完整信息
+        name_display: displayName,
+        description_display: displayDescription
+      };
+    }) || [];
+
     // 获取总数（用于分页）
     let countQuery = supabase
       .from('user_projects')
@@ -88,7 +113,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       console.warn('获取项目总数失败:', countError);
     }
 
-    console.log(`✅ 成功获取 ${projects?.length || 0} 个项目，总计 ${totalCount || 0} 个`);
+    console.log(`✅ 成功获取 ${processedProjects.length} 个项目，总计 ${totalCount || 0} 个`);
 
     // 如果指定了分类，获取分类信息
     let categoryInfo = null;
@@ -100,7 +125,15 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         .single();
 
       if (!categoryError && category) {
-        categoryInfo = category;
+        // 处理分类信息的多语言显示
+        const categoryDisplayName = language === 'en'
+          ? (category.category_name_en || category.category_name)
+          : category.category_name;
+        
+        categoryInfo = {
+          ...category,
+          display_name: categoryDisplayName
+        };
       }
     }
 
@@ -110,7 +143,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       body: JSON.stringify({
         success: true,
         message: '项目数据获取成功',
-        projects: projects || [],
+        projects: processedProjects,
         categoryInfo,
         pagination: {
           total: totalCount || 0,
@@ -120,7 +153,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         },
         filters: {
           category: categoryCode,
-          search
+          search,
+          language
         }
       })
     };
