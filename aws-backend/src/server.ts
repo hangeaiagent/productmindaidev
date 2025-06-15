@@ -1130,6 +1130,9 @@ app.post('/test/template-generation/start', async (req, res): Promise<void> => {
 app.use('/api/v1/templates', authMiddleware, templateRoutes);
 app.use('/api/v1/queue', authMiddleware, queueRoutes);
 
+// 批量生产路由（不需要认证，用于服务器端调用）
+app.use('/api/batch', templateRoutes);
+
 // 根路径
 app.get('/', (req, res) => {
   res.json({

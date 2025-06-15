@@ -4,6 +4,7 @@ import { authMiddleware, AuthRequest } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
 import * as supabaseService from '../services/supabaseService';
 import * as aiService from '../services/aiService';
+import * as batchProductionService from '../services/batchProductionService';
 
 const router = Router();
 
@@ -478,5 +479,81 @@ async function handleBatchGeneration(params: any) {
 
   return results;
 }
+
+// 批量生产模板内容接口 - 无需认证（适合服务器端调用）
+router.post('/batch-production', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const {
+    batchSize = 3,
+    dryRun = false,
+    skipExisting = true,
+    limitProjects = 10,
+    limitTemplates = 10
+  } = req.body;
+
+  logger.info('🚀 开始批量生产模板内容...', {
+    batchSize,
+    dryRun,
+    skipExisting,
+    limitProjects,
+    limitTemplates
+  });
+
+  try {
+    const result = await batchProductionService.batchProductionTemplates({
+      batchSize,
+      dryRun,
+      skipExisting,
+      limitProjects,
+      limitTemplates
+    });
+
+    res.json({
+      success: true,
+      message: '批量生产完成',
+      data: result
+    });
+
+  } catch (error) {
+    logger.error('批量生产模板内容失败', error);
+    res.status(500).json({
+      success: false,
+      error: '批量生产失败',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}));
+
+// 批量生产模板内容状态查询接口
+router.get('/batch-production/status', asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  try {
+    // 查询最近的批量生产状态
+    const { data: recentVersions, error } = await supabaseService.supabase
+      .from('template_versions')
+      .select('id, created_at, template_id, project_id')
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      throw new Error(`查询状态失败: ${error.message}`);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        recent_generations: recentVersions?.length || 0,
+        last_generation: recentVersions?.[0]?.created_at || null,
+        status: 'ready'
+      }
+    });
+
+  } catch (error) {
+    logger.error('查询批量生产状态失败', error);
+    res.status(500).json({
+      success: false,
+      error: '查询状态失败',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+}));
 
 export default router; 
