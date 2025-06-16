@@ -184,7 +184,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         : category.category_name;
       
       return {
-        ...category,
+      ...category,
         project_count: categoryCounts[category.category_code] || 0,
         display_name: displayName,
         // 保留原始字段以便前端可以获取完整信息
