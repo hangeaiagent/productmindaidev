@@ -1,0 +1,135 @@
+
+> productmind-aws-backend@1.0.0 start
+> node dist/server.js
+
+🔍 尝试加载Supabase配置文件: /Users/a1/work/productmindai0521/aws-backend/.env
+🔧 Supabase配置状态: {
+  SUPABASE_URL: true,
+  SUPABASE_ANON_KEY: true,
+  envPath: '/Users/a1/work/productmindai0521/aws-backend/.env'
+}
+🔧 尝试加载环境变量文件: /Users/a1/work/productmindai0521/aws-backend/.env
+✅ 环境变量文件加载成功
+🔍 环境变量检查: {
+  SUPABASE_URL: '已设置',
+  SUPABASE_ANON_KEY: '已设置',
+  NODE_ENV: 'development',
+  PORT: '3000'
+}
+[32minfo[39m: 🚀 服务器启动成功！ {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+info: 🚀 服务器启动成功！ {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+[32minfo[39m: 📍 端口: 3000 {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+info: 📍 端口: 3000 {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+[32minfo[39m: 🌍 环境: development {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+info: 🌍 环境: development {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+[32minfo[39m: 🔗 健康检查: http://localhost:3000/health {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+info: 🔗 健康检查: http://localhost:3000/health {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+[32minfo[39m: 📚 API文档: http://localhost:3000/api/v1 {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+info: 📚 API文档: http://localhost:3000/api/v1 {"service":"productmind-backend","timestamp":"2025-06-15 22:24:57"}
+[32minfo[39m: 请求开始 {"ip":"::1","method":"GET","service":"productmind-backend","timestamp":"2025-06-15 22:27:41","url":"/health"}
+info: 请求开始 {"ip":"::1","method":"GET","service":"productmind-backend","timestamp":"2025-06-15 22:27:41","url":"/health"}
+[32minfo[39m: 健康检查请求 {"environment":"development","memory":{"arrayBuffers":65670,"external":3352844,"heapTotal":14913536,"heapUsed":13417360,"rss":47767552},"pid":26551,"service":"productmind-backend","status":"ok","timestamp":"2025-06-15 22:27:41","uptime":165.749135355,"version":"v1"}
+info: 健康检查请求 {"environment":"development","memory":{"arrayBuffers":65670,"external":3352844,"heapTotal":14913536,"heapUsed":13417360,"rss":47767552},"pid":26551,"service":"productmind-backend","status":"ok","timestamp":"2025-06-15 22:27:41","uptime":165.749135355,"version":"v1"}
+::1 - - [15/Jun/2025:14:27:41 +0000] "GET /health HTTP/1.1" 200 239 "-" "-"
+[32minfo[39m: 请求完成 {"duration":"16ms","ip":"::1","method":"GET","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:41","url":"/"}
+info: 请求完成 {"duration":"16ms","ip":"::1","method":"GET","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:41","url":"/"}
+[32minfo[39m: 请求开始 {"ip":"::1","method":"GET","service":"productmind-backend","timestamp":"2025-06-15 22:27:42","url":"/api/batch/batch-production/status"}
+info: 请求开始 {"ip":"::1","method":"GET","service":"productmind-backend","timestamp":"2025-06-15 22:27:42","url":"/api/batch/batch-production/status"}
+::1 - - [15/Jun/2025:14:27:45 +0000] "GET /api/batch/batch-production/status HTTP/1.1" 200 119 "-" "-"
+[32minfo[39m: 请求完成 {"duration":"2570ms","ip":"::1","method":"GET","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:45","url":"/batch-production/status"}
+info: 请求完成 {"duration":"2570ms","ip":"::1","method":"GET","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:45","url":"/batch-production/status"}
+[32minfo[39m: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:27:46","url":"/api/batch/batch-production"}
+info: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:27:46","url":"/api/batch/batch-production"}
+[32minfo[39m: 🚀 开始批量生产模板内容... {"batchSize":2,"dryRun":true,"limitProjects":3,"limitTemplates":2,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:46"}
+info: 🚀 开始批量生产模板内容... {"batchSize":2,"dryRun":true,"limitProjects":3,"limitTemplates":2,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:46"}
+[32minfo[39m: 🚀 开始批量生产模板内容 {"batchSize":2,"dryRun":true,"limitProjects":3,"limitTemplates":2,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:46"}
+info: 🚀 开始批量生产模板内容 {"batchSize":2,"dryRun":true,"limitProjects":3,"limitTemplates":2,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:46"}
+[32minfo[39m: ✅ 找到 2 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:47"}
+info: ✅ 找到 2 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:47"}
+[32minfo[39m: ✅ 找到 3 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:47"}
+info: ✅ 找到 3 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:47"}
+[32minfo[39m: 📋 已存在 1 个版本记录 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+info: 📋 已存在 1 个版本记录 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+[32minfo[39m: 📋 生成 5 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+info: 📋 生成 5 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+[32minfo[39m: 🧪 干预模式：不执行实际生成 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+info: 🧪 干预模式：不执行实际生成 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:48"}
+[32minfo[39m: 🏁 批量生产完成: 干预模式完成 {"duration":"1.8s","service":"productmind-backend","stats":{"failed":0,"generated":0,"skipped":0,"total":5},"timestamp":"2025-06-15 22:27:48"}
+info: 🏁 批量生产完成: 干预模式完成 {"duration":"1.8s","service":"productmind-backend","stats":{"failed":0,"generated":0,"skipped":0,"total":5},"timestamp":"2025-06-15 22:27:48"}
+::1 - - [15/Jun/2025:14:27:48 +0000] "POST /api/batch/batch-production HTTP/1.1" 200 249 "-" "-"
+[32minfo[39m: 请求完成 {"duration":"1820ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:48","url":"/batch-production"}
+info: 请求完成 {"duration":"1820ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:48","url":"/batch-production"}
+[32minfo[39m: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:27:50","url":"/api/batch/batch-production"}
+info: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:27:50","url":"/api/batch/batch-production"}
+[32minfo[39m: 🚀 开始批量生产模板内容... {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:50"}
+info: 🚀 开始批量生产模板内容... {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:50"}
+[32minfo[39m: 🚀 开始批量生产模板内容 {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:50"}
+info: 🚀 开始批量生产模板内容 {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":true,"timestamp":"2025-06-15 22:27:50"}
+[32minfo[39m: ✅ 找到 1 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:50"}
+info: ✅ 找到 1 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:50"}
+[32minfo[39m: ✅ 找到 1 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+info: ✅ 找到 1 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+[32minfo[39m: 📋 已存在 1 个版本记录 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+info: 📋 已存在 1 个版本记录 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+[32minfo[39m: 📋 生成 0 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+info: 📋 生成 0 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:27:51"}
+[32minfo[39m: 🏁 批量生产完成 {"duration":"1.5s","service":"productmind-backend","stats":{"failed":0,"generated":0,"skipped":0,"total":0},"timestamp":"2025-06-15 22:27:51"}
+info: 🏁 批量生产完成 {"duration":"1.5s","service":"productmind-backend","stats":{"failed":0,"generated":0,"skipped":0,"total":0},"timestamp":"2025-06-15 22:27:51"}
+::1 - - [15/Jun/2025:14:27:51 +0000] "POST /api/batch/batch-production HTTP/1.1" 200 249 "-" "-"
+[32minfo[39m: 请求完成 {"duration":"1534ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:51","url":"/batch-production"}
+info: 请求完成 {"duration":"1534ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:27:51","url":"/batch-production"}
+[32minfo[39m: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:29:03","url":"/api/batch/batch-production"}
+info: 请求开始 {"ip":"::1","method":"POST","service":"productmind-backend","timestamp":"2025-06-15 22:29:03","url":"/api/batch/batch-production"}
+[32minfo[39m: 🚀 开始批量生产模板内容... {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":false,"timestamp":"2025-06-15 22:29:03"}
+info: 🚀 开始批量生产模板内容... {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":false,"timestamp":"2025-06-15 22:29:03"}
+[32minfo[39m: 🚀 开始批量生产模板内容 {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":false,"timestamp":"2025-06-15 22:29:03"}
+info: 🚀 开始批量生产模板内容 {"batchSize":1,"dryRun":false,"limitProjects":1,"limitTemplates":1,"service":"productmind-backend","skipExisting":false,"timestamp":"2025-06-15 22:29:03"}
+[32minfo[39m: ✅ 找到 1 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:05"}
+info: ✅ 找到 1 个可用模板 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:05"}
+[32minfo[39m: ✅ 找到 1 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+info: ✅ 找到 1 个项目 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: 📋 生成 1 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+info: 📋 生成 1 个处理任务 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: 📦 处理批次 1/1 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+info: 📦 处理批次 1/1 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: 🔄 处理: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {"service":"productmind-backend","taskId":"0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003","timestamp":"2025-06-15 22:29:06"}
+info: 🔄 处理: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {"service":"productmind-backend","taskId":"0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: 开始AI内容生成 {"language":"en","projectName":"AI (Artificial Intelligence) Startups funded by","service":"productmind-backend","templateName":"前端开发指南文档","timestamp":"2025-06-15 22:29:06"}
+info: 开始AI内容生成 {"language":"en","projectName":"AI (Artificial Intelligence) Startups funded by","service":"productmind-backend","templateName":"前端开发指南文档","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+info: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:29:06"}
+[32minfo[39m: DeepSeek生成成功 {"contentLength":6087,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:30:22","tokens":1954}
+info: DeepSeek生成成功 {"contentLength":6087,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:30:22","tokens":1954}
+[32minfo[39m: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:22"}
+info: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:22"}
+[32minfo[39m: 开始AI内容生成 {"language":"zh","projectName":"","service":"productmind-backend","templateName":"翻译","timestamp":"2025-06-15 22:30:22"}
+info: 开始AI内容生成 {"language":"zh","projectName":"","service":"productmind-backend","templateName":"翻译","timestamp":"2025-06-15 22:30:22"}
+[32minfo[39m: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:22"}
+info: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:22"}
+[32minfo[39m: DeepSeek生成成功 {"contentLength":1288,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:30:50","tokens":1221}
+info: DeepSeek生成成功 {"contentLength":1288,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:30:50","tokens":1221}
+[32minfo[39m: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:50"}
+info: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:50"}
+[32minfo[39m: 开始AI内容生成 {"language":"en","projectName":"AI (Artificial Intelligence) Startups funded by","service":"productmind-backend","templateName":"前端开发指南文档","timestamp":"2025-06-15 22:30:50"}
+info: 开始AI内容生成 {"language":"en","projectName":"AI (Artificial Intelligence) Startups funded by","service":"productmind-backend","templateName":"前端开发指南文档","timestamp":"2025-06-15 22:30:50"}
+[32minfo[39m: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:50"}
+info: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:30:50"}
+[32minfo[39m: DeepSeek生成成功 {"contentLength":3774,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:31:32","tokens":1170}
+info: DeepSeek生成成功 {"contentLength":3774,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:31:32","tokens":1170}
+[32minfo[39m: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:32"}
+info: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:32"}
+[32minfo[39m: 开始AI内容生成 {"language":"zh","projectName":"","service":"productmind-backend","templateName":"翻译","timestamp":"2025-06-15 22:31:32"}
+info: 开始AI内容生成 {"language":"zh","projectName":"","service":"productmind-backend","templateName":"翻译","timestamp":"2025-06-15 22:31:32"}
+[32minfo[39m: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:32"}
+info: 尝试使用 DeepSeek 生成内容 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:32"}
+[32minfo[39m: DeepSeek生成成功 {"contentLength":917,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:31:54","tokens":973}
+info: DeepSeek生成成功 {"contentLength":917,"model":"deepseek-chat","service":"productmind-backend","timestamp":"2025-06-15 22:31:54","tokens":973}
+[32minfo[39m: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:54"}
+info: DeepSeek 生成成功 {"service":"productmind-backend","timestamp":"2025-06-15 22:31:54"}
+[32minfo[39m: ✅ 成功: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {"service":"productmind-backend","taskId":"0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003","timestamp":"2025-06-15 22:31:57","versionId":"83ea5c80-9b41-42d4-a5e4-16056d8e8937"}
+info: ✅ 成功: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {"service":"productmind-backend","taskId":"0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003","timestamp":"2025-06-15 22:31:57","versionId":"83ea5c80-9b41-42d4-a5e4-16056d8e8937"}
+[32minfo[39m: 🏁 批量生产完成 {"duration":"173.7s","service":"productmind-backend","stats":{"failed":0,"generated":1,"skipped":0,"total":1},"timestamp":"2025-06-15 22:31:57"}
+info: 🏁 批量生产完成 {"duration":"173.7s","service":"productmind-backend","stats":{"failed":0,"generated":1,"skipped":0,"total":1},"timestamp":"2025-06-15 22:31:57"}
+::1 - - [15/Jun/2025:14:31:57 +0000] "POST /api/batch/batch-production HTTP/1.1" 200 649 "-" "-"
+[32minfo[39m: 请求完成 {"duration":"173720ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:31:57","url":"/batch-production"}
+info: 请求完成 {"duration":"173720ms","ip":"::1","method":"POST","service":"productmind-backend","statusCode":200,"timestamp":"2025-06-15 22:31:57","url":"/batch-production"}

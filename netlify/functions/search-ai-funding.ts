@@ -828,13 +828,13 @@ async function saveToDatabase(results: ProcessedResult[]): Promise<void> {
           .from('user_projects')
           .insert(batch);
 
-        if (error) {
+    if (error) {
           detailedLogger.operationError('批次保存失败', error, {
             batchNumber,
             records: batch.map(r => r.name)
-          });
-          throw error;
-        }
+      });
+      throw error;
+    }
 
         batchResults.success++;
         detailedLogger.batchOperation(batchNumber, totalBatches, {

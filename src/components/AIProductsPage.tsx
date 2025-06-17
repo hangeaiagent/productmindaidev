@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ChevronRight, ChevronDown, Search, Filter, ArrowLeft, ExternalLink, Download, Globe, LogIn, UserPlus, Github, Star, Eye, Zap, Brain, Sparkles, TrendingUp, Users, Clock, Play, BookOpen, Code } from 'lucide-react';
+import { TemplateService, TemplateError } from '../services/templateService';
+import { toast } from 'react-hot-toast';
 
 interface Category {
   id: string;
@@ -72,7 +74,10 @@ const AIProductsPage: React.FC = () => {
       featuredProducts: 'Featured AI Products',
       trending: 'Trending',
       popular: 'Popular',
-      latest: 'Latest'
+      latest: 'Latest',
+      downloadAll: 'Download All',
+      generate: 'Generate',
+      download: 'Download'
     },
     zh: {
       title: 'AI产品中心',
@@ -99,7 +104,10 @@ const AIProductsPage: React.FC = () => {
       featuredProducts: '精选AI产品',
       trending: '热门',
       popular: '流行',
-      latest: '最新'
+      latest: '最新',
+      downloadAll: '批量下载',
+      generate: '生成',
+      download: '下载'
     }
   };
 
@@ -228,6 +236,48 @@ const AIProductsPage: React.FC = () => {
   const categoryTree = buildCategoryTree();
   const selectedCategoryInfo = categories.find(cat => cat.category_code === selectedCategory);
 
+  // 处理模板生成
+  const handleGenerateTemplate = async (projectId: string, templateId: string) => {
+    try {
+      const content = await TemplateService.generateTemplate(projectId, templateId, language);
+      toast.success(language === 'zh' ? '模板生成成功' : 'Template generated successfully');
+    } catch (error) {
+      if (error instanceof TemplateError) {
+        toast.error(error.message);
+      } else {
+        toast.error(language === 'zh' ? '生成失败' : 'Generation failed');
+      }
+    }
+  };
+
+  // 处理模板下载
+  const handleDownloadTemplate = async (projectId: string, templateId: string) => {
+    try {
+      await TemplateService.downloadTemplate(projectId, templateId, language);
+      toast.success(language === 'zh' ? '模板下载成功' : 'Template downloaded successfully');
+    } catch (error) {
+      if (error instanceof TemplateError) {
+        toast.error(error.message);
+      } else {
+        toast.error(language === 'zh' ? '下载失败' : 'Download failed');
+      }
+    }
+  };
+
+  // 处理批量下载
+  const handleDownloadAll = async (projectId: string) => {
+    try {
+      await TemplateService.downloadAllTemplates(projectId, language);
+      toast.success(language === 'zh' ? '所有模板下载成功' : 'All templates downloaded successfully');
+    } catch (error) {
+      if (error instanceof TemplateError) {
+        toast.error(error.message);
+      } else {
+        toast.error(language === 'zh' ? '批量下载失败' : 'Batch download failed');
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Header with Gradient */}
@@ -311,8 +361,8 @@ const AIProductsPage: React.FC = () => {
               >
                 <Github className="w-6 h-6" />
               </button>
-            </div>
-          </div>
+        </div>
+      </div>
 
           {/* Enhanced Search Section */}
           <div className="flex items-center justify-between bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
@@ -377,7 +427,7 @@ const AIProductsPage: React.FC = () => {
             >
               <div className="flex items-center">
                 <Star className={`w-4 h-4 mr-2 ${selectedCategory === '' ? 'text-yellow-300' : 'text-gray-400'}`} />
-                <span className="font-medium">{t.allProducts}</span>
+              <span className="font-medium">{t.allProducts}</span>
               </div>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                 selectedCategory === '' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
@@ -409,8 +459,8 @@ const AIProductsPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <TrendingUp className="w-3 h-3 text-green-500" />
                         <span className="text-sm font-medium text-gray-600 bg-white px-2 py-1 rounded-full">
-                          {primaryCategory.project_count || 0}
-                        </span>
+                        {primaryCategory.project_count || 0}
+                      </span>
                       </div>
                     </button>
                   </div>
@@ -464,11 +514,11 @@ const AIProductsPage: React.FC = () => {
                     </div>
                     <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                       {selectedCategoryInfo ? (selectedCategoryInfo.display_name || selectedCategoryInfo.category_name) : t.featuredProducts}
-                    </h2>
+              </h2>
                   </div>
                   <p className="text-gray-600 text-lg">
-                    {t.totalProducts.replace('{count}', filteredProjects.length.toString())}
-                  </p>
+                {t.totalProducts.replace('{count}', filteredProjects.length.toString())}
+              </p>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -505,21 +555,21 @@ const AIProductsPage: React.FC = () => {
                   >
                     {/* Project Header with Gradient */}
                     <div className="p-8">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
                           <div className="flex items-center space-x-4 mb-4">
                             <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl">
                               <Brain className="w-6 h-6 text-white" />
                             </div>
                             <div>
                               <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
-                                <button
-                                  onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
+                            <button
+                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
                                   className="text-left hover:underline"
-                                >
-                                  {project.name}
-                                </button>
-                              </h3>
+                            >
+                              {project.name}
+                            </button>
+                          </h3>
                               <div className="flex items-center space-x-2 text-sm text-gray-500">
                                 <Clock className="w-4 h-4" />
                                 <span>
@@ -527,25 +577,25 @@ const AIProductsPage: React.FC = () => {
                                 </span>
                               </div>
                             </div>
-                          </div>
+                        </div>
 
                           <p className="text-gray-600 mb-6 leading-relaxed text-lg">
                             {project.description || (language === 'en' ? 'Innovative AI solution designed to transform your workflow' : '创新的AI解决方案，旨在改变您的工作流程')}
-                          </p>
+                        </p>
 
                           {/* Enhanced Tags */}
                           <div className="flex items-center flex-wrap gap-3 mb-6">
                             <span className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full text-sm font-medium shadow-lg">
-                              {project.primary_category}
-                            </span>
-                            {project.secondary_category && (
+                            {project.primary_category}
+                          </span>
+                          {project.secondary_category && (
                               <span className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full text-sm font-medium shadow-lg">
-                                {project.secondary_category}
-                              </span>
-                            )}
+                              {project.secondary_category}
+                            </span>
+                          )}
                             <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                               {t.latest}
-                            </span>
+                          </span>
                           </div>
 
                           {/* Enhanced Action Buttons */}

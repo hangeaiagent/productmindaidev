@@ -14,3 +14,11 @@
 [build.environment]
   GOOGLE_API_KEY = "AIzaSyC3fc8-5r4SWOISs0IIduiE4TOvE8-aFC0"
   GOOGLE_CX = "e264dc925d71e46e4" 
+
+[dev]
+  framework = "#custom"
+  command = "npm run dev"    # 修改：使用正确的dev命令
+  targetPort = 5173          # 修改：Vite默认端口
+  port = 8888                # 明确指定开发服务器端口
+  publish = "dist"
+  host = "0.0.0.0"

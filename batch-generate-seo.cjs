@@ -1,18 +1,25 @@
-#!/usr/bin/env node
+const dotenv = require('dotenv');
+const path = require('path');
 
-/**
- * 批量生成SEO页面脚本
- * 为所有primary_category不为空的项目生成静态SEO页面
- */
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const fs = require('fs');
-const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const { generateProjectPage } = require('./generate-seo-pages.cjs');
 
-// Supabase配置
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://uobwbhvwrciaxloqdizc.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc';
+// Supabase配置 - 从环境变量获取
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+// 验证必需的环境变量
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ 错误: 缺少必需的环境变量');
+  console.error('请设置以下环境变量:');
+  console.error('- VITE_SUPABASE_URL');
+  console.error('- VITE_SUPABASE_ANON_KEY');
+  process.exit(1);
+}
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 配置

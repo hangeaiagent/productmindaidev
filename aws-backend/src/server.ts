@@ -101,6 +101,12 @@ app.use(requestLogger);
 // 健康检查路由（不需要认证）
 app.use('/health', healthRoutes);
 
+// 模板路由（不需要认证）
+app.use('/api/templates', templateRoutes);
+
+// 错误处理中间件
+app.use(errorHandler);
+
 // 测试路由（不需要认证）
 app.get('/test/templates', async (req, res) => {
   try {
@@ -1153,9 +1159,6 @@ app.use('*', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// 错误处理中间件
-app.use(errorHandler);
 
 // 创建HTTP服务器
 const server = createServer(app);

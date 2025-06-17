@@ -231,3 +231,575 @@
 2025-05-31 22:40:20 [INFO]: 收到 SIGTERM 信号，开始优雅关闭... {
   "service": "productmind-backend"
 }
+2025-06-07 22:45:08 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-06-07 22:45:08 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-06-07 22:45:08 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-06-07 22:45:08 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-06-07 22:45:08 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-06-07 22:49:20 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::1",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+}
+2025-06-07 22:49:20 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 254.407976193,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 45875200,
+    "heapTotal": 14651392,
+    "heapUsed": 13403928,
+    "external": 3351750,
+    "arrayBuffers": 65670
+  },
+  "pid": 4089
+}
+2025-06-07 22:49:20 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "62ms",
+  "ip": "::1",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+}
+2025-06-07 22:49:20 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/favicon.ico",
+  "ip": "::1",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+}
+2025-06-07 22:49:20 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "4ms",
+  "ip": "::1",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+}
+2025-06-15 22:03:29 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-06-15 22:03:30 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:03:30 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-06-15 22:03:30 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-06-15 22:03:30 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:04:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 70.320051101,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 47595520,
+    "heapTotal": 14913536,
+    "heapUsed": 13423624,
+    "external": 3351750,
+    "arrayBuffers": 65670
+  },
+  "pid": 23373
+}
+2025-06-15 22:04:37 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "33ms",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/templates/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "3ms",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/templates/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "2ms",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 130.538637056,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 50458624,
+    "heapTotal": 15962112,
+    "heapUsed": 14185480,
+    "external": 3351864,
+    "arrayBuffers": 65744
+  },
+  "pid": 23373
+}
+2025-06-15 22:05:37 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "11ms",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [ERROR]: 请求处理错误 {
+  "service": "productmind-backend",
+  "error": {
+    "message": "未提供有效的认证令牌",
+    "stack": "Error: 未提供有效的认证令牌\n    at createError (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/errorHandler.js:41:19)\n    at authMiddleware (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/authMiddleware.js:14:56)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:280:10)\n    at requestLogger (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/requestLogger.js:27:5)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)",
+    "statusCode": 401
+  },
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/templates/batch-production",
+    "headers": {
+      "content-type": "application/json",
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "transfer-encoding": "chunked"
+    },
+    "body": {
+      "dryRun": true,
+      "batchSize": 2,
+      "limitProjects": 3,
+      "limitTemplates": 2
+    },
+    "ip": "::1"
+  }
+}
+2025-06-15 22:05:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "statusCode": 401,
+  "duration": "48ms",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [ERROR]: 请求处理错误 {
+  "service": "productmind-backend",
+  "error": {
+    "message": "未提供有效的认证令牌",
+    "stack": "Error: 未提供有效的认证令牌\n    at createError (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/errorHandler.js:41:19)\n    at authMiddleware (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/authMiddleware.js:14:56)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:280:10)\n    at requestLogger (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/requestLogger.js:27:5)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)",
+    "statusCode": 401
+  },
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/templates/batch-production",
+    "headers": {
+      "content-type": "application/json",
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "transfer-encoding": "chunked"
+    },
+    "body": {
+      "dryRun": false,
+      "batchSize": 1,
+      "limitProjects": 1,
+      "limitTemplates": 1
+    },
+    "ip": "::1"
+  }
+}
+2025-06-15 22:05:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "statusCode": 401,
+  "duration": "2ms",
+  "ip": "::1"
+}
+2025-06-15 22:07:02 [INFO]: 收到 SIGTERM 信号，开始优雅关闭... {
+  "service": "productmind-backend"
+}
+2025-06-15 22:07:44 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-06-15 22:07:44 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:07:44 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-06-15 22:07:44 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-06-15 22:07:44 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:20:03 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-06-15 22:20:03 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:20:03 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-06-15 22:20:03 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-06-15 22:20:03 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:24:57 [INFO]: 🚀 服务器启动成功！ {
+  "service": "productmind-backend"
+}
+2025-06-15 22:24:57 [INFO]: 📍 端口: 3000 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:24:57 [INFO]: 🌍 环境: development {
+  "service": "productmind-backend"
+}
+2025-06-15 22:24:57 [INFO]: 🔗 健康检查: http://localhost:3000/health {
+  "service": "productmind-backend"
+}
+2025-06-15 22:24:57 [INFO]: 📚 API文档: http://localhost:3000/api/v1 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:41 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/health",
+  "ip": "::1"
+}
+2025-06-15 22:27:41 [INFO]: 健康检查请求 {
+  "service": "productmind-backend",
+  "status": "ok",
+  "uptime": 165.749135355,
+  "environment": "development",
+  "version": "v1",
+  "memory": {
+    "rss": 47767552,
+    "heapTotal": 14913536,
+    "heapUsed": 13417360,
+    "external": 3352844,
+    "arrayBuffers": 65670
+  },
+  "pid": 26551
+}
+2025-06-15 22:27:41 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 200,
+  "duration": "16ms",
+  "ip": "::1"
+}
+2025-06-15 22:27:42 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/api/batch/batch-production/status",
+  "ip": "::1"
+}
+2025-06-15 22:27:45 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/batch-production/status",
+  "statusCode": 200,
+  "duration": "2570ms",
+  "ip": "::1"
+}
+2025-06-15 22:27:46 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/batch/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:27:46 [INFO]: 🚀 开始批量生产模板内容... {
+  "service": "productmind-backend",
+  "batchSize": 2,
+  "dryRun": true,
+  "skipExisting": true,
+  "limitProjects": 3,
+  "limitTemplates": 2
+}
+2025-06-15 22:27:46 [INFO]: 🚀 开始批量生产模板内容 {
+  "service": "productmind-backend",
+  "batchSize": 2,
+  "dryRun": true,
+  "skipExisting": true,
+  "limitProjects": 3,
+  "limitTemplates": 2
+}
+2025-06-15 22:27:47 [INFO]: ✅ 找到 2 个可用模板 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:47 [INFO]: ✅ 找到 3 个项目 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:48 [INFO]: 📋 已存在 1 个版本记录 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:48 [INFO]: 📋 生成 5 个处理任务 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:48 [INFO]: 🧪 干预模式：不执行实际生成 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:48 [INFO]: 🏁 批量生产完成: 干预模式完成 {
+  "service": "productmind-backend",
+  "stats": {
+    "total": 5,
+    "generated": 0,
+    "skipped": 0,
+    "failed": 0
+  },
+  "duration": "1.8s"
+}
+2025-06-15 22:27:48 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/batch-production",
+  "statusCode": 200,
+  "duration": "1820ms",
+  "ip": "::1"
+}
+2025-06-15 22:27:50 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/batch/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:27:50 [INFO]: 🚀 开始批量生产模板内容... {
+  "service": "productmind-backend",
+  "batchSize": 1,
+  "dryRun": false,
+  "skipExisting": true,
+  "limitProjects": 1,
+  "limitTemplates": 1
+}
+2025-06-15 22:27:50 [INFO]: 🚀 开始批量生产模板内容 {
+  "service": "productmind-backend",
+  "batchSize": 1,
+  "dryRun": false,
+  "skipExisting": true,
+  "limitProjects": 1,
+  "limitTemplates": 1
+}
+2025-06-15 22:27:50 [INFO]: ✅ 找到 1 个可用模板 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:51 [INFO]: ✅ 找到 1 个项目 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:51 [INFO]: 📋 已存在 1 个版本记录 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:51 [INFO]: 📋 生成 0 个处理任务 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:27:51 [INFO]: 🏁 批量生产完成 {
+  "service": "productmind-backend",
+  "stats": {
+    "total": 0,
+    "generated": 0,
+    "skipped": 0,
+    "failed": 0
+  },
+  "duration": "1.5s"
+}
+2025-06-15 22:27:51 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/batch-production",
+  "statusCode": 200,
+  "duration": "1534ms",
+  "ip": "::1"
+}
+2025-06-15 22:29:03 [INFO]: 请求开始 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/batch/batch-production",
+  "ip": "::1"
+}
+2025-06-15 22:29:03 [INFO]: 🚀 开始批量生产模板内容... {
+  "service": "productmind-backend",
+  "batchSize": 1,
+  "dryRun": false,
+  "skipExisting": false,
+  "limitProjects": 1,
+  "limitTemplates": 1
+}
+2025-06-15 22:29:03 [INFO]: 🚀 开始批量生产模板内容 {
+  "service": "productmind-backend",
+  "batchSize": 1,
+  "dryRun": false,
+  "skipExisting": false,
+  "limitProjects": 1,
+  "limitTemplates": 1
+}
+2025-06-15 22:29:05 [INFO]: ✅ 找到 1 个可用模板 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:29:06 [INFO]: ✅ 找到 1 个项目 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:29:06 [INFO]: 📋 生成 1 个处理任务 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:29:06 [INFO]: 📦 处理批次 1/1 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:29:06 [INFO]: 🔄 处理: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {
+  "service": "productmind-backend",
+  "taskId": "0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003"
+}
+2025-06-15 22:29:06 [INFO]: 开始AI内容生成 {
+  "service": "productmind-backend",
+  "projectName": "AI (Artificial Intelligence) Startups funded by",
+  "templateName": "前端开发指南文档",
+  "language": "en"
+}
+2025-06-15 22:29:06 [INFO]: 尝试使用 DeepSeek 生成内容 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:30:22 [INFO]: DeepSeek生成成功 {
+  "service": "productmind-backend",
+  "model": "deepseek-chat",
+  "tokens": 1954,
+  "contentLength": 6087
+}
+2025-06-15 22:30:22 [INFO]: DeepSeek 生成成功 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:30:22 [INFO]: 开始AI内容生成 {
+  "service": "productmind-backend",
+  "projectName": "",
+  "templateName": "翻译",
+  "language": "zh"
+}
+2025-06-15 22:30:22 [INFO]: 尝试使用 DeepSeek 生成内容 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:30:50 [INFO]: DeepSeek生成成功 {
+  "service": "productmind-backend",
+  "model": "deepseek-chat",
+  "tokens": 1221,
+  "contentLength": 1288
+}
+2025-06-15 22:30:50 [INFO]: DeepSeek 生成成功 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:30:50 [INFO]: 开始AI内容生成 {
+  "service": "productmind-backend",
+  "projectName": "AI (Artificial Intelligence) Startups funded by",
+  "templateName": "前端开发指南文档",
+  "language": "en"
+}
+2025-06-15 22:30:50 [INFO]: 尝试使用 DeepSeek 生成内容 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:31:32 [INFO]: DeepSeek生成成功 {
+  "service": "productmind-backend",
+  "model": "deepseek-chat",
+  "tokens": 1170,
+  "contentLength": 3774
+}
+2025-06-15 22:31:32 [INFO]: DeepSeek 生成成功 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:31:32 [INFO]: 开始AI内容生成 {
+  "service": "productmind-backend",
+  "projectName": "",
+  "templateName": "翻译",
+  "language": "zh"
+}
+2025-06-15 22:31:32 [INFO]: 尝试使用 DeepSeek 生成内容 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:31:54 [INFO]: DeepSeek生成成功 {
+  "service": "productmind-backend",
+  "model": "deepseek-chat",
+  "tokens": 973,
+  "contentLength": 917
+}
+2025-06-15 22:31:54 [INFO]: DeepSeek 生成成功 {
+  "service": "productmind-backend"
+}
+2025-06-15 22:31:57 [INFO]: ✅ 成功: AI (Artificial Intelligence) Startups funded by + 前端开发指南文档 {
+  "service": "productmind-backend",
+  "taskId": "0077993c-1cfd-4175-892e-5dcfa12b09f2-10000000-0000-0000-0000-000000000003",
+  "versionId": "83ea5c80-9b41-42d4-a5e4-16056d8e8937"
+}
+2025-06-15 22:31:57 [INFO]: 🏁 批量生产完成 {
+  "service": "productmind-backend",
+  "stats": {
+    "total": 1,
+    "generated": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "duration": "173.7s"
+}
+2025-06-15 22:31:57 [INFO]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/batch-production",
+  "statusCode": 200,
+  "duration": "173720ms",
+  "ip": "::1"
+}

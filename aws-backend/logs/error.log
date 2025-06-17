@@ -38347,3 +38347,94 @@
   "ip": "::ffff:127.0.0.1",
   "userAgent": "curl/8.7.1"
 }
+2025-06-07 22:49:20 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "GET",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "4ms",
+  "ip": "::1",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+}
+2025-06-15 22:04:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "3ms",
+  "ip": "::1"
+}
+2025-06-15 22:04:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/",
+  "statusCode": 404,
+  "duration": "2ms",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [ERROR]: 请求处理错误 {
+  "service": "productmind-backend",
+  "error": {
+    "message": "未提供有效的认证令牌",
+    "stack": "Error: 未提供有效的认证令牌\n    at createError (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/errorHandler.js:41:19)\n    at authMiddleware (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/authMiddleware.js:14:56)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:280:10)\n    at requestLogger (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/requestLogger.js:27:5)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)",
+    "statusCode": 401
+  },
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/templates/batch-production",
+    "headers": {
+      "content-type": "application/json",
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "transfer-encoding": "chunked"
+    },
+    "body": {
+      "dryRun": true,
+      "batchSize": 2,
+      "limitProjects": 3,
+      "limitTemplates": 2
+    },
+    "ip": "::1"
+  }
+}
+2025-06-15 22:05:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "statusCode": 401,
+  "duration": "48ms",
+  "ip": "::1"
+}
+2025-06-15 22:05:37 [ERROR]: 请求处理错误 {
+  "service": "productmind-backend",
+  "error": {
+    "message": "未提供有效的认证令牌",
+    "stack": "Error: 未提供有效的认证令牌\n    at createError (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/errorHandler.js:41:19)\n    at authMiddleware (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/authMiddleware.js:14:56)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)\n    at /Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:280:10)\n    at requestLogger (/Users/a1/work/productmindai0521/aws-backend/dist/middleware/requestLogger.js:27:5)\n    at Layer.handle [as handle_request] (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/Users/a1/work/productmindai0521/aws-backend/node_modules/express/lib/router/index.js:328:13)",
+    "statusCode": 401
+  },
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/templates/batch-production",
+    "headers": {
+      "content-type": "application/json",
+      "host": "localhost:3000",
+      "connection": "keep-alive",
+      "transfer-encoding": "chunked"
+    },
+    "body": {
+      "dryRun": false,
+      "batchSize": 1,
+      "limitProjects": 1,
+      "limitTemplates": 1
+    },
+    "ip": "::1"
+  }
+}
+2025-06-15 22:05:37 [ERROR]: 请求完成 {
+  "service": "productmind-backend",
+  "method": "POST",
+  "url": "/api/v1/templates/batch-production",
+  "statusCode": 401,
+  "duration": "2ms",
+  "ip": "::1"
+}

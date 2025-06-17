@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upscale.media Plugins Access Portal Download the latest AI plugins, tools, and software apps - AI Product Template Generator</title>
+    <meta name="description" content="The latest AI plugin tool, Upscale.media Plugins, utilizes advanced AI technology to offer image upscaling and enhancement features, simplifying your image processing workflow with just a few clicks. Thousands of users have already saved time and achieved outstanding results with Upscale.media.">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .project-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .project-description { font-size: 1.1rem; color: #4a5568; margin-bottom: 20px; }
+        .project-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+        
+        .meta-item {
+            background: #f7fafc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+        
+        .templates-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .test-notice {
+            background: #e6fffa;
+            border: 2px solid #38a169;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-notice h3 {
+            color: #2f855a;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .test-notice p {
+            color: #234e52;
+            font-size: 1rem;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .template-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .template-header { margin-bottom: 15px; }
+        
+        .template-category {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .template-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-top: 10px;
+        }
+        
+        .template-description {
+            color: #4a5568;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .template-actions { display: flex; gap: 10px; }
+        
+        .btn-generate, .btn-download {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        
+        .btn-generate:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            transform: translateY(-2px);
+        }
+        
+        .btn-generate:disabled {
+            background: #e2e8f0;
+            color: #a0aec0;
+            cursor: not-allowed;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #3182ce, #2c5282);
+            color: white;
+        }
+        
+        .btn-download:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2c5282, #2a4365);
+            transform: translateY(-2px);
+        }
+        
+        .btn-download:disabled {
+            background: #e2e8f0;
+            color: #a0aec0;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        
+        .progress-header { margin-bottom: 15px; }
+        .progress-header h4 { color: #2d3748; margin-bottom: 10px; font-size: 1.1rem; }
+        
+        .progress-bar {
+            width: 100%; height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        .progress-content-wrapper { flex: 1; overflow: hidden; margin-bottom: 15px; }
+        
+        .progress-content {
+            height: 100%; overflow-y: auto;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #2d3748;
+        }
+        
+        .progress-notice {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .progress-notice p { color: #234e52; font-size: 0.9rem; margin: 0; }
+        
+        .toast {
+            position: fixed;
+            top: 20px; right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            transform: translateX(100%);
+            animation: slideIn 0.3s ease forwards;
+            max-width: 400px;
+        }
+        
+        .toast.fade-out { animation: slideOut 0.3s ease forwards; }
+        .toast-content { display: flex; align-items: center; gap: 10px; }
+        
+        .toast-success { border-left: 4px solid #38a169; }
+        .toast-error { border-left: 4px solid #e53e3e; }
+        .toast-warning { border-left: 4px solid #d69e2e; }
+        
+        @keyframes slideIn { to { transform: translateX(0); } }
+        @keyframes slideOut { to { transform: translateX(100%); } }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .template-grid { grid-template-columns: 1fr; gap: 15px; }
+            .project-title { font-size: 2rem; }
+            .template-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="project-title">Upscale.media Plugins Access Portal Download the latest AI plugins, tools, and software apps</h1>
+            <p class="project-description">The latest AI plugin tool, Upscale.media Plugins, utilizes advanced AI technology to offer image upscaling and enhancement features, simplifying your image processing workflow with just a few clicks. Thousands of users have already saved time and achieved outstanding results with Upscale.media.</p>
+            <div class="project-meta">
+                <span class="meta-item">Primary: 图像处理</span>
+                <span class="meta-item">Secondary: 图片无损放大</span>
+                <span class="meta-item">Created: 5/27/2025</span>
+            </div>
+        </div>
+        
+        <div class="templates-section">
+            <h2 class="section-title">AI Template Generator (Test Version)</h2>
+            
+            <div class="test-notice">
+                <h3>🧪 Test Version Features</h3>
+                <p>This version uses streaming technology for better user experience. Real-time progress is displayed during generation, avoiding 30-second timeout issues.</p>
+            </div>
+            
+            <p style="text-align: center; color: #4a5568; margin-bottom: 30px;">
+                Choose the template type you need, AI will generate professional analysis documents for your product
+            </p>
+            
+            <div class="template-grid">
+                
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000003">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">Frontend Guideline Document</h3>
+        </div>
+        <p class="template-description">Generate frontend development guidelines for AI programming tool interfaces</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000003', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000003', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000002">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">Tech Stack Document</h3>
+        </div>
+        <p class="template-description">Create detailed technical stack documentation for AI programming platforms</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000002', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000002', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000001">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">Project Requirements Document</h3>
+        </div>
+        <p class="template-description">Generate comprehensive project requirements documentation for AI programming tools</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000001', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000001', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000004">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">AI selection architecture document</h3>
+        </div>
+        <p class="template-description">AI selection architecture document</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000004', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000004', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000024">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">AI System Architecture Design</h3>
+        </div>
+        <p class="template-description"> Mermaid Flowchart、Data Flow Description、 Interface Definition</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000024', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000024', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000005">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">Security Guideline Document</h3>
+        </div>
+        <p class="template-description">Generate security guidelines for AI programming tool development and deployment</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000005', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000005', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+      <div class="template-card" data-template-id="10000000-0000-0000-0000-000000000015">
+        <div class="template-header">
+          <span class="template-category">AI Programming</span>
+          <h3 class="template-name">AI core code examples</h3>
+        </div>
+        <p class="template-description"> AI core code examples</p>
+        <div class="template-actions">
+          <button class="btn-generate" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000015', 'generate', 'en')" >
+            Generate
+          </button>
+          <button class="btn-download" onclick="handleTemplateAction('ffdbdc71-9175-4a1e-9d99-6f35053f7755', '10000000-0000-0000-0000-000000000015', 'download', 'en')" disabled>
+            Download
+          </button>
+        </div>
+      </div>
+    
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    class TemplateStreamProcessor {
+      constructor() {
+        this.isProcessing = false;
+      }
+
+      async generateTemplateStream(projectId, templateId, lang, projectInfo) {
+        if (this.isProcessing) {
+          this.showMessage(lang === 'zh' ? '正在处理中，请稍候...' : 'Processing, please wait...', 'warning');
+          return;
+        }
+
+        this.isProcessing = true;
+        const button = event.target;
+        const templateCard = button.closest('.template-card');
+        
+        try {
+          this.showProgressContainer(templateCard, lang);
+          
+          const response = await fetch('/.netlify/functions/generate-ai-template', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              projectId: projectId,
+              templateId: templateId,
+              language: lang,
+              projectName: projectInfo.name,
+              projectDescription: projectInfo.description,
+              primaryCategory: projectInfo.primaryCategory,
+              secondaryCategory: projectInfo.secondaryCategory
+            })
+          });
+
+          this.simulateProgress(templateCard, lang);
+
+          let result;
+          try {
+            const responseText = await response.text();
+            if (!responseText || responseText.includes('TimeoutError') || responseText.includes('Task timed out')) {
+              this.handleTimeout(templateCard, lang);
+              return;
+            }
+            result = JSON.parse(responseText);
+          } catch (parseError) {
+            if (response.status === 500) {
+              this.handleTimeout(templateCard, lang);
+              return;
+            }
+            throw new Error(lang === 'zh' ? '响应格式错误' : 'Invalid response format');
+          }
+
+          if (result.success) {
+            await this.saveTemplateContent(projectId, templateId, result.content, lang);
+            this.completeGeneration(templateCard, result.content, lang);
+          } else {
+            throw new Error(result.error || (lang === 'zh' ? '生成失败' : 'Generation failed'));
+          }
+
+        } catch (error) {
+          console.error('生成失败:', error);
+          this.showError(templateCard, error.message, lang);
+        } finally {
+          this.isProcessing = false;
+        }
+      }
+
+      simulateProgress(templateCard, lang) {
+        const progressBar = templateCard.querySelector('.progress-fill');
+        const progressContent = templateCard.querySelector('.progress-content');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 8 + 2; // 更快的进度增长
+          if (progress > 95) progress = 95;
+          
+          if (progressBar) {
+            progressBar.style.width = progress + '%';
+          }
+          
+          if (progressContent) {
+            const messages = lang === 'zh' ? [
+              '🔍 正在分析项目信息...',
+              '🧠 构建AI提示词...',
+              '⚡ 调用AI生成服务...',
+              '📝 处理生成内容...',
+              '✨ 优化模板格式...',
+              '💾 准备保存结果...',
+              '🎯 即将完成...'
+            ] : [
+              '🔍 Analyzing project information...',
+              '🧠 Building AI prompts...',
+              '⚡ Calling AI generation service...',
+              '📝 Processing generated content...',
+              '✨ Optimizing template format...',
+              '💾 Preparing to save results...',
+              '🎯 Almost done...'
+            ];
+            
+            const messageIndex = Math.min(Math.floor(progress / 14), messages.length - 1);
+            if (messages[messageIndex]) {
+              progressContent.innerHTML = '<p>' + messages[messageIndex] + '</p>';
+            }
+          }
+          
+          if (progress >= 95) {
+            clearInterval(interval);
+          }
+        }, 800); // 更快的更新频率
+        
+        templateCard._progressInterval = interval;
+      }
+
+      async saveTemplateContent(projectId, templateId, content, lang) {
+        try {
+          const saveResponse = await fetch('/.netlify/functions/save-template-content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              projectId: projectId,
+              templateId: templateId,
+              content: content,
+              language: lang
+            })
+          });
+          
+          if (!saveResponse.ok) {
+            console.warn('保存模板内容失败，但生成成功');
+          }
+        } catch (error) {
+          console.warn('保存模板内容时出错:', error);
+        }
+      }
+
+      handleTimeout(templateCard, lang) {
+        if (templateCard._progressInterval) {
+          clearInterval(templateCard._progressInterval);
+        }
+        
+        const progressContainer = templateCard.querySelector('.progress-container');
+        if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <div style="font-size: 3rem; margin-bottom: 15px;">⏰</div>
+              <h4 style="color: #d69e2e; margin-bottom: 10px;">${lang === 'zh' ? '生成时间较长' : 'Generation Taking Longer'}</h4>
+              <p style="margin-bottom: 20px;">${lang === 'zh' ? 
+                '由于内容复杂度较高，生成时间超过预期。内容可能已在后台生成完成，请稍后刷新页面查看结果，或重新尝试生成。' : 
+                'Due to content complexity, generation is taking longer than expected. Content may have been generated in the background. Please refresh the page later to check results, or try generating again.'
+              }</p>
+              <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="window.location.reload()" style="background: #38a169; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                  ${lang === 'zh' ? '🔄 刷新页面' : '🔄 Refresh Page'}
+                </button>
+                <button onclick="this.closest('.progress-container').remove()" style="background: #4299e1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                  ${lang === 'zh' ? '🔁 重新尝试' : '🔁 Try Again'}
+                </button>
+              </div>
+            </div>
+          `;
+        }
+        
+        this.showMessage(
+          lang === 'zh' ? '⏱️ 生成时间较长，请稍后查看结果' : '⏱️ Generation taking longer, please check results later', 
+          'warning'
+        );
+      }
+
+      showProgressContainer(templateCard, lang) {
+        const existingProgress = templateCard.querySelector('.progress-container');
+        if (existingProgress) {
+          existingProgress.remove();
+        }
+
+        const progressHTML = `
+          <div class="progress-container">
+            <div class="progress-header">
+              <h4>${lang === 'zh' ? '🚀 正在生成模板...' : '🚀 Generating template...'}</h4>
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+            </div>
+            <div class="progress-content-wrapper">
+              <div class="progress-content">
+                <p>${lang === 'zh' ? '🎯 初始化生成流程...' : '🎯 Initializing generation process...'}</p>
+              </div>
+            </div>
+            <div class="progress-notice">
+              <p>${lang === 'zh' ? '⏱️ 生成过程需要1-2分钟，请耐心等待。测试版本提供更好的进度显示！' : '⏱️ Generation takes 1-2 minutes, please be patient. Test version provides better progress display!'}</p>
+            </div>
+          </div>
+        `;
+        
+        templateCard.insertAdjacentHTML('beforeend', progressHTML);
+      }
+
+      completeGeneration(templateCard, content, lang) {
+        if (templateCard._progressInterval) {
+          clearInterval(templateCard._progressInterval);
+        }
+        
+        const progressContainer = templateCard.querySelector('.progress-container');
+        const generateBtn = templateCard.querySelector('.btn-generate');
+        const downloadBtn = templateCard.querySelector('.btn-download');
+        
+        if (generateBtn) {
+          generateBtn.disabled = true;
+          generateBtn.innerHTML = lang === 'zh' ? '✅ 已生成' : '✅ Generated';
+          generateBtn.style.background = 'linear-gradient(135deg, #38a169, #2f855a)';
+        }
+        
+        if (downloadBtn) {
+          downloadBtn.disabled = false;
+        }
+        
+        if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <div style="font-size: 3rem; margin-bottom: 15px;">🎉</div>
+              <h4 style="color: #38a169; margin-bottom: 10px;">${lang === 'zh' ? '模板生成完成！' : 'Template generated successfully!'}</h4>
+              <p style="margin-bottom: 20px;">${lang === 'zh' ? '内容已保存，您可以点击下载按钮获取模板。' : 'Content saved, you can click download to get the template.'}</p>
+              <div style="background: #f7fafc; border-radius: 8px; padding: 15px; margin: 15px 0; text-align: left;">
+                <h5 style="color: #2d3748; margin-bottom: 10px; font-size: 0.9rem;">${lang === 'zh' ? '📋 内容预览：' : '📋 Content Preview:'}</h5>
+                <div style="color: #4a5568; font-size: 0.8rem; line-height: 1.4; max-height: 100px; overflow-y: auto;">${content.substring(0, 300).replace(/\n/g, '<br>')}...</div>
+              </div>
+              <button onclick="this.closest('.progress-container').remove()" style="background: #4299e1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                ${lang === 'zh' ? '✖️ 关闭' : '✖️ Close'}
+              </button>
+            </div>
+          `;
+        }
+        
+        this.showMessage(lang === 'zh' ? '🎉 模板生成成功！' : '🎉 Template generated successfully!', 'success');
+      }
+
+      showMessage(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+          <div class="toast-content">
+            <span class="toast-icon">${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️'}</span>
+            <span class="toast-message">${message}</span>
+          </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('fade-out');
+          setTimeout(() => toast.remove(), 300);
+        }, 5000);
+      }
+
+      showError(templateCard, error, lang) {
+        if (templateCard._progressInterval) {
+          clearInterval(templateCard._progressInterval);
+        }
+        
+        const progressContainer = templateCard.querySelector('.progress-container');
+        if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+              <div style="font-size: 3rem; margin-bottom: 15px;">💥</div>
+              <h4 style="color: #e53e3e; margin-bottom: 10px;">${lang === 'zh' ? '生成失败' : 'Generation failed'}</h4>
+              <p style="margin-bottom: 20px; color: #e53e3e;">${error}</p>
+              <button onclick="this.closest('.progress-container').remove()" style="background: #4299e1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                ${lang === 'zh' ? '🔁 重试' : '🔁 Retry'}
+              </button>
+            </div>
+          `;
+        }
+        
+        this.showMessage(lang === 'zh' ? '❌ 生成失败: ' + error : '❌ Generation failed: ' + error, 'error');
+      }
+
+      async downloadTemplate(projectId, templateId, lang) {
+        try {
+          const response = await fetch(`/.netlify/functions/get-template-content?projectId=${projectId}&templateId=${templateId}&lang=${lang}`);
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.success && result.content) {
+            const blob = new Blob([result.content], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `template-${templateId}.md`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            this.showMessage(lang === 'zh' ? '📥 下载成功！' : '📥 Download successful!', 'success');
+          } else {
+            throw new Error(result.error || (lang === 'zh' ? '获取模板内容失败' : 'Failed to get template content'));
+          }
+        } catch (error) {
+          console.error('下载失败:', error);
+          this.showMessage(lang === 'zh' ? '❌ 下载失败: ' + error.message : '❌ Download failed: ' + error.message, 'error');
+        }
+      }
+    }
+
+    const templateProcessor = new TemplateStreamProcessor();
+
+    async function handleTemplateAction(projectId, templateId, action, lang) {
+      const projectInfo = {
+        name: 'Upscale.media Plugins使用入口地址 Ai插件最新工具和软件app下载',
+        description: 'Ai插件最新工具Upscale.media Plugins，Upscale.media插件使用先进的AI技术，提供图片放大和增强功能，只需几次点击即可简化您的图像处理工作流程。成千上万的用户已经使用Upscale.media来节省时间并获得出色的结果。',
+        primaryCategory: '图像处理',
+        secondaryCategory: '图片无损放大'
+      };
+
+      if (action === 'generate') {
+        await templateProcessor.generateTemplateStream(projectId, templateId, lang, projectInfo);
+      } else if (action === 'download') {
+        await templateProcessor.downloadTemplate(projectId, templateId, lang);
+      }
+    }
+    </script>
+</body>
+</html>

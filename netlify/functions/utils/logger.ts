@@ -28,7 +28,7 @@ const detailedLogger = {
       operation_type: 'project'
     });
   },
-
+  
   duplicateFound: (projectName: string, details: any) => {
     logger.warn(`发现重复项目: ${projectName}`, {
       ...details,
@@ -52,7 +52,7 @@ const detailedLogger = {
       operation_type: 'stats'
     });
   },
-
+  
   operationError: (operation: string, error: any, context?: any) => {
     logger.error(`操作失败: ${operation}`, {
       error: error instanceof Error ? {

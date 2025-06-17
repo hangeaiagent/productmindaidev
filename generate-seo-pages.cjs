@@ -9,9 +9,22 @@ const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
-// Supabase配置
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://uobwbhvwrciaxloqdizc.supabase.co';
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc';
+// Supabase配置 - 从环境变量获取
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+// 验证必需的环境变量
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ 错误: 缺少必需的环境变量');
+  console.error('请设置以下环境变量:');
+  console.error('- VITE_SUPABASE_URL');
+  console.error('- VITE_SUPABASE_ANON_KEY');
+  console.error('\n您可以创建 .env 文件或使用以下命令设置:');
+  console.error('export VITE_SUPABASE_URL="your_supabase_url"');
+  console.error('export VITE_SUPABASE_ANON_KEY="your_supabase_key"');
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 配置
@@ -89,49 +102,134 @@ async function getCategoryInfo(categoryCode) {
 }
 
 /**
+ * 获取模板分类数据（只显示isshow=1的分类）
+ */
+async function getTemplateCategoriesWithTemplates(projectId) {
+  try {
+    // 获取所有isshow=1的分类
+    const { data: categories, error: categoriesError } = await supabase
+      .from('template_categories')
+      .select('*')
+      .eq('isshow', 1)
+      .order('name_zh');
+
+    if (categoriesError) {
+      console.warn('获取模板分类失败:', categoriesError);
+      return [];
+    }
+
+    // 获取项目的模板，关联模板分类信息
+    const { data: templates, error: templatesError } = await supabase
+      .from('template_versions')
+      .select(`
+        *,
+        templates:template_id (
+          id,
+          name_en,
+          name_zh,
+          description_en,
+          description_zh,
+          category_id,
+          template_categories:category_id (
+            id,
+            name_zh,
+            name_en,
+            isshow
+          )
+        )
+      `)
+      .eq('project_id', projectId)
+      .not('output_content_zh', 'is', null);
+
+    if (templatesError) {
+      console.warn('获取项目模板失败:', templatesError);
+      return [];
+    }
+
+    // 组织数据：只返回isshow=1的分类及其对应的模板
+    const result = categories.map(category => {
+      const categoryTemplates = templates?.filter(tv => 
+        tv.templates?.template_categories?.id === category.id &&
+        tv.templates?.template_categories?.isshow === 1
+      ) || [];
+
+      return {
+        id: category.id,
+        name: category.name_zh || category.name_en || '未命名分类',
+        name_zh: category.name_zh,
+        name_en: category.name_en,
+        templates: categoryTemplates.map(tv => ({
+          id: tv.template_id,
+          name: tv.templates?.name_zh || tv.templates?.name_en || '未命名模板',
+          name_zh: tv.templates?.name_zh,
+          name_en: tv.templates?.name_en,
+          description: tv.templates?.description_zh || tv.templates?.description_en,
+          description_zh: tv.templates?.description_zh,
+          description_en: tv.templates?.description_en,
+          category_name: category.name_zh || category.name_en,
+          version_id: tv.id,
+          output_content_zh: tv.output_content_zh,
+          output_content_en: tv.output_content_en
+        }))
+      };
+    }).filter(category => category.templates.length > 0); // 只返回有模板的分类
+
+    return result;
+  } catch (error) {
+    console.error('获取模板分类数据异常:', error);
+    return [];
+  }
+}
+
+/**
  * 生成模板分类网格
  */
-function generateTemplateCategoryGrid(templates) {
-  const categories = [...new Set(templates.map(t => t.category || '通用模板'))];
+function generateTemplateCategoryGrid(categoriesWithTemplates) {
+  if (!categoriesWithTemplates || categoriesWithTemplates.length === 0) {
+    return '<p style="text-align: center; color: rgba(255,255,255,0.8);">暂无可用的模板分类</p>';
+  }
   
-  return categories.map(category => `
+  return categoriesWithTemplates.map(category => `
     <div class="category-card">
         <div class="category-icon">
             <svg viewBox="0 0 24 24">
                 <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z"/>
             </svg>
         </div>
-        <h3 class="category-name">${category}</h3>
-        <p class="category-count">${templates.filter(t => (t.category || '通用模板') === category).length} 个模板</p>
+        <h3 class="category-name">${category.name}</h3>
+        <p class="category-count">${category.templates.length} 个模板</p>
     </div>
   `).join('');
 }
 
 /**
- * 生成模板网格
+ * 生成模板网格（基于分类数据）
  */
-function generateTemplateGrid(templates, projectId) {
-  if (!templates || templates.length === 0) {
+function generateTemplateGrid(categoriesWithTemplates, projectId) {
+  // 提取所有模板
+  const allTemplates = categoriesWithTemplates.flatMap(category => category.templates);
+  
+  if (!allTemplates || allTemplates.length === 0) {
     return `
       <div class="no-templates">
         <svg viewBox="0 0 24 24" class="no-templates-icon">
           <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z"/>
         </svg>
         <h3>暂无模板</h3>
-        <p>该项目还没有生成模板内容</p>
+        <p>该项目还没有生成模板内容，或者模板分类未启用显示</p>
       </div>
     `;
   }
 
-  return templates.map(template => `
+  return allTemplates.map(template => `
     <div class="template-card">
         <div class="template-header">
             <div>
-                <h3 class="template-name">${template.name_zh || template.name || '未命名模板'}</h3>
+                <h3 class="template-name">${template.name}</h3>
             </div>
-            <div class="template-type">${template.category || '通用'}</div>
+            <div class="template-type">${template.category_name}</div>
         </div>
-        <p class="template-description">${(template.description_zh || template.description || '暂无描述').substring(0, 120)}...</p>
+        <p class="template-description">${(template.description || '暂无描述').substring(0, 120)}...</p>
         <div class="template-actions">
             <button class="btn-download" onclick="downloadTemplate('${projectId}', '${template.id}')">
                 <svg viewBox="0 0 24 24">
@@ -162,18 +260,18 @@ async function generateProjectPage(projectId, isDemo = false) {
       throw new Error(`项目不存在或获取失败: ${projectError?.message}`);
     }
 
-    // 获取项目模板
-    const templates = await getProjectTemplates(projectId);
+    // 获取模板分类数据（只包含isshow=1的分类）
+    const categoriesWithTemplates = await getTemplateCategoriesWithTemplates(projectId);
     
     // 获取分类信息
     const categoryInfo = await getCategoryInfo(project.primary_category_code);
 
     // 生成HTML内容
-    const htmlContent = generateSEOTemplate(project, templates, categoryInfo);
+    const htmlContent = generateSEOTemplate(project, categoriesWithTemplates, categoryInfo);
 
     if (isDemo) {
       // 演示模式，直接返回HTML内容
-      return { project, templates, categoryInfo, htmlContent };
+      return { project, categoriesWithTemplates, categoryInfo, htmlContent };
     } else {
       // 创建输出目录
       if (!fs.existsSync(OUTPUT_DIR)) {
@@ -185,8 +283,9 @@ async function generateProjectPage(projectId, isDemo = false) {
       const filePath = path.join(OUTPUT_DIR, fileName);
       fs.writeFileSync(filePath, htmlContent, 'utf8');
 
-      console.log(`✅ 生成页面: ${fileName} (${templates.length} 个模板)`);
-      return { project, templates, categoryInfo, filePath };
+      const totalTemplates = categoriesWithTemplates.reduce((sum, cat) => sum + cat.templates.length, 0);
+      console.log(`✅ 生成页面: ${fileName} (${totalTemplates} 个模板，${categoriesWithTemplates.length} 个分类)`);
+      return { project, categoriesWithTemplates, categoryInfo, filePath };
     }
 
   } catch (error) {
@@ -198,10 +297,11 @@ async function generateProjectPage(projectId, isDemo = false) {
 /**
  * 生成SEO优化的HTML模板
  */
-function generateSEOTemplate(project, templates, categoryInfo) {
+function generateSEOTemplate(project, categoriesWithTemplates, categoryInfo) {
   const projectName = project.name_zh || project.name || '未命名项目';
   const projectDesc = project.description_zh || project.description || '暂无描述';
   const categoryName = categoryInfo?.category_name || '人工智能';
+  const totalTemplates = categoriesWithTemplates.reduce((sum, cat) => sum + cat.templates.length, 0);
   
   // SEO关键词生成
   const keywords = [
@@ -324,7 +424,7 @@ function generateSEOTemplate(project, templates, categoryInfo) {
                 <!-- 项目统计 -->
                 <div class="project-stats">
                     <div class="stat-item">
-                        <span class="stat-value">${templates.length}</span>
+                        <span class="stat-value">${totalTemplates}</span>
                         <span class="stat-label">模板数量</span>
                     </div>
                     <div class="stat-item">
@@ -348,7 +448,7 @@ function generateSEOTemplate(project, templates, categoryInfo) {
                 </div>
             </header>
 
-            ${templates.length > 0 ? `
+            ${totalTemplates > 0 ? `
             <!-- 模板分类导航 -->
             <section class="template-categories">
                 <h2 class="section-title">
@@ -358,7 +458,7 @@ function generateSEOTemplate(project, templates, categoryInfo) {
                     模板分类
                 </h2>
                 <div class="category-grid">
-                    ${generateTemplateCategoryGrid(templates)}
+                    ${generateTemplateCategoryGrid(categoriesWithTemplates)}
                 </div>
             </section>
             ` : ''}
@@ -367,7 +467,7 @@ function generateSEOTemplate(project, templates, categoryInfo) {
             <section class="template-list">
                 <div class="list-header">
                     <h2 class="section-title">可用模板</h2>
-                    ${templates.length > 0 ? `
+                    ${totalTemplates > 0 ? `
                     <div class="list-actions">
                         <button class="btn-download-all" onclick="downloadAllTemplates('${project.id}')">
                             <svg viewBox="0 0 24 24">
@@ -385,7 +485,7 @@ function generateSEOTemplate(project, templates, categoryInfo) {
                     ` : ''}
                 </div>
                 <div class="template-grid">
-                    ${generateTemplateGrid(templates, project.id)}
+                    ${generateTemplateGrid(categoriesWithTemplates, project.id)}
                 </div>
             </section>
         </main>
@@ -1012,4 +1112,4 @@ if (require.main === module) {
     .catch((error) => {
       console.error('❌ 生成失败:', error);
     });
-} 
+}

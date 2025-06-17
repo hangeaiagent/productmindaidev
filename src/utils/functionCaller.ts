@@ -1,103 +1,93 @@
 import { supabase } from '../lib/supabase';
 import { logger } from './logger';
 
-interface RetryOptions {
-  maxRetries?: number;
-  initialDelay?: number;
+export interface FunctionCallOptions {
+  retries?: number;
+  timeout?: number;
+  backoff?: boolean;
   maxDelay?: number;
 }
 
 export class FunctionCaller {
-  private static async delay(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  private static readonly DEFAULT_OPTIONS: Required<FunctionCallOptions> = {
+    retries: 3,
+    timeout: 30000,
+    backoff: true,
+    maxDelay: 10000
+  };
 
-  static async callWithRetry<T>(
+  static async callFunction<T>(
     functionName: string,
-    body: any,
-    options: RetryOptions = {}
-  ): Promise<{ data: T | null; error: any }> {
-    const {
-      maxRetries = 3,
-      initialDelay = 1000,
-      maxDelay = 5000
-    } = options;
+    body: any = {},
+    options: FunctionCallOptions = {}
+  ): Promise<T> {
+    const opts = { ...this.DEFAULT_OPTIONS, ...options };
+    let lastError: Error | null = null;
+    let delay = 1000;
 
-    let lastError = null;
-    let attempt = 0;
-
-    while (attempt < maxRetries) {
+    for (let attempt = 1; attempt <= opts.retries; attempt++) {
       try {
-        attempt++;
-        logger.log(`调用函数 ${functionName} (尝试 ${attempt}/${maxRetries})`, {
-          functionName,
-          attempt,
-          body: JSON.stringify(body)
-        });
+        logger.info(`调用函数 ${functionName}`, { attempt, body });
+
+        // 使用正确的环境变量获取方式
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        if (!supabaseUrl) {
+          throw new Error('缺少 VITE_SUPABASE_URL 环境变量');
+        }
 
         // 构建函数URL
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://uobwbhvwrciaxloqdizc.supabase.co';
         const functionUrl = `${supabaseUrl}/functions/v1/${functionName}`;
         
-        // 获取会话令牌和API密钥
+        // 获取会话令牌
         const { data: sessionData } = await supabase.auth.getSession();
         const accessToken = sessionData.session?.access_token || '';
-        const apiKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
         
         // 直接使用fetch API而不是supabase.functions.invoke
         const response = await fetch(functionUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-            'apikey': apiKey
+            'Authorization': `Bearer ${accessToken}`
           },
           body: JSON.stringify(body)
         });
         
         if (!response.ok) {
           const errorText = await response.text();
-          lastError = new Error(`函数调用失败: ${response.status} ${errorText}`);
-          logger.error(`函数调用失败 (尝试 ${attempt}/${maxRetries})`, {
-            error: lastError,
-            functionName,
-            attempt,
-            status: response.status
-          });
-          
-          // 如果是最后一次尝试，直接返回错误
-          if (attempt === maxRetries) {
-            return { data: null, error: lastError };
-          }
-        } else {
-          // 调用成功，返回结果
-          const data = await response.json();
-          return { data, error: null };
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-        // 计算延迟时间（指数退避）
-        const delay = Math.min(initialDelay * Math.pow(2, attempt - 1), maxDelay);
-        await FunctionCaller.delay(delay);
+        const data = await response.json();
+        logger.info(`函数 ${functionName} 调用成功`, { attempt });
+        return data;
 
       } catch (error) {
-        lastError = error;
-        logger.error(`函数调用异常 (尝试 ${attempt}/${maxRetries})`, {
-          error,
-          functionName,
-          attempt
+        lastError = error instanceof Error ? error : new Error(String(error));
+        logger.error(`函数 ${functionName} 调用失败`, {
+          attempt,
+          error: lastError.message,
+          stack: lastError.stack
         });
 
-        if (attempt === maxRetries) {
-          return { data: null, error: lastError };
+        if (attempt < opts.retries) {
+          if (opts.backoff) {
+            logger.info(`等待 ${delay}ms 后重试...`);
+            await this.sleep(delay);
+            delay = Math.min(delay * 2, opts.maxDelay);
+          } else {
+            await this.sleep(1000);
+          }
         }
-
-        // 计算延迟时间（指数退避）
-        const delay = Math.min(initialDelay * Math.pow(2, attempt - 1), maxDelay);
-        await FunctionCaller.delay(delay);
       }
     }
 
-    return { data: null, error: lastError };
+    throw new Error(
+      `函数 ${functionName} 在 ${opts.retries} 次尝试后仍然失败: ${lastError?.message}`
+    );
+      }
+
+  private static sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   static async batchProcess<T>(
