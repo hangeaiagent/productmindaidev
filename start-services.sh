@@ -21,16 +21,108 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 检查是否为root用户
-if [ "$EUID" -ne 0 ]; then
-    log_error "请使用root权限运行此脚本"
+# 获取当前工作目录
+CURRENT_DIR=$(pwd)
+log_info "当前工作目录: $CURRENT_DIR"
+
+# 创建日志目录
+mkdir -p logs/aws-backend
+
+# 检查环境变量文件是否存在（如果不存在则使用默认.env）
+if [ -f .env.frontend ]; then
+    FRONTEND_ENV=".env.frontend"
+elif [ -f .env ]; then
+    FRONTEND_ENV=".env"
+    log_warn "使用默认.env文件作为前端环境变量"
+else
+    log_error "未找到前端环境变量文件"
     exit 1
 fi
 
-# 设置工作目录
-cd /home/productmindaidev
+if [ -f .env.aws-backend ]; then
+    BACKEND_ENV=".env.aws-backend"
+elif [ -f .env ]; then
+    BACKEND_ENV=".env"
+    log_warn "使用默认.env文件作为后台环境变量"
+else
+    log_error "未找到后台环境变量文件"
+    exit 1
+fi
 
-log_info "当前工作目录: $(pwd)"
+# 停止已存在的服务（仅停止我们管理的服务）
+log_info "停止现有相关服务..."
+pm2 stop netlify-functions 2>/dev/null || true
+pm2 stop aws-backend 2>/dev/null || true
+pm2 delete netlify-functions 2>/dev/null || true
+pm2 delete aws-backend 2>/dev/null || true
+
+# 启动AWS后台服务
+log_info "启动AWS后台服务..."
+if [ -f "ecosystem.config.aws.cjs" ]; then
+    # 临时设置环境变量
+    export $(cat $BACKEND_ENV | grep -v '^#' | xargs)
+    pm2 start ecosystem.config.aws.cjs || {
+        log_error "AWS后台服务启动失败"
+        exit 1
+    }
+else
+    log_error "未找到 ecosystem.config.aws.cjs 配置文件"
+    exit 1
+fi
+
+# 等待AWS后台服务启动
+log_info "等待AWS后台服务启动..."
+sleep 5
+
+# 检查AWS后台服务状态
+AWS_PORT=${AWS_BACKEND_PORT:-3000}
+if curl -s http://localhost:$AWS_PORT/health > /dev/null; then
+    log_info "AWS后台服务健康检查通过"
+else
+    log_warn "AWS后台服务健康检查失败，但继续启动前端服务"
+fi
+
+# 启动前端服务
+log_info "启动前端服务..."
+if [ -f "ecosystem.config.frontend.cjs" ]; then
+    # 临时设置环境变量
+    export $(cat $FRONTEND_ENV | grep -v '^#' | xargs)
+    pm2 start ecosystem.config.frontend.cjs || {
+        log_error "前端服务启动失败"
+        exit 1
+    }
+else
+    log_error "未找到 ecosystem.config.frontend.cjs 配置文件"
+    exit 1
+fi
+
+# 等待前端服务启动
+log_info "等待前端服务启动..."
+sleep 5
+
+# 检查前端服务状态
+FRONTEND_PORT=${FRONTEND_PORT:-8888}
+if curl -s http://localhost:$FRONTEND_PORT/health > /dev/null; then
+    log_info "前端服务健康检查通过"
+else
+    log_warn "前端服务健康检查失败"
+fi
+
+# 显示服务状态
+log_info "所有服务启动完成！"
+echo ""
+log_info "服务状态："
+pm2 list
+
+# 显示日志访问方式
+echo ""
+log_info "查看日志："
+echo "前端服务日志：pm2 logs netlify-functions"
+echo "AWS后台日志：pm2 logs aws-backend"
+echo ""
+log_info "服务访问："
+echo "前端服务：http://localhost:$FRONTEND_PORT"
+echo "AWS后台：http://localhost:$AWS_PORT"
 
 # 1. 停止所有服务（如果在运行）
 log_info "1. 停止现有服务..."
@@ -213,4 +305,11 @@ if [ "$online_count" -lt "$total_count" ] || [ "$http_code" != "200" ] || [ "$fr
     echo ""
     log_warn "⚠️  检测到部分服务异常，建议检查日志："
     echo "     pm2 logs --lines 50"
+fi
+
+# 检查环境变量文件
+if [ ! -f .env.frontend ] || [ ! -f .env.aws-backend ]; then
+    log_error "环境变量文件不存在！"
+    log_error "请确保 .env.frontend 和 .env.aws-backend 文件已正确配置"
+    exit 1
 fi 

@@ -118,11 +118,11 @@ const AIProductsPage: React.FC = () => {
   };
 
   const handleLogin = () => {
-    alert(language === 'en' ? 'Login functionality will be implemented' : '登录功能将会实现');
+    navigate('/login');
   };
 
   const handleRegister = () => {
-    alert(language === 'en' ? 'Register functionality will be implemented' : '注册功能将会实现');
+    navigate('/register');
   };
 
   const handleGithub = () => {
@@ -347,7 +347,7 @@ const AIProductsPage: React.FC = () => {
                 </button>
                 <button
                   onClick={handleRegister}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-purple-900 bg-white rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-lg"
+                  className="flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
                 >
                   <UserPlus className="w-4 h-4 mr-1" />
                   {t.register}
