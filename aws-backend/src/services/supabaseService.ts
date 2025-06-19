@@ -31,13 +31,16 @@ if (!supabaseUrl || !supabaseKey) {
 // 如果没有配置，创建一个模拟的客户端
 let supabase: any;
 if (supabaseUrl && supabaseKey) {
+  console.log('🔌 正在初始化Supabase客户端...');
   supabase = createClient(supabaseUrl, supabaseKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false
     }
   });
+  console.log('✅ Supabase客户端初始化成功');
 } else {
+  console.warn('⚠️ 未找到Supabase配置，将使用模拟客户端');
   // 模拟客户端，用于测试
   supabase = {
     from: (table: string) => ({

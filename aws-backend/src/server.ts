@@ -6,20 +6,22 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { createServer } from 'http';
 
 // 导入路由
-import templateRoutes from './routes/templateRoutes';
-import healthRoutes from './routes/healthRoutes';
-import queueRoutes from './routes/queueRoutes';
+import templateRoutes from './routes/templateRoutes.js';
+import healthRoutes from './routes/healthRoutes.js';
+import queueRoutes from './routes/queueRoutes.js';
 
 // 导入中间件
-import { errorHandler } from './middleware/errorHandler';
-import { requestLogger } from './middleware/requestLogger';
-import { authMiddleware } from './middleware/authMiddleware';
+import { errorHandler } from './middleware/errorHandler.js';
+import { requestLogger } from './middleware/requestLogger.js';
+import { authMiddleware } from './middleware/authMiddleware.js';
 
 // 导入服务
-import { logger } from './utils/logger';
+import { logger } from './utils/logger.js';
 // import { connectRedis } from './services/redisService'; // 临时注释
 
 // 添加接口定义

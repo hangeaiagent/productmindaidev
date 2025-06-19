@@ -2,8 +2,9 @@ import { Router, Request, Response } from 'express';
 import { asyncHandler, createError } from '../middleware/errorHandler';
 import { AuthRequest } from '../middleware/authMiddleware';
 import { logger } from '../utils/logger';
+import express from 'express';
 
-const router = Router();
+const router = express.Router();
 
 // 添加任务到队列
 router.post('/add', asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -28,19 +29,18 @@ router.post('/add', asyncHandler(async (req: AuthRequest, res: Response) => {
 }));
 
 // 获取队列状态
-router.get('/status', asyncHandler(async (req: Request, res: Response) => {
-  // TODO: 实现Redis队列状态查询
-  const status = {
-    waiting: 0,
-    active: 0,
-    completed: 0,
-    failed: 0,
-    delayed: 0,
-    timestamp: new Date().toISOString()
-  };
-
-  res.json(status);
-}));
+router.get('/status', (req, res) => {
+  res.json({
+    status: 'ok',
+    queues: {
+      generation: {
+        active: 0,
+        waiting: 0,
+        completed: 0
+      }
+    }
+  });
+});
 
 // 获取特定任务状态
 router.get('/job/:jobId', asyncHandler(async (req: Request, res: Response) => {

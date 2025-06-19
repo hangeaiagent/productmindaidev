@@ -1,10 +1,11 @@
 {
   "name": "productmind-aws-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "ProductMind AI AWS ECS Fargate Backend Service",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "NODE_OPTIONS='--loader ts-node/esm' nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "jest",

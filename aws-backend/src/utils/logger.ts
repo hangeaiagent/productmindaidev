@@ -16,7 +16,7 @@ const logFormat = winston.format.combine(
 );
 
 // 创建logger实例
-export const logger = winston.createLogger({
+const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
   defaultMeta: { service: 'productmind-backend' },
@@ -56,4 +56,6 @@ if (process.env.NODE_ENV !== 'production') {
 export const logInfo = (message: string, meta?: any) => logger.info(message, meta);
 export const logError = (message: string, error?: any) => logger.error(message, error);
 export const logWarn = (message: string, meta?: any) => logger.warn(message, meta);
-export const logDebug = (message: string, meta?: any) => logger.debug(message, meta); 
+export const logDebug = (message: string, meta?: any) => logger.debug(message, meta);
+
+export { logger }; 
