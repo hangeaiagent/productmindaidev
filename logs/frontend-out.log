@@ -1,0 +1,11 @@
+2025-06-18 12:49:37 +08:00: Starting ProductMind Functions Server v4.1 on port 8888
+2025-06-18 12:49:37 +08:00: Looking for CJS functions in: /Users/a1/work/productmindai0521/netlify/functions-js
+2025-06-18 12:49:37 +08:00: Found 3 CJS functions: check-category-codes.cjs, get-categories.cjs, get-projects-by-category.cjs
+2025-06-18 12:49:37 +08:00: Loading function: check-category-codes
+2025-06-18 12:49:37 +08:00: ✓ Registered function: /.netlify/functions/check-category-codes
+2025-06-18 12:49:37 +08:00: Loading function: get-categories
+2025-06-18 12:49:37 +08:00: ✓ Registered function: /.netlify/functions/get-categories
+2025-06-18 12:49:37 +08:00: Loading function: get-projects-by-category
+2025-06-18 12:49:37 +08:00: ✓ Registered function: /.netlify/functions/get-projects-by-category
+2025-06-18 12:49:37 +08:00: ✓ ProductMind Functions Server v4.1 running on port 8888
+2025-06-18 12:49:37 +08:00: ✓ Health check: http://localhost:8888/health

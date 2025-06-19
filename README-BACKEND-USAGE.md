@@ -2,10 +2,27 @@
 
 ## 📋 项目概述
 
-ProductMind AI 后端服务提供了批量生产模板内容的功能，主要包含两个核心服务：
+ProductMind AI 后端服务提供了专业的技术文档生成功能，主要包含两个核心服务：
 
-1. **aiService.ts** - AI内容生成服务
-2. **batchProductionService.ts** - 批量生产服务
+1. **aiService.ts** - AI技术文档生成服务（基于DeepSeek Reasoner）
+2. **batchProductionService.ts** - 批量技术文档生产服务
+
+### 🎯 专业定位
+
+本服务专门用于生成**软件技术方案和文档**，包括但不限于：
+- 技术架构设计文档
+- API接口文档
+- 开发指南和最佳实践
+- 系统部署文档
+- 代码规范和标准
+- 性能优化方案
+
+### 🤖 AI模型配置
+
+- **主要模型**: DeepSeek Reasoner - 专门用于复杂推理和技术方案设计
+- **备用模型**: OpenAI GPT-4 - 提供高质量的技术文档生成
+- **优化参数**: 低温度(0.3)确保技术内容的一致性和准确性
+- **Token配置**: 最大8000 tokens，支持生成详细的技术文档
 
 ## 🚀 快速启动
 
@@ -38,17 +55,30 @@ npm run dev
 在 `aws-backend/.env` 文件中配置以下变量：
 
 ```bash
-# 必须配置的变量
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-DEEPSEEK_API_KEY=your_deepseek_api_key
-OPENAI_API_KEY=your_openai_api_key
+# 必须配置的变量（按优先级排序）
+DEEPSEEK_API_KEY=your_deepseek_api_key          # 主要模型，用于技术文档生成
+SUPABASE_URL=https://your-project.supabase.co   # 数据库连接
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key # 数据库操作权限
+
+# 备用AI模型（可选）
+OPENAI_API_KEY=your_openai_api_key              # 备用模型，DeepSeek不可用时使用
 
 # 可选配置
 NODE_ENV=development
 PORT=3000
 LOG_LEVEL=info
 ```
+
+### 💡 API密钥获取
+
+1. **DeepSeek API密钥**: 
+   - 访问 [DeepSeek官网](https://deepseek.com) 注册账号
+   - 申请API访问权限
+   - 获取API密钥
+
+2. **OpenAI API密钥** (备用):
+   - 访问 [OpenAI官网](https://openai.com) 注册账号
+   - 在API设置中生成密钥
 
 ## 📚 API接口说明
 
@@ -64,7 +94,7 @@ GET /health
 }
 ```
 
-### 2. 批量生产模板内容
+### 2. 批量生产技术文档内容
 ```bash
 POST /api/batch-production
 
@@ -89,26 +119,60 @@ POST /api/batch-production
   "details": [
     {
       "projectId": "project_1",
-      "projectName": "项目1",
+      "projectName": "AI智能客服系统",
       "templateId": "template_1",
-      "templateName": "模板1",
+      "templateName": "技术架构文档",
       "status": "generated",
       "versionId": "v1750322446403_1_1",
       "contentLengths": {
-        "outputContentEn": 1286,
-        "outputContentZh": 1277
+        "outputContentEn": 2500,    // DeepSeek Reasoner生成的更详细内容
+        "outputContentZh": 2800
       }
     }
   ],
   "execution": {
     "startTime": "2025-06-19T08:40:46.403Z",
     "endTime": "2025-06-19T08:40:46.403Z",
-    "duration": "1.5s"
+    "duration": "2.5s",
+    "model": "deepseek-reasoner"
   }
 }
 ```
 
-### 3. 获取模板列表
+### 3. 单个技术文档生成
+```bash
+POST /api/generate
+
+# 请求体
+{
+  "prompt": "请生成详细的微服务架构设计文档",
+  "project": {
+    "name": "电商平台",
+    "description": "高并发的在线购物平台"
+  },
+  "template": {
+    "name_zh": "微服务架构文档",
+    "name_en": "Microservices Architecture"
+  },
+  "language": "zh",
+  "maxTokens": 8000
+}
+
+# 响应示例
+{
+  "success": true,
+  "data": {
+    "content": "# 微服务架构设计文档\n\n## 系统概述...",
+    "status": "success",
+    "model": "deepseek-reasoner",
+    "tokens": 6500,
+    "reasoning_tokens": 1200    // DeepSeek Reasoner特有的推理token
+  },
+  "timestamp": "2025-06-19T08:40:39.860Z"
+}
+```
+
+### 4. 获取模板列表
 ```bash
 GET /api/templates
 
@@ -127,7 +191,7 @@ GET /api/templates
 }
 ```
 
-### 4. 获取项目列表
+### 5. 获取项目列表
 ```bash
 GET /api/projects
 
@@ -147,30 +211,38 @@ GET /api/projects
 
 ## 🔬 核心服务功能
 
-### aiService.ts
+### aiService.ts - 技术文档生成服务
 
-AI内容生成服务，支持：
+专门针对软件技术文档生成进行优化，支持：
 
-- **多AI提供商**: DeepSeek、OpenAI
-- **自动回退**: 主提供商失败时自动切换
-- **双语生成**: 支持中英文内容生成
-- **智能提示**: 基于项目信息和模板要求生成内容
+- **DeepSeek Reasoner模型**: 强大的推理能力，特别适合技术方案设计
+- **GPT-4备用**: 当DeepSeek不可用时自动切换到GPT-4
+- **技术专业性**: 专门的系统提示词，确保生成专业的技术内容
+- **双语支持**: 中英文技术文档生成
+- **代码示例**: 自动生成相关的代码示例和配置
+- **最佳实践**: 结合行业最佳实践和最新技术趋势
+
+#### 技术特点
+- **推理token**: DeepSeek Reasoner提供额外的推理过程信息
+- **低温度参数**: 0.3温度确保技术内容的一致性
+- **高token限制**: 支持最大8000 tokens的详细技术文档
+- **结构化输出**: 自动生成带有清晰层级的技术文档
 
 主要方法：
 ```typescript
-// 生成单个内容
+// 生成单个技术文档
 await aiService.generateContent({
-  prompt: "生成产品需求文档",
-  project: { name: "AI助手", description: "智能对话系统" },
-  template: { name_zh: "产品需求文档", name_en: "PRD" },
+  prompt: "设计一个高可用的微服务架构",
+  project: { name: "电商系统", description: "高并发购物平台" },
+  template: { name_zh: "架构设计文档", name_en: "Architecture Design" },
   language: "zh"
 });
 
-// 生成双语内容
+// 生成双语技术文档
 await aiService.generateBilingualContent({
-  prompt: "生成产品需求文档",
-  project: { name: "AI助手", description: "智能对话系统" },
-  template: { name_zh: "产品需求文档", name_en: "PRD" }
+  prompt: "设计RESTful API接口规范",
+  project: { name: "用户管理系统", description: "企业级用户管理" },
+  template: { name_zh: "API设计文档", name_en: "API Design Doc" }
 });
 ```
 
