@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
 
 // 加载环境变量
-dotenv.config({ path: 'aws-backend/.env' });
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -14,17 +16,29 @@ app.use(express.json());
 
 console.log('🚀 ProductMind AI - 正式批量生产执行器');
 console.log('📋 DeepSeek Reasoner技术文档生成服务');
+console.log('🔍 只处理template_categories.isshow=1的模板');
 console.log('═'.repeat(60));
 
 // 检查环境变量
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const DEEPSEEK_API_KEY = process.env.VITE_DEFAULT_API_KEY;
+const SUPABASE_URL = 'https://uobwbhvwrciaxloqdizc.supabase.co';
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzA3MTI2NiwiZXhwIjoyMDYyNjQ3MjY2fQ.ryRmf_i-EYRweVLL4fj4acwifoknqgTbIomL-S22Zmo';
 
 console.log('🔧 环境变量状态:');
 console.log(`  DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY ? '✅ 已配置' : '❌ 未配置'}`);
 console.log(`  SUPABASE_URL: ${SUPABASE_URL ? '✅ 已配置' : '❌ 未配置'}`);
 console.log(`  SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY ? '✅ 已配置' : '❌ 未配置'}`);
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('❌ 错误: 缺少必要的环境变量配置');
+  console.error('请确保以下环境变量已正确设置:');
+  console.error('- VITE_SUPABASE_URL');
+  console.error('- VITE_SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+// 初始化Supabase客户端
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // DeepSeek Reasoner AI服务
 async function generateWithDeepSeekReasoner(request) {
@@ -241,49 +255,75 @@ Microservices-based architecture design ensuring scalability and maintainability
   };
 }
 
-// 模拟数据库保存（实际生产中会连接真实数据库）
+// 真实数据库保存函数
 async function saveToDatabase(project, template, englishContent, chineseContent, mdcEnglish, mdcChinese) {
   console.log(`💾 保存到数据库: ${project.name} + ${template.name_zh}`);
   
-  const versionId = `v${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  // 模拟数据库操作延迟
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const saveData = {
-    id: versionId,
-    template_id: template.id,
-    project_id: project.id,
-    created_by: 'system',
-    input_content: `项目: ${project.name}\n描述: ${project.description}`,
-    output_content_en: {
-      content: englishContent,
-      annotations: [],
-      language: 'en',
-      generated_at: new Date().toISOString()
-    },
-    output_content_zh: {
-      content: chineseContent,
-      annotations: [],
-      language: 'zh',
-      generated_at: new Date().toISOString()
-    },
-    mdcpromptcontent_en: mdcEnglish,
-    mdcpromptcontent_zh: mdcChinese,
-    is_active: true,
-    source_language: 'en',
-    created_at: new Date().toISOString()
-  };
-  
-  console.log(`✅ 数据库保存成功 - 版本ID: ${versionId}`);
-  return saveData;
+  try {
+    const versionId = `v${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const saveData = {
+      template_id: template.id,
+      project_id: project.id,
+      created_by: 'afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1',
+      input_content: JSON.stringify({
+        project_name: project.name,
+        project_description: project.description,
+        template_name: template.name_en,
+        template_prompt: template.prompt_content
+      }),
+      output_content_en: {
+        content: englishContent,
+        language: 'en',
+        generated_at: new Date().toISOString()
+      },
+      output_content_zh: {
+        content: chineseContent,
+        language: 'zh',
+        generated_at: new Date().toISOString()
+      },
+      mdcpromptcontent_en: mdcEnglish,
+      mdcpromptcontent_zh: mdcChinese,
+      is_active: true,
+      source_language: 'en',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    console.log('📦 准备保存数据:', JSON.stringify(saveData, null, 2));
+
+    const saveResponse = await fetch(`${SUPABASE_URL}/rest/v1/template_versions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(saveData)
+    });
+
+    if (!saveResponse.ok) {
+      const errorText = await saveResponse.text();
+      throw new Error(`保存失败: ${saveResponse.status} ${errorText}`);
+    }
+
+    const savedVersion = await saveResponse.json();
+    console.log(`✅ 保存成功 - 版本ID: ${savedVersion[0].id}`);
+    return savedVersion[0];
+
+  } catch (error) {
+    console.error('❌ 保存失败:', error.message);
+    console.error('详细错误:', error);
+    throw new Error(`保存失败: ${error.message}`);
+  }
 }
 
 // 批量生产执行函数
 async function executeBatchProduction(options = {}) {
   const { 
-    limitProjects = 3, 
-    limitTemplates = 3, 
+    limitProjects = 2, 
+    limitTemplates = 2, 
     batchSize = 2,
     skipExisting = true 
   } = options;
@@ -294,235 +334,223 @@ async function executeBatchProduction(options = {}) {
 
   const startTime = Date.now();
 
-  // 模拟项目数据
-  const projects = [
-    {
-      id: 'proj_001',
-      name: 'AI智能客服系统',
-      description: '基于深度学习的智能客服对话系统，支持多轮对话、情感分析和智能推荐功能'
-    },
-    {
-      id: 'proj_002', 
-      name: '区块链数字钱包',
-      description: '安全可靠的数字资产管理工具，支持多币种存储、交易和DeFi协议集成'
-    },
-    {
-      id: 'proj_003',
-      name: '在线教育平台',
-      description: '互动式在线学习平台，提供个性化学习路径、实时答疑和学习数据分析'
+  try {
+    // 1. 获取项目数据
+    const projectsResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_projects?user_id=eq.afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1&limit=${limitProjects}`, {
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY
+      }
+    });
+
+    if (!projectsResponse.ok) throw new Error(`获取项目失败: ${projectsResponse.status}`);
+    const projects = await projectsResponse.json();
+    console.log(`✅ 加载 ${projects.length} 个项目`);
+
+    // 2. 获取模板数据 - 只获取isshow=1的分类下的模板
+    const templatesResponse = await fetch(`${SUPABASE_URL}/rest/v1/templates?select=id,name_zh,name_en,prompt_content,mdcprompt,template_categories!inner(id,name_zh,isshow)&template_categories.isshow=eq.1&limit=${limitTemplates}`, {
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY
+      }
+    });
+
+    if (!templatesResponse.ok) throw new Error(`获取模板失败: ${templatesResponse.status}`);
+    const templates = await templatesResponse.json();
+    console.log(`✅ 加载 ${templates.length} 个可用模板 (isshow=1)`);
+
+    // 生成任务列表
+    const tasks = [];
+    for (const project of projects) {
+      for (const template of templates) {
+        tasks.push({ project, template });
+      }
     }
-  ].slice(0, limitProjects);
 
-  // 模拟模板数据
-  const templates = [
-    {
-      id: 'tmpl_001',
-      name_zh: '技术架构设计文档',
-      name_en: 'Technical Architecture Design Document',
-      prompt_content: '请基于项目信息生成详细的技术架构设计文档，包括系统架构、技术选型、数据流设计、安全方案等',
-      mdcprompt: '请基于项目信息生成Cursor IDE的开发规范文件，包括代码规范、目录结构、开发工作流程等'
-    },
-    {
-      id: 'tmpl_002',
-      name_zh: 'API接口设计文档',
-      name_en: 'API Interface Design Document', 
-      prompt_content: '请基于项目信息生成完整的API接口设计文档，包括接口规范、数据格式、错误处理等',
-      mdcprompt: '请基于项目信息生成API开发的最佳实践和接口测试规范'
-    },
-    {
-      id: 'tmpl_003',
-      name_zh: '数据库设计文档',
-      name_en: 'Database Design Document',
-      prompt_content: '请基于项目信息生成数据库设计文档，包括表结构、索引设计、数据关系等',
-      mdcprompt: '请基于项目信息生成数据库开发规范和数据迁移策略'
-    }
-  ].slice(0, limitTemplates);
+    console.log(`📋 生成 ${tasks.length} 个生产任务\n`);
 
-  console.log(`✅ 加载 ${projects.length} 个项目, ${templates.length} 个模板`);
+    const results = {
+      total: tasks.length,
+      generated: 0,
+      skipped: 0,
+      failed: 0,
+      details: []
+    };
 
-  // 生成任务列表
-  const tasks = [];
-  for (const project of projects) {
-    for (const template of templates) {
-      tasks.push({ project, template });
-    }
-  }
-
-  console.log(`📋 生成 ${tasks.length} 个生产任务\n`);
-
-  const results = {
-    total: tasks.length,
-    generated: 0,
-    skipped: 0,
-    failed: 0,
-    details: []
-  };
-
-  // 分批处理
-  for (let i = 0; i < tasks.length; i += batchSize) {
-    const batch = tasks.slice(i, i + batchSize);
-    const batchIndex = Math.floor(i / batchSize) + 1;
-    const totalBatches = Math.ceil(tasks.length / batchSize);
-    
-    console.log(`📦 处理批次 ${batchIndex}/${totalBatches} (${batch.length}个任务)`);
-
-    const batchPromises = batch.map(async (task, taskIndex) => {
-      const { project, template } = task;
-      const taskNumber = i + taskIndex + 1;
+    // 分批处理
+    for (let i = 0; i < tasks.length; i += batchSize) {
+      const batch = tasks.slice(i, i + batchSize);
+      const batchIndex = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(tasks.length / batchSize);
       
-      try {
-        console.log(`\n🔄 任务${taskNumber}: ${project.name} + ${template.name_zh}`);
+      console.log(`📦 处理批次 ${batchIndex}/${totalBatches} (${batch.length}个任务)`);
 
-        // 步骤1: 生成英文内容
-        console.log(`  📝 步骤1: 生成英文内容...`);
-        const englishRequest = {
-          prompt: template.prompt_content,
-          project: { name: project.name, description: project.description },
-          template: { name_zh: template.name_zh, name_en: template.name_en },
-          language: 'en'
-        };
+      const batchPromises = batch.map(async (task, taskIndex) => {
+        const { project, template } = task;
+        const taskNumber = i + taskIndex + 1;
         
-        const englishResult = await generateWithDeepSeekReasoner(englishRequest);
-        if (englishResult.status !== 'success') {
-          throw new Error(`英文内容生成失败: ${englishResult.error}`);
-        }
+        try {
+          console.log(`\n🔄 任务${taskNumber}: ${project.name} + ${template.name_zh}`);
 
-        // 步骤2: 翻译中文内容
-        console.log(`  📝 步骤2: 翻译中文内容...`);
-        const chineseRequest = {
-          prompt: `请将以下内容翻译成中文，保持原有的格式和结构：\n\n${englishResult.content}`,
-          project: { name: project.name, description: project.description },
-          template: { name_zh: template.name_zh, name_en: template.name_en },
-          language: 'zh'
-        };
-        
-        const chineseResult = await generateWithDeepSeekReasoner(chineseRequest);
-        const chineseContent = chineseResult.status === 'success' ? chineseResult.content : englishResult.content;
-
-        // 步骤3: 生成MDC内容
-        let mdcEnglish = '';
-        let mdcChinese = '';
-        
-        if (template.mdcprompt) {
-          console.log(`  📝 步骤3: 生成MDC开发规范...`);
-          const mdcRequest = {
-            prompt: template.mdcprompt,
+          // 步骤1: 生成英文内容
+          console.log(`  📝 步骤1: 生成英文内容...`);
+          const englishRequest = {
+            prompt: template.prompt_content,
             project: { name: project.name, description: project.description },
             template: { name_zh: template.name_zh, name_en: template.name_en },
             language: 'en'
           };
           
-          const mdcResult = await generateWithDeepSeekReasoner(mdcRequest);
-          if (mdcResult.status === 'success') {
-            mdcEnglish = mdcResult.content;
-            
-            // 翻译MDC内容
-            const mdcChineseRequest = {
-              prompt: `请将以下内容翻译成中文：\n\n${mdcEnglish}`,
+          const englishResult = await generateWithDeepSeekReasoner(englishRequest);
+          if (englishResult.status !== 'success') {
+            throw new Error(`英文内容生成失败: ${englishResult.error}`);
+          }
+
+          // 步骤2: 翻译中文内容
+          console.log(`  📝 步骤2: 翻译中文内容...`);
+          const chineseRequest = {
+            prompt: `请将以下内容翻译成中文，保持原有的格式和结构：\n\n${englishResult.content}`,
+            project: { name: project.name, description: project.description },
+            template: { name_zh: template.name_zh, name_en: template.name_en },
+            language: 'zh'
+          };
+          
+          const chineseResult = await generateWithDeepSeekReasoner(chineseRequest);
+          const chineseContent = chineseResult.status === 'success' ? chineseResult.content : englishResult.content;
+
+          // 步骤3: 生成MDC内容
+          let mdcEnglish = '';
+          let mdcChinese = '';
+          
+          if (template.mdcprompt) {
+            console.log(`  📝 步骤3: 生成MDC开发规范...`);
+            const mdcRequest = {
+              prompt: template.mdcprompt,
               project: { name: project.name, description: project.description },
               template: { name_zh: template.name_zh, name_en: template.name_en },
-              language: 'zh'
+              language: 'en'
             };
             
-            const mdcChineseResult = await generateWithDeepSeekReasoner(mdcChineseRequest);
-            mdcChinese = mdcChineseResult.status === 'success' ? mdcChineseResult.content : mdcEnglish;
+            const mdcResult = await generateWithDeepSeekReasoner(mdcRequest);
+            if (mdcResult.status === 'success') {
+              mdcEnglish = mdcResult.content;
+              
+              // 翻译MDC内容
+              const mdcChineseRequest = {
+                prompt: `请将以下内容翻译成中文：\n\n${mdcEnglish}`,
+                project: { name: project.name, description: project.description },
+                template: { name_zh: template.name_zh, name_en: template.name_en },
+                language: 'zh'
+              };
+              
+              const mdcChineseResult = await generateWithDeepSeekReasoner(mdcChineseRequest);
+              mdcChinese = mdcChineseResult.status === 'success' ? mdcChineseResult.content : mdcEnglish;
+            }
           }
+
+          // 步骤4: 保存到数据库
+          console.log(`  💾 步骤4: 保存到数据库...`);
+          const saveResult = await saveToDatabase(
+            project, 
+            template, 
+            englishResult.content, 
+            chineseContent, 
+            mdcEnglish, 
+            mdcChinese
+          );
+
+          console.log(`  ✅ 任务${taskNumber}完成! 版本ID: ${saveResult.id}`);
+
+          return {
+            task_number: taskNumber,
+            project_id: project.id,
+            project_name: project.name,
+            template_id: template.id,
+            template_name: template.name_zh,
+            status: 'generated',
+            version_id: saveResult.id,
+            content_stats: {
+              english_length: englishResult.content.length,
+              chinese_length: chineseContent.length,
+              mdc_english_length: mdcEnglish.length,
+              mdc_chinese_length: mdcChinese.length
+            },
+            ai_stats: {
+              model: englishResult.model,
+              total_tokens: englishResult.tokens + (chineseResult.tokens || 0),
+              reasoning_tokens: englishResult.reasoning_tokens + (chineseResult.reasoning_tokens || 0)
+            }
+          };
+
+        } catch (error) {
+          console.error(`  ❌ 任务${taskNumber}失败: ${error.message}`);
+          return {
+            task_number: taskNumber,
+            project_id: project.id,
+            project_name: project.name,
+            template_id: template.id,
+            template_name: template.name_zh,
+            status: 'failed',
+            error: error.message
+          };
         }
+      });
 
-        // 步骤4: 保存到数据库
-        console.log(`  💾 步骤4: 保存到数据库...`);
-        const saveResult = await saveToDatabase(
-          project, 
-          template, 
-          englishResult.content, 
-          chineseContent, 
-          mdcEnglish, 
-          mdcChinese
-        );
-
-        console.log(`  ✅ 任务${taskNumber}完成! 版本ID: ${saveResult.id}`);
-
-        return {
-          task_number: taskNumber,
-          project_id: project.id,
-          project_name: project.name,
-          template_id: template.id,
-          template_name: template.name_zh,
-          status: 'generated',
-          version_id: saveResult.id,
-          content_stats: {
-            english_length: englishResult.content.length,
-            chinese_length: chineseContent.length,
-            mdc_english_length: mdcEnglish.length,
-            mdc_chinese_length: mdcChinese.length
-          },
-          ai_stats: {
-            model: englishResult.model,
-            total_tokens: englishResult.tokens + (chineseResult.tokens || 0),
-            reasoning_tokens: englishResult.reasoning_tokens + (chineseResult.reasoning_tokens || 0)
+      // 等待批次完成
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // 处理批次结果
+      batchResults.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const taskResult = result.value;
+          results.details.push(taskResult);
+          
+          if (taskResult.status === 'generated') {
+            results.generated++;
+          } else {
+            results.failed++;
           }
-        };
-
-      } catch (error) {
-        console.error(`  ❌ 任务${taskNumber}失败: ${error.message}`);
-        return {
-          task_number: taskNumber,
-          project_id: project.id,
-          project_name: project.name,
-          template_id: template.id,
-          template_name: template.name_zh,
-          status: 'failed',
-          error: error.message
-        };
-      }
-    });
-
-    // 等待批次完成
-    const batchResults = await Promise.allSettled(batchPromises);
-    
-    // 处理批次结果
-    batchResults.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        const taskResult = result.value;
-        results.details.push(taskResult);
-        
-        if (taskResult.status === 'generated') {
-          results.generated++;
         } else {
           results.failed++;
         }
-      } else {
-        results.failed++;
+      });
+
+      console.log(`\n✅ 批次${batchIndex}完成`);
+      
+      // 批次间延迟
+      if (batchIndex < totalBatches) {
+        console.log(`⏸️ 批次间暂停2秒...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
-    });
-
-    console.log(`\n✅ 批次${batchIndex}完成`);
-    
-    // 批次间延迟
-    if (batchIndex < totalBatches) {
-      console.log(`⏸️ 批次间暂停2秒...`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
     }
+
+    const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+    
+    console.log('\n🏁 批量生产完成!');
+    console.log('═'.repeat(60));
+    console.log('📊 执行统计:');
+    console.log(`  总任务数: ${results.total}`);
+    console.log(`  成功生成: ${results.generated}`);
+    console.log(`  跳过: ${results.skipped}`);
+    console.log(`  失败: ${results.failed}`);
+    console.log(`  执行时间: ${totalTime}秒`);
+    console.log(`  成功率: ${((results.generated / results.total) * 100).toFixed(1)}%`);
+
+    return {
+      success: true,
+      stats: results,
+      execution_time: `${totalTime}s`,
+      timestamp: new Date().toISOString()
+    };
+
+  } catch (error) {
+    console.error('❌ 批量生产执行失败:', error.message);
+    return {
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
   }
-
-  const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
-  
-  console.log('\n🏁 批量生产完成!');
-  console.log('═'.repeat(60));
-  console.log('📊 执行统计:');
-  console.log(`  总任务数: ${results.total}`);
-  console.log(`  成功生成: ${results.generated}`);
-  console.log(`  跳过: ${results.skipped}`);
-  console.log(`  失败: ${results.failed}`);
-  console.log(`  执行时间: ${totalTime}秒`);
-  console.log(`  成功率: ${((results.generated / results.total) * 100).toFixed(1)}%`);
-
-  return {
-    success: true,
-    stats: results,
-    execution_time: `${totalTime}s`,
-    timestamp: new Date().toISOString()
-  };
 }
 
 // API接口
@@ -567,17 +595,8 @@ app.listen(PORT, () => {
   console.log('\n💡 准备执行正式批量生产!');
 });
 
-// 自动执行批量生产（可选）
-if (process.argv.includes('--auto-run')) {
-  setTimeout(async () => {
-    console.log('\n🤖 自动执行模式启动...');
-    try {
-      await executeBatchProduction({ limitProjects: 2, limitTemplates: 2 });
-    } catch (error) {
-      console.error('自动执行失败:', error);
-    }
-  }, 3000);
-}
+// 自动执行批量生产
+executeBatchProduction({ limitProjects: 2, limitTemplates: 2 }).catch(console.error);
 
 // 优雅关闭
 process.on('SIGINT', () => {
