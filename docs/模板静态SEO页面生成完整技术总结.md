@@ -932,10 +932,110 @@ find pdhtml/ -name "*.html" -mtime -1 | head -10
 
 ---
 
+## 🌐 远程服务器部署执行命令
+
+### 📡 服务器连接
+```bash
+# 连接AWS服务器
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236
+```
+
+### 📤 文件上传
+```bash
+# 上传部署脚本
+scp -i /Users/a1/work/productmindai.pem deploy-seo-production.sh ec2-user@3.93.149.236:/home/productmindaidev/
+
+# 上传生成器
+scp -i /Users/a1/work/productmindai.pem aws-backend/enhanced-template-generator.mjs ec2-user@3.93.149.236:/home/productmindaidev/aws-backend/
+
+# 设置执行权限
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && chmod +x deploy-seo-production.sh"
+```
+
+### 🚀 远程批量执行
+```bash
+# 启动批量生成
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && ./deploy-seo-production.sh start"
+
+# 监控执行状态
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && ./deploy-seo-production.sh monitor"
+
+# 停止执行
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && ./deploy-seo-production.sh stop"
+```
+
+### 📊 远程监控命令
+```bash
+# 查看实时日志
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && tail -f logs/seo-generation-*.log"
+
+# 查看生成统计
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && find aws-backend/pdhtml/ -name '*.html' | wc -l && du -sh aws-backend/pdhtml/"
+
+# 检查进程状态
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && ps aux | grep enhanced-template-generator"
+```
+
+### 🔧 本地监控脚本
+```bash
+# 创建本地监控脚本
+cat > monitor-seo-status.sh << 'EOF'
+#!/bin/bash
+SERVER="ec2-user@3.93.149.236"
+KEY_FILE="/Users/a1/work/productmindai.pem"
+REMOTE_DIR="/home/productmindaidev"
+
+echo "🔍 ProductMind AI - SEO页面生成状态监控"
+echo "========================================"
+
+# 检查进程状态
+ssh -i "$KEY_FILE" "$SERVER" "cd $REMOTE_DIR && if [ -f logs/seo-generation.pid ]; then PID=\$(cat logs/seo-generation.pid); if kill -0 \$PID 2>/dev/null; then echo '✅ 进程运行中 (PID: '\$PID')'; else echo '⚠️  进程已停止'; fi; else echo '❌ 未找到进程文件'; fi"
+
+# 文件统计
+ssh -i "$KEY_FILE" "$SERVER" "cd $REMOTE_DIR && echo '📁 生成文件统计:' && find aws-backend/pdhtml/ -name '*.html' 2>/dev/null | wc -l | xargs echo '  HTML文件数量:' && du -sh aws-backend/pdhtml/ 2>/dev/null | cut -f1 | xargs echo '  总大小:'"
+
+# 显示最新日志
+echo "📋 最新日志 (最后10行):"
+ssh -i "$KEY_FILE" "$SERVER" "cd $REMOTE_DIR && ls -t logs/seo-generation-*.log 2>/dev/null | head -1 | xargs tail -10"
+EOF
+
+chmod +x monitor-seo-status.sh
+
+# 运行本地监控
+./monitor-seo-status.sh
+```
+
+### 📈 生产环境执行示例
+```bash
+# 完整的生产部署流程
+# 1. 上传文件
+scp -i /Users/a1/work/productmindai.pem deploy-seo-production.sh ec2-user@3.93.149.236:/home/productmindaidev/
+scp -i /Users/a1/work/productmindai.pem aws-backend/enhanced-template-generator.mjs ec2-user@3.93.149.236:/home/productmindaidev/aws-backend/
+
+# 2. 启动生成
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productmindaidev && chmod +x deploy-seo-production.sh && ./deploy-seo-production.sh start"
+
+# 3. 本地监控
+./monitor-seo-status.sh
+```
+
+### ✅ 部署验证清单
+- [ ] 服务器连接正常
+- [ ] 环境变量文件存在 (`aws-backend/.env`)
+- [ ] 依赖包已安装 (`npm install marked highlight.js`)
+- [ ] 部署脚本权限正确 (`chmod +x`)
+- [ ] 日志目录可写 (`logs/`)
+- [ ] 输出目录可写 (`aws-backend/pdhtml/`)
+- [ ] 数据库连接正常
+- [ ] 本地监控脚本可用
+
+---
+
 **📌 重要提醒**：
 - 确保环境变量文件存在：`aws-backend/.env`
 - 确保日志目录存在：`logs/`
 - 确保输出目录存在：`pdhtml/`
 - 批量执行前先进行单页面测试验证
+- 远程执行使用正确的SSH密钥路径
 
 ---
