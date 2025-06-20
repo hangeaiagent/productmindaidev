@@ -4,8 +4,8 @@ import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 
-// 加载环境变量
-dotenv.config();
+// 加载环境变量 - 使用标准路径
+dotenv.config({ path: 'aws-backend/.env' });
 
 const app = express();
 const PORT = 3000;
