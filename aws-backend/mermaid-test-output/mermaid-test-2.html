@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Mermaid测试 - 带样式的流程图</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+      body { font-family: sans-serif; padding: 20px; }
+      .mermaid {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+      }
+    </style>
+</head>
+<body>
+    <h1>Mermaid测试 - 带样式的流程图</h1>
+    <div class="mermaid">flowchart TD
+    A[开始] --> B[处理]
+    B --> C[结束]
+    style A fill:#e1f5fe
+    style C fill:#f3e5f5</div>
+    <script>
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
+  

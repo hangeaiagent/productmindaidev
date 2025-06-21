@@ -9,6 +9,7 @@ coverage
 # Production
 dist
 build
+pdhtml
 
 # Misc
 .DS_Store

@@ -1039,3 +1039,4 @@ ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productm
 - 远程执行使用正确的SSH密钥路径
 
 ---
+ 

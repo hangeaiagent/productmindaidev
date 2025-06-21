@@ -241,7 +241,7 @@ async function saveToDatabase(project, template, englishContent, chineseContent,
     id: versionId,
     template_id: template.id,
     project_id: project.id,
-    created_by: 'system-batch',
+    created_by: '00000000-0000-0000-0000-000000000000',
     output_content_en: {
       content: englishContent,
       language: 'en',

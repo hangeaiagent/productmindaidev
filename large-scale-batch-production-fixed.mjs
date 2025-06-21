@@ -2,19 +2,18 @@ import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import fs from 'fs';
 
-// 加载环境变量 - 使用标准路径
-dotenv.config({ path: 'aws-backend/.env' });
+// 加载环境变量
+dotenv.config();
 
 // 正式生产环境配置
 const SUPABASE_URL = 'https://uobwbhvwrciaxloqdizc.supabase.co';
 const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzA3MTI2NiwiZXhwIjoyMDYyNjQ3MjY2fQ.ryRmf_i-EYRweVLL4fj4acwifoknqgTbIomL-S22Zmo';
 const DEEPSEEK_API_KEY = process.env.VITE_DEFAULT_API_KEY || 'sk-567abb67b99d4a65acaa2d9ed06c3782';
 
-// 优化版配置
-const API_DELAY = 1500; // 优化: 减少到1.5秒延迟
-const SAVE_PROGRESS_INTERVAL = 5; // 优化: 每5个任务保存一次进度
-const LOG_FILE = 'batch-production-optimized.log';
-const BATCH_SIZE = 2; // 优化: 并行处理2个任务
+// 大规模生产配置
+const API_DELAY = 3000; // 3秒延迟
+const SAVE_PROGRESS_INTERVAL = 10; // 每10个任务保存一次进度
+const LOG_FILE = 'batch-production.log';
 
 // 日志函数
 function log(message) {
@@ -31,7 +30,7 @@ function log(message) {
 // 保存进度到文件
 function saveProgress(progress) {
   try {
-    fs.writeFileSync('batch-progress-optimized.json', JSON.stringify(progress, null, 2));
+    fs.writeFileSync('batch-progress.json', JSON.stringify(progress, null, 2));
   } catch (error) {
     log(`保存进度失败: ${error.message}`);
   }
@@ -40,14 +39,8 @@ function saveProgress(progress) {
 // 读取进度文件
 function loadProgress() {
   try {
-    if (fs.existsSync('batch-progress-optimized.json')) {
-      const data = fs.readFileSync('batch-progress-optimized.json', 'utf8');
-      return JSON.parse(data);
-    }
-    // 尝试从旧版本继承进度
     if (fs.existsSync('batch-progress.json')) {
       const data = fs.readFileSync('batch-progress.json', 'utf8');
-      log('📋 从旧版本继承已完成的任务进度');
       return JSON.parse(data);
     }
   } catch (error) {
@@ -56,15 +49,11 @@ function loadProgress() {
   return { completedTasks: [], currentIndex: 0 };
 }
 
-log('🚀 ProductMind AI - 优化版大规模批量生产系统');
-log('⚡ 高效率AI技术文档生成 - 优化版本');
-log('🔍 只处理template_categories.isshow=1的模板');
+log('🚀 ProductMind AI - 大规模批量生产系统启动');
+log('📋 适用于400+项目的DeepSeek AI技术文档生成');
 log('═'.repeat(70));
 
-log('🔧 优化配置检查:');
-log(`  API延迟: ${API_DELAY}ms (优化: 减少50%)`);
-log(`  批次大小: ${BATCH_SIZE} (优化: 并行处理)`);
-log(`  进度保存: 每${SAVE_PROGRESS_INTERVAL}个任务`);
+log('🔧 生产环境配置检查:');
 log(`  DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY ? '✅ 已配置' : '❌ 未配置'}`);
 log(`  SUPABASE_URL: ${SUPABASE_URL ? '✅ 已配置' : '❌ 未配置'}`);
 log(`  SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY ? '✅ 已配置' : '❌ 未配置'}`);
@@ -306,9 +295,9 @@ async function executeLargeScaleBatch() {
     
     log(`✅ 加载了 ${projects.length} 个项目`);
 
-    // 2. 获取所有模板数据 - 只获取isshow=1的分类下的模板
-    log('📋 获取可用模板数据 (isshow=1)...');
-    const templatesResponse = await fetch(`${SUPABASE_URL}/rest/v1/templates?select=id,name_zh,name_en,prompt_content,mdcprompt,template_categories!inner(id,name_zh,isshow)&template_categories.isshow=eq.1`, {
+    // 2. 获取所有模板数据
+    log('📋 获取所有模板数据...');
+    const templatesResponse = await fetch(`${SUPABASE_URL}/rest/v1/templates`, {
       headers: {
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
         'apikey': SUPABASE_SERVICE_KEY
@@ -325,7 +314,7 @@ async function executeLargeScaleBatch() {
       throw new Error('获取模板数据格式错误');
     }
     
-    log(`✅ 加载了 ${templates.length} 个可用模板 (isshow=1)`);
+    log(`✅ 加载了 ${templates.length} 个模板`);
 
     // 生成任务列表
     const allTasks = [];
@@ -348,114 +337,82 @@ async function executeLargeScaleBatch() {
       return results;
     }
 
-    // 3. 分批并行处理任务 - 优化版本
-    for (let i = 0; i < allTasks.length; i += BATCH_SIZE) {
-      const batch = allTasks.slice(i, i + BATCH_SIZE);
-      const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
-      const totalBatches = Math.ceil(allTasks.length / BATCH_SIZE);
+    // 3. 逐个处理剩余任务
+    for (let i = 0; i < allTasks.length; i++) {
+      const { project, template, taskId } = allTasks[i];
+      const taskNumber = (progress.completedTasks ? progress.completedTasks.length : 0) + i + 1;
       
-      log(`\n📦 批次${batchNumber}/${totalBatches} (${batch.length}个任务并行处理)`);
-
-      // 并行处理批次中的任务
-      const batchPromises = batch.map(async ({ project, template, taskId }, index) => {
-        const taskNumber = (progress.completedTasks ? progress.completedTasks.length : 0) + i + index + 1;
-        
-        log(`\n🔄 任务 ${taskNumber}/${results.total}: ${project.name} + ${template.name_zh || template.name_en}`);
-        log(`📊 进度: ${((taskNumber / results.total) * 100).toFixed(1)}%`);
-        
-        try {
-          // 并行生成英文和中文内容 - 关键优化点
-          log('📝 并行生成英文和中文内容...');
-          const [englishResult, chineseResult] = await Promise.all([
-            generateTechnicalContent(project, template, 'en'),
-            generateTechnicalContent(project, template, 'zh')
-          ]);
-
-          // 短暂延迟
-          await new Promise(resolve => setTimeout(resolve, API_DELAY));
-
-          // 并行生成MDC内容
-          log('📝 并行生成MDC规范...');
-          const [mdcEnglish, mdcChinese] = await Promise.all([
-            generateMDCContent(project, template, 'en'),
-            generateMDCContent(project, template, 'zh')
-          ]);
-
-          // 保存到数据库
-          const stats = {
-            englishTokens: englishResult.tokens,
-            chineseTokens: chineseResult.tokens
-          };
-          
-          const savedVersion = await saveToDatabase(
-            project, 
-            template, 
-            englishResult.content, 
-            chineseResult.content, 
-            mdcEnglish, 
-            mdcChinese,
-            stats
-          );
-
-          log(`✅ 任务${taskNumber}完成! 版本ID: ${savedVersion.id || 'unknown'}`);
-          log(`📊 统计: 英文${englishResult.content.length}字符, 中文${chineseResult.content.length}字符`);
-          log(`💰 Tokens: ${stats.englishTokens + stats.chineseTokens}`);
-
-          return {
-            taskNumber,
-            taskId,
-            stats,
-            savedVersion,
-            success: true
-          };
-
-        } catch (error) {
-          log(`❌ 任务${taskNumber}失败: ${error.message}`);
-          return {
-            taskNumber,
-            taskId,
-            error: error.message,
-            success: false
-          };
-        }
-      });
-
-      const batchResults = await Promise.allSettled(batchPromises);
+      log(`\n🔄 任务 ${taskNumber}/${results.total}: ${project.name} + ${template.name_zh || template.name_en}`);
+      log(`📊 进度: ${((taskNumber / results.total) * 100).toFixed(1)}%`);
       
-      // 处理批次结果
-      for (const result of batchResults) {
-        if (result.status === 'fulfilled') {
-          const taskResult = result.value;
-          
-          if (taskResult.success) {
-            results.success++;
-            results.totalTokens += taskResult.stats.englishTokens + taskResult.stats.chineseTokens;
-            
-            if (!progress.completedTasks) {
-              progress.completedTasks = [];
-            }
-            progress.completedTasks.push(taskResult.taskId);
-          } else {
-            results.failed++;
-            results.errors.push({
-              task_number: taskResult.taskNumber,
-              error: taskResult.error
-            });
-          }
-        } else {
-          results.failed++;
+      try {
+        // 生成英文内容
+        log('📝 步骤1: 生成英文技术文档...');
+        const englishResult = await generateTechnicalContent(project, template, 'en');
+        await new Promise(resolve => setTimeout(resolve, API_DELAY));
+        
+        // 生成中文内容
+        log('📝 步骤2: 生成中文技术文档...');
+        const chineseResult = await generateTechnicalContent(project, template, 'zh');
+        await new Promise(resolve => setTimeout(resolve, API_DELAY));
+        
+        // 生成英文MDC内容
+        log('📝 步骤3: 生成英文MDC规范...');
+        const mdcEnglish = await generateMDCContent(project, template, 'en');
+        await new Promise(resolve => setTimeout(resolve, API_DELAY));
+        
+        // 生成中文MDC内容
+        log('📝 步骤4: 生成中文MDC规范...');
+        const mdcChinese = await generateMDCContent(project, template, 'zh');
+        await new Promise(resolve => setTimeout(resolve, API_DELAY));
+        
+        // 保存到数据库
+        log('📝 步骤5: 保存到数据库...');
+        const stats = {
+          englishTokens: englishResult.tokens,
+          chineseTokens: chineseResult.tokens
+        };
+        
+        const savedVersion = await saveToDatabase(
+          project, 
+          template, 
+          englishResult.content, 
+          chineseResult.content, 
+          mdcEnglish, 
+          mdcChinese,
+          stats
+        );
+
+        results.success++;
+        results.totalTokens += stats.englishTokens + stats.chineseTokens;
+        
+        if (!progress.completedTasks) {
+          progress.completedTasks = [];
         }
-      }
+        progress.completedTasks.push(taskId);
 
-      // 定期保存进度
-      if (batchNumber % SAVE_PROGRESS_INTERVAL === 0) {
-        saveProgress(progress);
-        log(`💾 进度已保存 (批次${batchNumber})`);
-      }
+        log(`✅ 任务${taskNumber}完成! 版本ID: ${savedVersion.id || 'unknown'}`);
+        log(`📊 统计: 英文${englishResult.content.length}字符, 中文${chineseResult.content.length}字符`);
+        log(`💰 Tokens: ${stats.englishTokens + stats.chineseTokens}`);
 
-      // 批次间短暂延迟
-      if (batchNumber < totalBatches) {
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // 定期保存进度
+        if (taskNumber % SAVE_PROGRESS_INTERVAL === 0) {
+          saveProgress(progress);
+          log(`💾 进度已保存 (${taskNumber}/${results.total})`);
+        }
+
+      } catch (error) {
+        log(`❌ 任务${taskNumber}失败: ${error.message}`);
+        results.failed++;
+        results.errors.push({
+          task_number: taskNumber,
+          project_name: project.name,
+          template_name: template.name_zh || template.name_en,
+          error: error.message
+        });
+        
+        // 失败后等待更长时间
+        await new Promise(resolve => setTimeout(resolve, API_DELAY * 2));
       }
     }
 
@@ -501,13 +458,13 @@ process.on('unhandledRejection', (reason, promise) => {
 // 优雅关闭
 process.on('SIGINT', () => {
   log('\n🛑 接收到中断信号，正在优雅关闭...');
-  log('📁 进度已保存到 batch-progress-optimized.json');
+  log('📁 进度已保存到 batch-progress.json');
   process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   log('\n🛑 接收到终止信号，正在优雅关闭...');
-  log('📁 进度已保存到 batch-progress-optimized.json');
+  log('📁 进度已保存到 batch-progress.json');
   process.exit(0);
 });
 

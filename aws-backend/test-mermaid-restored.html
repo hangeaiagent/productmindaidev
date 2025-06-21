@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="增强版模板生成器功能测试页面">
+    <meta name="keywords" content="AI产品,策略愿景,Mermaid,流程图,测试">
+    <meta name="generator" content="Enhanced Template Generator v2.0.0">
+    <title>AI产品策略与愿景测试文档</title>
+    
+    <!-- Mermaid CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        /* 现代化样式系统 */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --border-light: #e9ecef;
+            --shadow-main: 0 20px 40px rgba(0,0,0,0.1);
+            --radius-main: 15px;
+            --radius-small: 8px;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            margin: 0; padding: 20px; 
+            background: var(--primary-gradient); 
+            min-height: 100vh; 
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            background: var(--bg-white); 
+            border-radius: var(--radius-main); 
+            box-shadow: var(--shadow-main); 
+            overflow: hidden; 
+        }
+        
+        /* 头部样式 */
+        .header { 
+            background: var(--primary-gradient); 
+            color: white; 
+            padding: 40px; 
+            text-align: center; 
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 2.8em; 
+            font-weight: 600; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header p { 
+            margin: 10px 0 0 0; 
+            opacity: 0.9; 
+            font-size: 1.2em; 
+        }
+        
+        /* 内容样式 */
+        .content { 
+            padding: 40px; 
+            line-height: 1.7; 
+        }
+        .content h1, .content h2, .content h3 { 
+            border-bottom: 2px solid var(--border-light); 
+            padding-bottom: 10px; 
+            margin-top: 2em; 
+            color: var(--text-primary);
+        }
+        .content h1 { font-size: 2em; }
+        .content h2 { font-size: 1.6em; }
+        .content h3 { font-size: 1.3em; }
+        
+        .content p { margin: 1em 0; }
+        .content ul, .content ol { margin: 1em 0; padding-left: 2em; }
+        .content li { margin: 0.5em 0; }
+        
+        /* 代码样式 */
+        .content code { 
+            background-color: #eef1f4; 
+            padding: .2em .4em; 
+            margin: 0; 
+            font-size: 85%; 
+            border-radius: 3px; 
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+        .content pre { 
+            background-color: #2d2d2d; 
+            color: #f8f8f2; 
+            padding: 1.5em; 
+            border-radius: var(--radius-small); 
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+        .content pre code { 
+            background-color: transparent; 
+            padding: 0; 
+            color: inherit;
+        }
+        
+        /* Mermaid容器样式 */
+        .mermaid-container { 
+            background: var(--bg-light); 
+            border-radius: 10px; 
+            padding: 30px; 
+            margin: 30px 0; 
+            border: 1px solid var(--border-light); 
+            text-align: center;
+            position: relative;
+        }
+        .mermaid { 
+            text-align: center; 
+            min-height: 200px;
+        }
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-secondary); 
+            font-size: 1.1em;
+        }
+        .error { 
+            background: #ffebee; 
+            border: 1px solid #f44336; 
+            color: #c62828; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) { 
+            body { padding: 10px; }
+            .header h1 { font-size: 2.2em; } 
+            .content { padding: 20px; } 
+            .mermaid-container { padding: 15px; margin: 20px 0; } 
+        }
+        
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .header h1 { font-size: 1.8em; }
+            .header p { font-size: 1em; }
+            .content { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI产品策略与愿景测试文档</h1>
+            <p>增强版模板生成器功能测试页面</p>
+        </div>
+        <div class="content">
+            <h2>概述</h2>
+<p>本文档用于测试增强版模板生成器的功能，包括Mermaid流程图渲染、现代化样式系统等核心特性。</p>
+<h2>产品发展路线图</h2>
+<div class="mermaid-container">
+<div class="mermaid">
+flowchart TD
+    A[市场调研] --> B[需求分析]
+    B --> C[产品设计]
+    C --> D[技术选型]
+    D --> E[开发实施]
+    E --> F[测试验证]
+    F --> G[产品发布]
+    G --> H[用户反馈]
+    H --> I[迭代优化]
+    I --> B
+    
+    style A fill:#e1f5fe
+    style G fill:#e8f5e8
+    style I fill:#fff3e0
+</div>
+</div>
+<h2>核心功能特性</h2>
+<h3>1. 智能内容生成</h3>
+<ul>
+<li>基于AI的自动化内容创建</li>
+<li>多语言支持（中文/英文）</li>
+<li>智能语法检查和优化</li>
+</ul>
+<h3>2. 现代化界面设计</h3>
+<ul>
+<li>响应式布局设计</li>
+<li>CSS变量系统</li>
+<li>渐变色彩方案</li>
+</ul>
+<h3>3. Mermaid图表支持</h3>
+<ul>
+<li>流程图自动渲染</li>
+<li>语法错误自动修复</li>
+<li>多种图表类型支持</li>
+</ul>
+<h2>技术架构</h2>
+<div class="mermaid-container">
+<div class="mermaid">
+graph LR
+    A[前端界面] --> B[API网关]
+    B --> C[业务逻辑层]
+    C --> D[数据存储层]
+    D --> E[AI服务]
+    E --> F[内容生成]
+    F --> A
+</div>
+</div>
+<h2>用户体验流程</h2>
+<div class="mermaid-container">
+<div class="mermaid">
+journey
+    title 用户使用流程
+    section 登录
+      打开应用: 5: 用户
+      输入账号: 3: 用户
+      验证身份: 4: 系统
+    section 使用
+      选择模板: 5: 用户
+      填写信息: 4: 用户
+      生成内容: 5: 系统
+      预览结果: 5: 用户
+    section 完成
+      导出文件: 4: 用户
+      分享内容: 5: 用户
+</div>
+</div>
+<h2>总结</h2>
+<p>本测试文档验证了增强版生成器的以下功能：</p>
+<ul>
+<li>✅ Markdown内容解析</li>
+<li>✅ Mermaid流程图渲染</li>
+<li>✅ 现代化HTML生成</li>
+<li>✅ 多语言内容支持</li>
+</ul>
+<p>通过这些测试，确保了生成器能够正确处理复杂的内容结构和图表渲染需求。</p>
+        </div>
+    </div>
+    
+    <!-- 外部JavaScript处理器 -->
+    <script src="../../aws-backend/mermaid-handler.js"></script>
+    
+    <!-- 内联JavaScript处理器（备用方案） -->
+    <script>
+        // 初始化Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            themeVariables: {
+                primaryColor: '#667eea',
+                primaryTextColor: '#333',
+                primaryBorderColor: '#764ba2',
+                lineColor: '#666',
+                secondaryColor: '#f8f9fa',
+                tertiaryColor: '#e3f2fd'
+            }
+        });
+
+        // 页面加载完成后渲染流程图
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                console.log('🔄 开始渲染Mermaid图表...');
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                console.log('✅ Mermaid图表渲染完成');
+            } catch (error) {
+                console.error('❌ Mermaid渲染失败:', error);
+                // 显示错误信息
+                document.querySelectorAll('.mermaid').forEach(element => {
+                    element.innerHTML = '<div class="error">⚠️ 流程图渲染失败，请检查浏览器控制台</div>';
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

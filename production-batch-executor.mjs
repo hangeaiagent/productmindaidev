@@ -258,7 +258,7 @@ Microservices-based architecture design ensuring scalability and maintainability
 // 真实数据库保存函数
 async function saveToDatabase(project, template, englishContent, chineseContent, mdcEnglish, mdcChinese) {
   console.log(`💾 保存到数据库: ${project.name} + ${template.name_zh}`);
-  
+
   try {
     const versionId = `v${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -359,189 +359,189 @@ async function executeBatchProduction(options = {}) {
     const templates = await templatesResponse.json();
     console.log(`✅ 加载 ${templates.length} 个可用模板 (isshow=1)`);
 
-    // 生成任务列表
-    const tasks = [];
-    for (const project of projects) {
-      for (const template of templates) {
-        tasks.push({ project, template });
-      }
+  // 生成任务列表
+  const tasks = [];
+  for (const project of projects) {
+    for (const template of templates) {
+      tasks.push({ project, template });
     }
+  }
 
-    console.log(`📋 生成 ${tasks.length} 个生产任务\n`);
+  console.log(`📋 生成 ${tasks.length} 个生产任务\n`);
 
-    const results = {
-      total: tasks.length,
-      generated: 0,
-      skipped: 0,
-      failed: 0,
-      details: []
-    };
+  const results = {
+    total: tasks.length,
+    generated: 0,
+    skipped: 0,
+    failed: 0,
+    details: []
+  };
 
-    // 分批处理
-    for (let i = 0; i < tasks.length; i += batchSize) {
-      const batch = tasks.slice(i, i + batchSize);
-      const batchIndex = Math.floor(i / batchSize) + 1;
-      const totalBatches = Math.ceil(tasks.length / batchSize);
+  // 分批处理
+  for (let i = 0; i < tasks.length; i += batchSize) {
+    const batch = tasks.slice(i, i + batchSize);
+    const batchIndex = Math.floor(i / batchSize) + 1;
+    const totalBatches = Math.ceil(tasks.length / batchSize);
+    
+    console.log(`📦 处理批次 ${batchIndex}/${totalBatches} (${batch.length}个任务)`);
+
+    const batchPromises = batch.map(async (task, taskIndex) => {
+      const { project, template } = task;
+      const taskNumber = i + taskIndex + 1;
       
-      console.log(`📦 处理批次 ${batchIndex}/${totalBatches} (${batch.length}个任务)`);
+      try {
+        console.log(`\n🔄 任务${taskNumber}: ${project.name} + ${template.name_zh}`);
 
-      const batchPromises = batch.map(async (task, taskIndex) => {
-        const { project, template } = task;
-        const taskNumber = i + taskIndex + 1;
+        // 步骤1: 生成英文内容
+        console.log(`  📝 步骤1: 生成英文内容...`);
+        const englishRequest = {
+          prompt: template.prompt_content,
+          project: { name: project.name, description: project.description },
+          template: { name_zh: template.name_zh, name_en: template.name_en },
+          language: 'en'
+        };
         
-        try {
-          console.log(`\n🔄 任务${taskNumber}: ${project.name} + ${template.name_zh}`);
+        const englishResult = await generateWithDeepSeekReasoner(englishRequest);
+        if (englishResult.status !== 'success') {
+          throw new Error(`英文内容生成失败: ${englishResult.error}`);
+        }
 
-          // 步骤1: 生成英文内容
-          console.log(`  📝 步骤1: 生成英文内容...`);
-          const englishRequest = {
-            prompt: template.prompt_content,
+        // 步骤2: 翻译中文内容
+        console.log(`  📝 步骤2: 翻译中文内容...`);
+        const chineseRequest = {
+          prompt: `请将以下内容翻译成中文，保持原有的格式和结构：\n\n${englishResult.content}`,
+          project: { name: project.name, description: project.description },
+          template: { name_zh: template.name_zh, name_en: template.name_en },
+          language: 'zh'
+        };
+        
+        const chineseResult = await generateWithDeepSeekReasoner(chineseRequest);
+        const chineseContent = chineseResult.status === 'success' ? chineseResult.content : englishResult.content;
+
+        // 步骤3: 生成MDC内容
+        let mdcEnglish = '';
+        let mdcChinese = '';
+        
+        if (template.mdcprompt) {
+          console.log(`  📝 步骤3: 生成MDC开发规范...`);
+          const mdcRequest = {
+            prompt: template.mdcprompt,
             project: { name: project.name, description: project.description },
             template: { name_zh: template.name_zh, name_en: template.name_en },
             language: 'en'
           };
           
-          const englishResult = await generateWithDeepSeekReasoner(englishRequest);
-          if (englishResult.status !== 'success') {
-            throw new Error(`英文内容生成失败: ${englishResult.error}`);
-          }
-
-          // 步骤2: 翻译中文内容
-          console.log(`  📝 步骤2: 翻译中文内容...`);
-          const chineseRequest = {
-            prompt: `请将以下内容翻译成中文，保持原有的格式和结构：\n\n${englishResult.content}`,
-            project: { name: project.name, description: project.description },
-            template: { name_zh: template.name_zh, name_en: template.name_en },
-            language: 'zh'
-          };
-          
-          const chineseResult = await generateWithDeepSeekReasoner(chineseRequest);
-          const chineseContent = chineseResult.status === 'success' ? chineseResult.content : englishResult.content;
-
-          // 步骤3: 生成MDC内容
-          let mdcEnglish = '';
-          let mdcChinese = '';
-          
-          if (template.mdcprompt) {
-            console.log(`  📝 步骤3: 生成MDC开发规范...`);
-            const mdcRequest = {
-              prompt: template.mdcprompt,
+          const mdcResult = await generateWithDeepSeekReasoner(mdcRequest);
+          if (mdcResult.status === 'success') {
+            mdcEnglish = mdcResult.content;
+            
+            // 翻译MDC内容
+            const mdcChineseRequest = {
+              prompt: `请将以下内容翻译成中文：\n\n${mdcEnglish}`,
               project: { name: project.name, description: project.description },
               template: { name_zh: template.name_zh, name_en: template.name_en },
-              language: 'en'
+              language: 'zh'
             };
             
-            const mdcResult = await generateWithDeepSeekReasoner(mdcRequest);
-            if (mdcResult.status === 'success') {
-              mdcEnglish = mdcResult.content;
-              
-              // 翻译MDC内容
-              const mdcChineseRequest = {
-                prompt: `请将以下内容翻译成中文：\n\n${mdcEnglish}`,
-                project: { name: project.name, description: project.description },
-                template: { name_zh: template.name_zh, name_en: template.name_en },
-                language: 'zh'
-              };
-              
-              const mdcChineseResult = await generateWithDeepSeekReasoner(mdcChineseRequest);
-              mdcChinese = mdcChineseResult.status === 'success' ? mdcChineseResult.content : mdcEnglish;
-            }
+            const mdcChineseResult = await generateWithDeepSeekReasoner(mdcChineseRequest);
+            mdcChinese = mdcChineseResult.status === 'success' ? mdcChineseResult.content : mdcEnglish;
           }
-
-          // 步骤4: 保存到数据库
-          console.log(`  💾 步骤4: 保存到数据库...`);
-          const saveResult = await saveToDatabase(
-            project, 
-            template, 
-            englishResult.content, 
-            chineseContent, 
-            mdcEnglish, 
-            mdcChinese
-          );
-
-          console.log(`  ✅ 任务${taskNumber}完成! 版本ID: ${saveResult.id}`);
-
-          return {
-            task_number: taskNumber,
-            project_id: project.id,
-            project_name: project.name,
-            template_id: template.id,
-            template_name: template.name_zh,
-            status: 'generated',
-            version_id: saveResult.id,
-            content_stats: {
-              english_length: englishResult.content.length,
-              chinese_length: chineseContent.length,
-              mdc_english_length: mdcEnglish.length,
-              mdc_chinese_length: mdcChinese.length
-            },
-            ai_stats: {
-              model: englishResult.model,
-              total_tokens: englishResult.tokens + (chineseResult.tokens || 0),
-              reasoning_tokens: englishResult.reasoning_tokens + (chineseResult.reasoning_tokens || 0)
-            }
-          };
-
-        } catch (error) {
-          console.error(`  ❌ 任务${taskNumber}失败: ${error.message}`);
-          return {
-            task_number: taskNumber,
-            project_id: project.id,
-            project_name: project.name,
-            template_id: template.id,
-            template_name: template.name_zh,
-            status: 'failed',
-            error: error.message
-          };
         }
-      });
 
-      // 等待批次完成
-      const batchResults = await Promise.allSettled(batchPromises);
-      
-      // 处理批次结果
-      batchResults.forEach((result) => {
-        if (result.status === 'fulfilled') {
-          const taskResult = result.value;
-          results.details.push(taskResult);
-          
-          if (taskResult.status === 'generated') {
-            results.generated++;
-          } else {
-            results.failed++;
+        // 步骤4: 保存到数据库
+        console.log(`  💾 步骤4: 保存到数据库...`);
+        const saveResult = await saveToDatabase(
+          project, 
+          template, 
+          englishResult.content, 
+          chineseContent, 
+          mdcEnglish, 
+          mdcChinese
+        );
+
+        console.log(`  ✅ 任务${taskNumber}完成! 版本ID: ${saveResult.id}`);
+
+        return {
+          task_number: taskNumber,
+          project_id: project.id,
+          project_name: project.name,
+          template_id: template.id,
+          template_name: template.name_zh,
+          status: 'generated',
+          version_id: saveResult.id,
+          content_stats: {
+            english_length: englishResult.content.length,
+            chinese_length: chineseContent.length,
+            mdc_english_length: mdcEnglish.length,
+            mdc_chinese_length: mdcChinese.length
+          },
+          ai_stats: {
+            model: englishResult.model,
+            total_tokens: englishResult.tokens + (chineseResult.tokens || 0),
+            reasoning_tokens: englishResult.reasoning_tokens + (chineseResult.reasoning_tokens || 0)
           }
+        };
+
+      } catch (error) {
+        console.error(`  ❌ 任务${taskNumber}失败: ${error.message}`);
+        return {
+          task_number: taskNumber,
+          project_id: project.id,
+          project_name: project.name,
+          template_id: template.id,
+          template_name: template.name_zh,
+          status: 'failed',
+          error: error.message
+        };
+      }
+    });
+
+    // 等待批次完成
+    const batchResults = await Promise.allSettled(batchPromises);
+    
+    // 处理批次结果
+    batchResults.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        const taskResult = result.value;
+        results.details.push(taskResult);
+        
+        if (taskResult.status === 'generated') {
+          results.generated++;
         } else {
           results.failed++;
         }
-      });
-
-      console.log(`\n✅ 批次${batchIndex}完成`);
-      
-      // 批次间延迟
-      if (batchIndex < totalBatches) {
-        console.log(`⏸️ 批次间暂停2秒...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        results.failed++;
       }
-    }
+    });
 
-    const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+    console.log(`\n✅ 批次${batchIndex}完成`);
     
-    console.log('\n🏁 批量生产完成!');
-    console.log('═'.repeat(60));
-    console.log('📊 执行统计:');
-    console.log(`  总任务数: ${results.total}`);
-    console.log(`  成功生成: ${results.generated}`);
-    console.log(`  跳过: ${results.skipped}`);
-    console.log(`  失败: ${results.failed}`);
-    console.log(`  执行时间: ${totalTime}秒`);
-    console.log(`  成功率: ${((results.generated / results.total) * 100).toFixed(1)}%`);
+    // 批次间延迟
+    if (batchIndex < totalBatches) {
+      console.log(`⏸️ 批次间暂停2秒...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
 
-    return {
-      success: true,
-      stats: results,
-      execution_time: `${totalTime}s`,
-      timestamp: new Date().toISOString()
-    };
+  const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+  
+  console.log('\n🏁 批量生产完成!');
+  console.log('═'.repeat(60));
+  console.log('📊 执行统计:');
+  console.log(`  总任务数: ${results.total}`);
+  console.log(`  成功生成: ${results.generated}`);
+  console.log(`  跳过: ${results.skipped}`);
+  console.log(`  失败: ${results.failed}`);
+  console.log(`  执行时间: ${totalTime}秒`);
+  console.log(`  成功率: ${((results.generated / results.total) * 100).toFixed(1)}%`);
+
+  return {
+    success: true,
+    stats: results,
+    execution_time: `${totalTime}s`,
+    timestamp: new Date().toISOString()
+  };
 
   } catch (error) {
     console.error('❌ 批量生产执行失败:', error.message);

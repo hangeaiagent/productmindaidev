@@ -27,6 +27,9 @@ app.use(express.json());
 // 静态文件服务
 app.use('/static', express.static(path.join(__dirname, 'static-pages')));
 
+// 添加static-pages/pdhtml目录的静态文件服务
+app.use('/static-pages/pdhtml', express.static(path.join(__dirname, 'static-pages', 'pdhtml')));
+
 // 直接访问HTML文件 - 使用中间件处理
 app.use((req, res, next) => {
   if (req.path.endsWith('.html')) {
@@ -119,28 +122,71 @@ app.get('/', (req, res) => {
   `);
 });
 
-// 页面预览
-app.get('/preview/:projectId', async (req, res) => {
-  const projectId = req.params.projectId;
-  const filePath = path.join(__dirname, 'static-pages', `${projectId}.html`);
+// 页面预览 - 支持模板版本ID
+app.get('/preview/:templateId', async (req, res) => {
+  const templateId = req.params.templateId;
   
-  if (fs.existsSync(filePath)) {
-    res.sendFile(filePath);
-  } else {
-    res.status(404).send('Page not found');
+  // 首先尝试在pdhtml目录下查找
+  const pdhtmlDir = path.join(__dirname, 'static-pages', 'pdhtml');
+  if (fs.existsSync(pdhtmlDir)) {
+    // 遍历所有项目目录
+    const projectDirs = fs.readdirSync(pdhtmlDir);
+    for (const projectDir of projectDirs) {
+      const projectPath = path.join(pdhtmlDir, projectDir);
+      if (fs.statSync(projectPath).isDirectory()) {
+        const templateFile = path.join(projectPath, `${templateId}.html`);
+        if (fs.existsSync(templateFile)) {
+          return res.sendFile(templateFile);
+        }
+      }
+    }
   }
+  
+  // 回退到旧的静态页面目录
+  const oldFilePath = path.join(__dirname, 'static-pages', `${templateId}.html`);
+  if (fs.existsSync(oldFilePath)) {
+    return res.sendFile(oldFilePath);
+  }
+  
+  res.status(404).send(`
+    <html>
+      <head><title>页面未找到</title></head>
+      <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; text-align: center;">
+        <h1>❌ 页面未找到</h1>
+        <p>模板ID: ${templateId}</p>
+        <p><a href="/">← 返回首页</a></p>
+      </body>
+    </html>
+  `);
 });
 
 // 添加英文版本路由
-app.get('/preview/:projectId-en', async (req, res) => {
-  const projectId = req.params.projectId;
-  const filePath = path.join(__dirname, 'static-pages', `${projectId}-en.html`);
+app.get('/preview/:templateId-en', async (req, res) => {
+  const templateId = req.params.templateId;
   
-  if (fs.existsSync(filePath)) {
-    res.sendFile(filePath);
-  } else {
-    res.status(404).send('Page not found');
+  // 首先尝试在pdhtml目录下查找
+  const pdhtmlDir = path.join(__dirname, 'static-pages', 'pdhtml');
+  if (fs.existsSync(pdhtmlDir)) {
+    // 遍历所有项目目录
+    const projectDirs = fs.readdirSync(pdhtmlDir);
+    for (const projectDir of projectDirs) {
+      const projectPath = path.join(pdhtmlDir, projectDir);
+      if (fs.statSync(projectPath).isDirectory()) {
+        const templateFile = path.join(projectPath, `${templateId}en.html`);
+        if (fs.existsSync(templateFile)) {
+          return res.sendFile(templateFile);
+        }
+      }
+    }
   }
+  
+  // 回退到旧的静态页面目录
+  const oldFilePath = path.join(__dirname, 'static-pages', `${templateId}-en.html`);
+  if (fs.existsSync(oldFilePath)) {
+    return res.sendFile(oldFilePath);
+  }
+  
+  res.status(404).send('Page not found');
 });
 
 // 添加直接访问路由

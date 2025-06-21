@@ -253,7 +253,7 @@ ${cleanedCode}
  * 现代化HTML生成器
  */
 class ModernHtmlGenerator {
-  static generate(title, pageHeader, pageSubtitle, contentHtml, lang = 'zh') {
+  static generate(title, pageHeader, pageSubtitle, contentHtml, lang = 'zh', templateData = {}) {
     const siteName = lang === 'zh' ? 'ProductMind AI - 智能产品思维平台' : 'ProductMind AI - Intelligent Product Thinking Platform';
     const siteUrl = 'https://productmindai.com';
     const logoUrl = `${siteUrl}/logo.png`;
@@ -262,9 +262,50 @@ class ModernHtmlGenerator {
       'ProductMind AI,AI编程,模板生成,流程图,人工智能,静态页面,产品思维,智能工具' : 
       'ProductMind AI,AI programming,template generation,flowchart,artificial intelligence,static page,product thinking,intelligent tools';
     
-    const description = pageSubtitle || (lang === 'zh' ? 
+    const description = lang === 'zh' ? 
       'ProductMind AI提供专业的AI编程模板和智能工具，助力产品思维和技术创新。' : 
-      'ProductMind AI provides professional AI programming templates and intelligent tools for product thinking and technical innovation.');
+      'ProductMind AI provides professional AI programming templates and intelligent tools for product thinking and technical innovation.';
+
+    // 获取项目信息和其他模板列表
+    const projectInfo = templateData.projectInfo || { category: 'AI编程', subcategory: '产品开发' };
+    const otherTemplates = templateData.otherTemplates || [];
+    const currentTemplateId = templateData.currentTemplateId || '';
+    
+    // 面包屑导航 - 使用实际的项目分类
+    const breadcrumbHtml = `
+      <nav class="breadcrumb">
+        <a href="/ai-products">${lang === 'zh' ? '全部类别' : 'All Categories'}</a>
+        <span class="breadcrumb-separator">｜</span>
+        ${projectInfo.primary_code ? 
+          `<a href="/ai-products/${projectInfo.primary_code}">${lang === 'zh' ? projectInfo.category : projectInfo.category}</a>` :
+          `<span class="breadcrumb-current">${lang === 'zh' ? projectInfo.category : projectInfo.category}</span>`
+        }
+        <span class="breadcrumb-separator">｜</span>
+        ${projectInfo.secondary_code ? 
+          `<a href="/ai-products/${projectInfo.secondary_code}">${lang === 'zh' ? projectInfo.subcategory : projectInfo.subcategory}</a>` :
+          `<span class="breadcrumb-current">${lang === 'zh' ? projectInfo.subcategory : projectInfo.subcategory}</span>`
+        }
+      </nav>
+    `;
+
+    // 其他模板列表 - 显示同一项目下的其他模板
+    const otherCategoriesHtml = `
+      <div class="other-categories">
+        <h3>${lang === 'zh' ? '集成AI编程其他文档' : 'Other AI Programming Documents'}</h3>
+        <div class="category-grid">
+          ${otherTemplates.map(template => `
+            <a href="/preview/${template.id}" class="category-item">
+              <span class="category-name">${lang === 'zh' ? template.name_zh : (template.name_en || template.name_zh)}</span>
+            </a>
+          `).join('')}
+          ${otherTemplates.length === 0 ? `
+            <div class="more-templates">
+              <span class="more-text">${lang === 'zh' ? '暂无其他模板' : 'No other templates'}</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
       
     return `<!DOCTYPE html>
 <html lang="${lang}">
@@ -277,7 +318,7 @@ class ModernHtmlGenerator {
     <meta name="description" content="${description}">
     <meta name="keywords" content="${keywords}">
     <meta name="author" content="ProductMind AI">
-    <meta name="generator" content="Enhanced Template Generator v2.0.0">
+    <meta name="generator" content="Enhanced Template Generator v2.1.0">
     <meta name="robots" content="index,follow">
     <link rel="canonical" href="${siteUrl}">
     
@@ -323,56 +364,231 @@ class ModernHtmlGenerator {
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
     
     <style>
-        /* 现代化样式系统 */
+        /* 现代化样式系统 - 模仿ProductMind AI官网 */
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --text-primary: #333;
-            --text-secondary: #666;
+            --primary-color: #667eea;
+            --primary-hover: #5a67d8;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
             --bg-white: #ffffff;
-            --bg-light: #f8f9fa;
-            --border-light: #e9ecef;
-            --shadow-main: 0 20px 40px rgba(0,0,0,0.1);
-            --radius-main: 15px;
-            --radius-small: 8px;
+            --bg-light: #f9fafb;
+            --bg-gray: #f3f4f6;
+            --border-light: #e5e7eb;
+            --border-gray: #d1d5db;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
         }
         
         * { box-sizing: border-box; }
         
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
-            margin: 0; padding: 20px; 
-            background: var(--primary-gradient); 
-            min-height: 100vh; 
+            margin: 0; 
+            padding: 0;
+            background: var(--bg-light); 
             color: var(--text-primary);
             line-height: 1.6;
         }
         
-        .container { 
-            max-width: 1200px; 
-            margin: 20px auto; 
-            background: var(--bg-white); 
-            border-radius: var(--radius-main); 
-            box-shadow: var(--shadow-main); 
-            overflow: hidden; 
+        /* 网站导航样式 - 模仿ProductMind AI官网紫色渐变 */
+        .site-nav {
+            background: var(--primary-gradient);
+            border-bottom: none;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            height: 80px;
+            gap: 24px;
+        }
+        .nav-left {
+            display: flex;
+            justify-content: flex-start;
+        }
+        .nav-center {
+            display: flex;
+            justify-content: center;
+        }
+        .nav-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .site-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+        }
+        .site-logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: var(--radius-sm);
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+        }
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.2;
+        }
+        .nav-highlight {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .highlight-icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+        .highlight-text {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .lang-switch {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+        .lang-switch:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .lang-icon {
+            margin-right: 4px;
+            font-size: 0.9em;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-btn.secondary {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn.primary {
+            color: var(--primary-color);
+            background: white;
+            border: 1px solid white;
+        }
+        .nav-btn.primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-1px);
+        }
+        .btn-icon {
+            margin-right: 6px;
+            font-size: 0.9em;
         }
         
-        /* 头部样式 */
-        .header { 
+        /* 面包屑导航 */
+        .breadcrumb {
+            background: var(--bg-white);
+            border-bottom: 1px solid var(--border-light);
+            padding: 12px 0;
+        }
+        .breadcrumb-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        .breadcrumb a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: var(--text-muted);
+        }
+        .breadcrumb-current {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        /* 主容器 */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 32px;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        /* 页面头部 */
+        .page-header { 
             background: var(--primary-gradient); 
             color: white; 
-            padding: 40px; 
+            padding: 48px 40px; 
             text-align: center; 
         }
-        .header h1 { 
+        .page-header h1 { 
             margin: 0; 
-            font-size: 2.8em; 
-            font-weight: 600; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header p { 
-            margin: 10px 0 0 0; 
-            opacity: 0.9; 
-            font-size: 1.2em; 
+            font-size: 2.5rem; 
+            font-weight: 700; 
+            line-height: 1.2;
         }
         
         /* 内容样式 */
@@ -382,17 +598,76 @@ class ModernHtmlGenerator {
         }
         .content h1, .content h2, .content h3 { 
             border-bottom: 2px solid var(--border-light); 
-            padding-bottom: 10px; 
+            padding-bottom: 12px; 
             margin-top: 2em; 
             color: var(--text-primary);
         }
-        .content h1 { font-size: 2em; }
-        .content h2 { font-size: 1.6em; }
-        .content h3 { font-size: 1.3em; }
+        .content h1 { font-size: 2rem; font-weight: 700; }
+        .content h2 { font-size: 1.5rem; font-weight: 600; }
+        .content h3 { font-size: 1.25rem; font-weight: 600; }
         
         .content p { margin: 1em 0; }
         .content ul, .content ol { margin: 1em 0; padding-left: 2em; }
         .content li { margin: 0.5em 0; }
+        
+        /* 侧边栏 */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        /* 其他模板类型 */
+        .other-categories {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 24px;
+        }
+        .other-categories h3 {
+            margin: 0 0 16px 0;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .category-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .category-item {
+            display: block;
+            padding: 12px 16px;
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .category-item:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        .category-name {
+            font-size: 0.875rem;
+        }
+        .more-templates {
+            padding: 12px 16px;
+            background: var(--bg-gray);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 1px dashed var(--border-gray);
+            margin-top: 8px;
+        }
+        .more-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-style: italic;
+        }
         
         /* 代码样式 */
         .content code { 
@@ -409,7 +684,7 @@ class ModernHtmlGenerator {
             background-color: #f5f5f5; 
             color: #333; 
             padding: 1.5em; 
-            border-radius: var(--radius-small); 
+            border-radius: var(--radius-md); 
             border: 2px solid #333;
             overflow-x: auto;
             margin: 1.5em 0;
@@ -460,7 +735,7 @@ class ModernHtmlGenerator {
         /* Mermaid容器样式 */
         .mermaid-container { 
             background: var(--bg-light); 
-            border-radius: 10px; 
+            border-radius: var(--radius-md); 
             padding: 30px; 
             margin: 30px 0; 
             border: 1px solid var(--border-light); 
@@ -478,158 +753,109 @@ class ModernHtmlGenerator {
             font-size: 1.1em;
         }
         .error { 
-            background: #ffebee; 
-            border: 1px solid #f44336; 
-            color: #c62828; 
+            background: #fef2f2; 
+            border: 1px solid #fca5a5; 
+            color: #dc2626; 
             padding: 15px; 
-            border-radius: 5px; 
+            border-radius: var(--radius-md); 
             margin: 20px 0;
             text-align: left;
         }
         
-        /* 响应式设计 */
-        @media (max-width: 768px) { 
-            body { padding: 10px; }
-            .header h1 { font-size: 2.2em; } 
-            .content { padding: 20px; } 
-            .mermaid-container { padding: 15px; margin: 20px 0; } 
-        }
-        
-        @media (max-width: 480px) {
-            .header { padding: 20px; }
-            .header h1 { font-size: 1.8em; }
-            .header p { font-size: 1em; }
-            .content { padding: 15px; }
-        }
-        
-        /* 网站导航样式 */
-        .site-nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 10px 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-        }
-        .site-logo {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 1.2em;
-        }
-        .site-logo img {
-            width: 32px;
-            height: 32px;
-            margin-right: 10px;
-            border-radius: 6px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 20px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-secondary);
-            font-weight: 500;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-        .nav-links a:hover {
-            background: var(--bg-light);
-            color: var(--text-primary);
-        }
-        
-        /* 页脚样式 */
+        /* 页脚样式 - 简化版 */
         .site-footer {
-            background: #2c3e50;
+            background: var(--text-primary);
             color: white;
-            padding: 40px 20px 20px;
+            padding: 32px 0;
             text-align: center;
-            margin-top: 40px;
+            margin-top: 64px;
         }
         .footer-content {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 0 24px;
         }
         .footer-logo {
             display: inline-flex;
             align-items: center;
             text-decoration: none;
             color: white;
-            font-size: 1.3em;
+            font-size: 1.25rem;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         .footer-logo img {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             margin-right: 12px;
-            border-radius: 8px;
-        }
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        .footer-links a {
-            color: #bdc3c7;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-        .footer-links a:hover {
-            color: white;
+            border-radius: var(--radius-sm);
         }
         .copyright {
-            border-top: 1px solid #34495e;
-            padding-top: 20px;
-            margin-top: 20px;
-            color: #95a5a6;
-            font-size: 0.9em;
+            color: #9ca3af;
+            font-size: 0.875rem;
         }
         
-        /* 主内容区域调整 */
-        .main-content {
-            margin-top: 80px; /* 为固定导航留出空间 */
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .sidebar {
+                order: -1;
+            }
+            .nav-container {
+                grid-template-columns: 1fr auto;
+                gap: 16px;
+            }
+            .nav-center {
+                grid-column: 1 / -1;
+                margin-top: 8px;
+            }
+            .nav-right {
+                justify-content: flex-start;
+            }
         }
         
-        /* 移动端导航优化 */
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none; /* 简化移动端导航 */
+        @media (max-width: 768px) { 
+            .nav-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                padding: 16px;
             }
-            .site-logo {
-                font-size: 1.1em;
+            .nav-left, .nav-center, .nav-right {
+                justify-content: center;
             }
-            .site-logo img {
-                width: 28px;
-                height: 28px;
+            .nav-center {
+                margin: 8px 0;
             }
-            .main-content {
-                margin-top: 60px;
+            .nav-actions {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
             }
-            .footer-links {
+            .logo-subtitle {
+                display: none;
+            }
+            .site-logo { font-size: 1.125rem; }
+            .site-logo img { width: 32px; height: 32px; }
+            .main-container { padding: 16px; }
+            .page-header { padding: 32px 24px; }
+            .page-header h1 { font-size: 2rem; }
+            .content { padding: 24px; }
+            .other-categories { padding: 16px; }
+        }
+        
+        @media (max-width: 480px) {
+            .page-header h1 { font-size: 1.75rem; }
+            .content { padding: 16px; }
+            .nav-actions {
                 flex-direction: column;
-                gap: 15px;
+                gap: 6px;
+            }
+            .nav-btn, .lang-switch {
+                font-size: 0.8rem;
+                padding: 6px 12px;
             }
         }
     </style>
@@ -638,29 +864,68 @@ class ModernHtmlGenerator {
     <!-- 网站导航 -->
     <nav class="site-nav">
         <div class="nav-container">
-            <a href="${siteUrl}" class="site-logo">
-                <img src="${logoUrl}" alt="ProductMind AI Logo" onerror="this.style.display='none'">
-                <span>ProductMind AI</span>
-            </a>
-            <ul class="nav-links">
-                <li><a href="${siteUrl}">${lang === 'zh' ? '首页' : 'Home'}</a></li>
-                <li><a href="${siteUrl}/templates">${lang === 'zh' ? '模板库' : 'Templates'}</a></li>
-                <li><a href="${siteUrl}/tools">${lang === 'zh' ? '工具' : 'Tools'}</a></li>
-                <li><a href="${siteUrl}/about">${lang === 'zh' ? '关于' : 'About'}</a></li>
-            </ul>
+            <div class="nav-left">
+                <a href="${siteUrl}" class="site-logo">
+                    <img src="${logoUrl}" alt="ProductMind AI Logo" onerror="this.style.display='none'">
+                    <div class="logo-text">
+                        <span class="logo-title">ProductMind AI</span>
+                        <span class="logo-subtitle">${lang === 'zh' ? '发现并构建令人惊叹的AI解决方案' : 'Discover & Build Amazing AI Solutions'}</span>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="nav-center">
+                <div class="nav-highlight">
+                    <span class="highlight-icon">⚡</span>
+                    <span class="highlight-text">${lang === 'zh' ? 'AI产品中心' : 'AI Products Hub'}</span>
+                </div>
+            </div>
+            
+            <div class="nav-right">
+                <div class="nav-actions">
+                    <button class="lang-switch" onclick="toggleLanguage()">
+                        <span class="lang-icon">🌐</span>
+                        <span class="lang-text">${lang === 'zh' ? '中文' : 'EN'}</span>
+                    </button>
+                    <a href="${siteUrl}/my-products" class="nav-btn secondary">
+                        <span class="btn-icon">📁</span>
+                        <span class="btn-text">${lang === 'zh' ? '我的产品' : 'My Products'}</span>
+                    </a>
+                    <a href="${siteUrl}/login" class="nav-btn secondary">
+                        <span class="btn-icon">👤</span>
+                        <span class="btn-text">${lang === 'zh' ? '登录' : 'Login'}</span>
+                    </a>
+                    <a href="${siteUrl}/register" class="nav-btn primary">
+                        <span class="btn-icon">✨</span>
+                        <span class="btn-text">${lang === 'zh' ? '注册' : 'Register'}</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
     
-    <!-- 主内容 -->
-    <div class="main-content">
-        <div class="container">
-            <div class="header">
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-container">
+            ${breadcrumbHtml}
+        </div>
+    </div>
+    
+    <!-- 主内容容器 -->
+    <div class="main-container">
+        <!-- 主内容 -->
+        <div class="main-content">
+            <div class="page-header">
                 <h1>${pageHeader}</h1>
-                <p>${pageSubtitle}</p>
             </div>
             <div class="content">
                 ${contentHtml}
             </div>
+        </div>
+        
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            ${otherCategoriesHtml}
         </div>
     </div>
     
@@ -672,16 +937,8 @@ class ModernHtmlGenerator {
                 <span>ProductMind AI</span>
             </a>
             
-            <div class="footer-links">
-                <a href="${siteUrl}/privacy">${lang === 'zh' ? '隐私政策' : 'Privacy Policy'}</a>
-                <a href="${siteUrl}/terms">${lang === 'zh' ? '服务条款' : 'Terms of Service'}</a>
-                <a href="${siteUrl}/contact">${lang === 'zh' ? '联系我们' : 'Contact Us'}</a>
-                <a href="${siteUrl}/sitemap.xml">${lang === 'zh' ? '网站地图' : 'Sitemap'}</a>
-            </div>
-            
             <div class="copyright">
                 <p>&copy; ${new Date().getFullYear()} ProductMind AI. ${lang === 'zh' ? '保留所有权利。' : 'All rights reserved.'}</p>
-                <p>${lang === 'zh' ? '由 ProductMind AI 智能模板生成器强力驱动' : 'Powered by ProductMind AI Template Generator'}</p>
             </div>
         </div>
     </footer>
@@ -723,69 +980,57 @@ class ModernHtmlGenerator {
         });
         
         // 代码拷贝功能
-        function copyCode(codeId) {
-            const codeElement = document.getElementById(codeId);
+        function copyCode(elementId) {
+            const codeElement = document.getElementById(elementId);
             const button = codeElement.parentElement.querySelector('.copy-button');
             
-            if (!codeElement) {
-                console.error('代码元素未找到:', codeId);
-                return;
-            }
-            
-            // 获取纯文本内容
-            const codeText = codeElement.textContent || codeElement.innerText;
-            
-            // 使用现代API复制到剪贴板
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(codeText).then(() => {
-                    showCopySuccess(button);
+            if (codeElement) {
+                const text = codeElement.textContent;
+                navigator.clipboard.writeText(text).then(() => {
+                    button.classList.add('copied');
+                    button.textContent = '已复制';
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.textContent = '复制';
+                    }, 2000);
                 }).catch(err => {
                     console.error('复制失败:', err);
-                    fallbackCopyTextToClipboard(codeText, button);
+                    // 降级方案
+                    const textArea = document.createElement('textarea');
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    button.classList.add('copied');
+                    button.textContent = '已复制';
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        button.textContent = '复制';
+                    }, 2000);
                 });
-            } else {
-                // 降级方案
-                fallbackCopyTextToClipboard(codeText, button);
             }
         }
         
-        // 降级复制方案
-        function fallbackCopyTextToClipboard(text, button) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.top = '0';
-            textArea.style.left = '0';
-            textArea.style.position = 'fixed';
-            textArea.style.opacity = '0';
+        // 语言切换功能
+        function toggleLanguage() {
+            const currentLang = '${lang}';
+            const currentUrl = window.location.pathname;
             
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    showCopySuccess(button);
-                } else {
-                    console.error('复制命令执行失败');
+            if (currentLang === 'zh') {
+                // 切换到英文版
+                if (currentUrl.includes('.html') && !currentUrl.includes('-en.html')) {
+                    const enUrl = currentUrl.replace('.html', '-en.html');
+                    window.location.href = enUrl;
                 }
-            } catch (err) {
-                console.error('复制失败:', err);
+            } else {
+                // 切换到中文版
+                if (currentUrl.includes('-en.html')) {
+                    const zhUrl = currentUrl.replace('-en.html', '.html');
+                    window.location.href = zhUrl;
+                }
             }
-            
-            document.body.removeChild(textArea);
-        }
-        
-        // 显示复制成功状态
-        function showCopySuccess(button) {
-            const originalText = button.textContent;
-            button.textContent = '已复制';
-            button.classList.add('copied');
-            
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.classList.remove('copied');
-            }, 2000);
         }
     </script>
 </body>
@@ -820,10 +1065,10 @@ class EnhancedTemplateGenerator {
     
     // 检查输出目录
     try {
-      await fs.access('pdhtml');
+      await fs.access('../static-pages/pdhtml');
     } catch {
-      await fs.mkdir('pdhtml', { recursive: true });
-      console.log('✅ 创建输出目录: pdhtml/');
+      await fs.mkdir('../static-pages/pdhtml', { recursive: true });
+      console.log('✅ 创建输出目录: ../static-pages/pdhtml/');
     }
     
     // 检查外部JavaScript文件
@@ -853,6 +1098,7 @@ class EnhancedTemplateGenerator {
           name_zh,
           name_en,
           template_categories:category_id (
+            id,
             name_zh,
             name_en,
             isshow
@@ -1006,6 +1252,120 @@ class EnhancedTemplateGenerator {
   }
 
   /**
+   * 获取同一项目下的其他模板列表
+   */
+  async getProjectTemplates(projectId, currentTemplateId) {
+    try {
+      const { data, error } = await supabase
+        .from('template_versions')
+        .select(`
+          id,
+          templates!inner(
+            id,
+            name_zh,
+            name_en,
+            template_categories!inner(
+              id,
+              name_zh,
+              name_en,
+              isshow
+            )
+          )
+        `)
+        .eq('project_id', projectId)
+        .eq('templates.template_categories.isshow', 1)
+        .neq('id', currentTemplateId)
+        .not('output_content_zh', 'is', null)
+        .limit(10);
+      
+      if (error) {
+        console.error('获取项目模板列表失败:', error.message);
+        return [];
+      }
+      
+      console.log(`📋 获取到同项目下 ${data.length} 个其他模板`);
+      
+      return data.map(item => ({
+        id: item.id,
+        name_zh: item.templates.name_zh || '未知模板',
+        name_en: item.templates.name_en || 'Unknown Template',
+        template_id: item.templates.id
+      }));
+    } catch (error) {
+      console.error('获取项目模板列表异常:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 获取项目分类信息
+   */
+  async getProjectCategoryInfo(projectId) {
+    try {
+      // 1. 查询项目的分类代码
+      const { data: projectData, error: projectError } = await supabase
+        .from('user_projects')
+        .select('primary_category_code, secondary_category_code, name_zh, name_en')
+        .eq('id', projectId)
+        .single();
+      
+      if (projectError) {
+        console.error('获取项目分类代码失败:', projectError.message);
+        return { category: '未知分类', subcategory: '未知子分类' };
+      }
+      
+      console.log(`📋 项目信息: ${projectData.name_zh || projectData.name_en}`);
+      console.log(`📋 项目分类代码: primary=${projectData.primary_category_code}, secondary=${projectData.secondary_category_code}`);
+      
+      // 2. 查询主分类名称
+      let primaryCategoryName = '未知分类';
+      if (projectData.primary_category_code) {
+        const { data: primaryData, error: primaryError } = await supabase
+          .from('user_projectscategory')
+          .select('category_name, category_name_en')
+          .eq('category_code', projectData.primary_category_code)
+          .single();
+        
+        if (!primaryError && primaryData) {
+          primaryCategoryName = primaryData.category_name || primaryData.category_name_en || '未知分类';
+        } else {
+          console.log(`⚠️  主分类查询失败: ${primaryError?.message}`);
+        }
+      }
+      
+      // 3. 查询子分类名称
+      let secondaryCategoryName = '未知子分类';
+      if (projectData.secondary_category_code) {
+        const { data: secondaryData, error: secondaryError } = await supabase
+          .from('user_projectscategory')
+          .select('category_name, category_name_en')
+          .eq('category_code', projectData.secondary_category_code)
+          .single();
+        
+        if (!secondaryError && secondaryData) {
+          secondaryCategoryName = secondaryData.category_name || secondaryData.category_name_en || '未知子分类';
+        } else {
+          console.log(`⚠️  子分类查询失败: ${secondaryError?.message}`);
+        }
+      }
+      
+      console.log(`✅ 实际分类信息: ${primaryCategoryName} / ${secondaryCategoryName}`);
+      
+      return {
+        category: primaryCategoryName,
+        subcategory: secondaryCategoryName,
+        primary_code: projectData.primary_category_code,
+        secondary_code: projectData.secondary_category_code,
+        project_name: projectData.name_zh || projectData.name_en
+      };
+      
+    } catch (error) {
+      console.error('获取项目分类信息异常:', error.message);
+      return { category: '未知分类', subcategory: '未知子分类' };
+    }
+  }
+
+  /**
    * 处理单条记录
    */
   async processRecord(record) {
@@ -1019,13 +1379,11 @@ class EnhancedTemplateGenerator {
     
     // 分析中文内容
     const zhContent = this.extractContent(record.output_content_zh);
-    console.log(`   output_content_zh 原始数据:`, record.output_content_zh);
-    console.log(`   output_content_zh 提取内容: "${zhContent}" (长度: ${zhContent.length})`);
+    console.log(`   output_content_zh 提取内容: "${zhContent.substring(0, 100)}..." (长度: ${zhContent.length})`);
     
     // 分析英文内容
     const enContent = this.extractContent(record.output_content_en);
-    console.log(`   output_content_en 原始数据:`, record.output_content_en);
-    console.log(`   output_content_en 提取内容: "${enContent}" (长度: ${enContent.length})`);
+    console.log(`   output_content_en 提取内容: "${enContent.substring(0, 100)}..." (长度: ${enContent.length})`);
     
     // 检查内容质量
     if (!this.hasValidContent(record)) {
@@ -1037,18 +1395,30 @@ class EnhancedTemplateGenerator {
     
     try {
       // 创建输出目录
-      const outputDir = path.join('pdhtml', record.project_id);
+      const outputDir = path.join('../static-pages/pdhtml', record.project_id);
       await fs.mkdir(outputDir, { recursive: true });
+      
+      // 获取项目分类信息
+      const projectInfo = await this.getProjectCategoryInfo(record.project_id);
+      
+      // 获取同一项目下的其他模板
+      const otherTemplates = await this.getProjectTemplates(record.project_id, record.id);
+      console.log(`📋 获取到 ${otherTemplates.length} 个同项目模板`);
+      
+      // 构建模板数据
+      const templateData = {
+        projectInfo: projectInfo,
+        otherTemplates: otherTemplates,
+        currentTemplateId: record.id
+      };
       
       const generatedFiles = {};
       
       // 处理中文版本
-      const zhContent = this.extractContent(record.output_content_zh);
       if (zhContent) {
         const htmlContent = this.markdownParser.parse(zhContent);
         const title = record.templates.name_zh || '中文模板';
-        const subtitle = `版本ID: ${record.id}${record.category ? ` | 分类: ${record.category.name_zh}` : ''}`;
-        const html = ModernHtmlGenerator.generate(title, title, subtitle, htmlContent, 'zh');
+        const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'zh', templateData);
         
         const filePath = path.join(outputDir, `${record.id}.html`);
         await fs.writeFile(filePath, html);
@@ -1058,12 +1428,10 @@ class EnhancedTemplateGenerator {
       }
       
       // 处理英文版本
-      const enContent = this.extractContent(record.output_content_en);
       if (enContent) {
         const htmlContent = this.markdownParser.parse(enContent);
         const title = record.templates.name_en || 'English Template';
-        const subtitle = `Version ID: ${record.id}${record.category ? ` | Category: ${record.category.name_en}` : ''}`;
-        const html = ModernHtmlGenerator.generate(title, title, subtitle, htmlContent, 'en');
+        const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'en', templateData);
         
         const filePath = path.join(outputDir, `${record.id}en.html`);
         await fs.writeFile(filePath, html);

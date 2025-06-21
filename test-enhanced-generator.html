@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="版本ID: test-enhanced | 分类: AI编程">
+    <meta name="keywords" content="AI编程,模板生成,流程图,人工智能,静态页面">
+    <meta name="generator" content="Enhanced Template Generator v2.0.0">
+    <title>AI编程助手完整指南</title>
+    
+    <!-- Mermaid CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        /* 现代化样式系统 */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-primary: #333;
+            --text-secondary: #666;
+            --bg-white: #ffffff;
+            --bg-light: #f8f9fa;
+            --border-light: #e9ecef;
+            --shadow-main: 0 20px 40px rgba(0,0,0,0.1);
+            --radius-main: 15px;
+            --radius-small: 8px;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+            margin: 0; padding: 20px; 
+            background: var(--primary-gradient); 
+            min-height: 100vh; 
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container { 
+            max-width: 1200px; 
+            margin: 20px auto; 
+            background: var(--bg-white); 
+            border-radius: var(--radius-main); 
+            box-shadow: var(--shadow-main); 
+            overflow: hidden; 
+        }
+        
+        /* 头部样式 */
+        .header { 
+            background: var(--primary-gradient); 
+            color: white; 
+            padding: 40px; 
+            text-align: center; 
+        }
+        .header h1 { 
+            margin: 0; 
+            font-size: 2.8em; 
+            font-weight: 600; 
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header p { 
+            margin: 10px 0 0 0; 
+            opacity: 0.9; 
+            font-size: 1.2em; 
+        }
+        
+        /* 内容样式 */
+        .content { 
+            padding: 40px; 
+            line-height: 1.7; 
+        }
+        .content h1, .content h2, .content h3 { 
+            border-bottom: 2px solid var(--border-light); 
+            padding-bottom: 10px; 
+            margin-top: 2em; 
+            color: var(--text-primary);
+        }
+        .content h1 { font-size: 2em; }
+        .content h2 { font-size: 1.6em; }
+        .content h3 { font-size: 1.3em; }
+        
+        .content p { margin: 1em 0; }
+        .content ul, .content ol { margin: 1em 0; padding-left: 2em; }
+        .content li { margin: 0.5em 0; }
+        
+        /* 代码样式 */
+        .content code { 
+            background-color: #eef1f4; 
+            padding: .2em .4em; 
+            margin: 0; 
+            font-size: 85%; 
+            border-radius: 3px; 
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+        .content pre { 
+            background-color: #2d2d2d; 
+            color: #f8f8f2; 
+            padding: 1.5em; 
+            border-radius: var(--radius-small); 
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+        .content pre code { 
+            background-color: transparent; 
+            padding: 0; 
+            color: inherit;
+        }
+        
+        /* Mermaid容器样式 */
+        .mermaid-container { 
+            background: var(--bg-light); 
+            border-radius: 10px; 
+            padding: 30px; 
+            margin: 30px 0; 
+            border: 1px solid var(--border-light); 
+            text-align: center;
+            position: relative;
+        }
+        .mermaid { 
+            text-align: center; 
+            min-height: 200px;
+        }
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: var(--text-secondary); 
+            font-size: 1.1em;
+        }
+        .error { 
+            background: #ffebee; 
+            border: 1px solid #f44336; 
+            color: #c62828; 
+            padding: 15px; 
+            border-radius: 5px; 
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) { 
+            body { padding: 10px; }
+            .header h1 { font-size: 2.2em; } 
+            .content { padding: 20px; } 
+            .mermaid-container { padding: 15px; margin: 20px 0; } 
+        }
+        
+        @media (max-width: 480px) {
+            .header { padding: 20px; }
+            .header h1 { font-size: 1.8em; }
+            .header p { font-size: 1em; }
+            .content { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI编程助手完整指南</h1>
+            <p>版本ID: test-enhanced | 分类: AI编程</p>
+        </div>
+        <div class="content">
+            <h2>概述</h2>
+            <p>本指南介绍了如何使用AI编程助手来提高开发效率，包括代码生成、调试和优化等功能。</p>
+            
+            <h2>系统架构</h2>
+            <p>以下是AI编程助手的核心架构流程：</p>
+            
+            <div class="mermaid-container">
+                <div class="loading">
+                    <p>🔄 正在加载流程图...</p>
+                </div>
+                <div class="error" style="display: none;">
+                    <p>❌ 流程图加载失败，请刷新页面重试</p>
+                </div>
+                <div class="mermaid">
+flowchart TD
+    A[用户输入] --> B{代码类型判断}
+    B -->|Python| C[Python解析器]
+    B -->|JavaScript| D[JS解析器]
+    B -->|其他语言| E[通用解析器]
+    C --> F[语法分析]
+    D --> F
+    E --> F
+    F --> G[AI模型处理]
+    G --> H[代码生成]
+    H --> I[质量检查]
+    I --> J[输出结果]
+                </div>
+            </div>
+            
+            <h2>主要功能</h2>
+            
+            <h3>1. 智能代码生成</h3>
+            <ul>
+                <li>基于自然语言描述生成代码</li>
+                <li>支持多种编程语言</li>
+                <li>自动优化代码结构</li>
+            </ul>
+            
+            <h3>2. 代码调试助手</h3>
+            <ul>
+                <li>自动识别常见错误</li>
+                <li>提供修复建议</li>
+                <li>性能优化提示</li>
+            </ul>
+            
+            <h3>3. 文档生成</h3>
+            <ul>
+                <li>自动生成API文档</li>
+                <li>代码注释优化</li>
+                <li>README文件生成</li>
+            </ul>
+            
+            <h2>工作流程</h2>
+            
+            <div class="mermaid-container">
+                <div class="loading">
+                    <p>🔄 正在加载流程图...</p>
+                </div>
+                <div class="error" style="display: none;">
+                    <p>❌ 流程图加载失败，请刷新页面重试</p>
+                </div>
+                <div class="mermaid">
+graph LR
+    A[需求分析] --> B[代码生成]
+    B --> C[测试验证]
+    C --> D[优化改进]
+    D --> E[部署发布]
+    F[错误检测] --> G[自动修复]
+    G --> C
+                </div>
+            </div>
+            
+            <h2>使用示例</h2>
+            
+            <h3>Python代码生成</h3>
+            <pre><code class="hljs python">def fibonacci(n):
+    """生成斐波那契数列"""
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+# 使用示例
+for i in range(10):
+    print(f"F({i}) = {fibonacci(i)}")</code></pre>
+            
+            <h3>JavaScript异步处理</h3>
+            <pre><code class="hljs javascript">async function fetchUserData(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}`);
+        const userData = await response.json();
+        return userData;
+    } catch (error) {
+        console.error('获取用户数据失败:', error);
+        throw error;
+    }
+}</code></pre>
+            
+            <h2>最佳实践</h2>
+            <ol>
+                <li><strong>明确需求</strong>: 详细描述要实现的功能</li>
+                <li><strong>迭代优化</strong>: 根据反馈不断改进代码</li>
+                <li><strong>测试验证</strong>: 确保生成的代码质量</li>
+                <li><strong>文档维护</strong>: 保持代码和文档同步</li>
+            </ol>
+            
+            <h2>技术特点</h2>
+            <ul>
+                <li>✅ <strong>智能理解</strong>: 深度理解开发需求</li>
+                <li>✅ <strong>多语言支持</strong>: 支持主流编程语言</li>
+                <li>✅ <strong>实时反馈</strong>: 即时提供代码建议</li>
+                <li>✅ <strong>持续学习</strong>: 不断优化生成质量</li>
+            </ul>
+            
+            <h2>总结</h2>
+            <p>AI编程助手通过智能化的代码生成和优化功能，显著提升了开发效率。结合流程图展示的系统架构，开发者可以更好地理解和使用这些功能。</p>
+        </div>
+    </div>
+    
+    <!-- 外部JavaScript处理器 -->
+    <script src="aws-backend/mermaid-handler.js"></script>
+</body>
+</html> 

@@ -231,11 +231,11 @@ function generateTemplateGrid(categoriesWithTemplates, projectId) {
         </div>
         <p class="template-description">${(template.description || '暂无描述').substring(0, 120)}...</p>
         <div class="template-actions">
-            <button class="btn-download" onclick="downloadTemplate('${projectId}', '${template.id}')">
+            <button class="btn-view-details" onclick="viewTemplateDetails('${projectId}', '${template.version_id}')">
                 <svg viewBox="0 0 24 24">
-                    <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+                    <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z"/>
                 </svg>
-                下载模板
+                查看详情
             </button>
         </div>
     </div>
@@ -278,9 +278,13 @@ async function generateProjectPage(projectId, isDemo = false) {
         fs.mkdirSync(OUTPUT_DIR, { recursive: true });
       }
 
-      // 写入文件
-      const fileName = `${projectId}.html`;
-      const filePath = path.join(OUTPUT_DIR, fileName);
+      // 写入文件 - 新规则：/static-pages/pdhtml/<项目ID>/index.html
+      const projectDir = path.join(OUTPUT_DIR, 'pdhtml', projectId);
+      const fileName = 'index.html';
+      const filePath = path.join(projectDir, fileName);
+      
+      // 确保项目目录存在
+      fs.mkdirSync(projectDir, { recursive: true });
       fs.writeFileSync(filePath, htmlContent, 'utf8');
 
       const totalTemplates = categoriesWithTemplates.reduce((sum, cat) => sum + cat.templates.length, 0);
@@ -912,6 +916,30 @@ function getAIProductStyles() {
 
     .template-actions { display: flex; gap: 0.75rem; }
 
+    .btn-view-details {
+        flex: 1;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        padding: 0.875rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-view-details:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-view-details svg { width: 16px; height: 16px; fill: currentColor; }
+    
     .btn-download {
         flex: 1;
         background: var(--primary-gradient);
@@ -1031,6 +1059,20 @@ function getAIProductStyles() {
  */
 function getPageJavaScript() {
   return `
+    function viewTemplateDetails(projectId, templateVersionId) {
+        // 根据路径规则生成SEO页面链接：本地服务器上的模板详情页面
+        const url = 'http://localhost:3030/static-pages/pdhtml/' + projectId + '/' + templateVersionId + '.html';
+        window.open(url, '_blank');
+        
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'view_details', {
+                event_category: 'template',
+                event_label: templateVersionId,
+                event_value: 1
+            });
+        }
+    }
+
     function downloadTemplate(projectId, templateId) {
         const url = '/api/templates/download/' + templateId + '?project_id=' + projectId;
         window.open(url, '_blank');
@@ -1100,14 +1142,14 @@ module.exports = {
 
 // 如果直接运行此脚本，生成指定项目的页面
 if (require.main === module) {
-  const targetProjectId = '08b129eb-d758-461e-b550-2ba224a91aef';
+  const targetProjectId = process.argv[2] || 'b6bf6237-a8d2-4910-836f-6477604f0a2d';
   
   generateProjectPage(targetProjectId, false)
     .then((result) => {
       console.log(`🎉 成功生成项目页面: ${result.filePath}`);
       console.log(`📊 项目信息: ${result.project.name || '未命名'}`);
-      console.log(`📋 模板数量: ${result.templates.length}`);
-      console.log(`🏷️ 分类: ${result.categoryInfo?.category_name || '未分类'}`);
+      console.log(`📋 模板数量: ${result.categoriesWithTemplates.reduce((sum, cat) => sum + cat.templates.length, 0)}`);
+      console.log(`🏷️ 分类数量: ${result.categoriesWithTemplates.length}`);
     })
     .catch((error) => {
       console.error('❌ 生成失败:', error);

@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>样式修复测试项目 - 样式测试模板 - AI产品模板生成</title>
+    <meta name="description" content="测试表格、代码块和流程图的样式修复效果">
+    
+    <!-- 外部依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="keywords" content="AI产品,模板生成,产品分析,智能工具,样式测试模板">
+    <meta name="author" content="ProductMind AI">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="样式修复测试项目 - 样式测试模板 - AI产品模板生成">
+    <meta property="og:description" content="测试表格、代码块和流程图的样式修复效果">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://productmindai.com/og-image.jpg">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="样式修复测试项目 - 样式测试模板 - AI产品模板生成">
+    <meta name="twitter:description" content="测试表格、代码块和流程图的样式修复效果">
+    <meta name="twitter:image" content="https://productmindai.com/og-image.jpg">
+    
+    <style>
+        
+        /* 基础样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-brand h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        /* 头部样式 */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 15px;
+        }
+        
+        .separator {
+            margin: 0 8px;
+            color: #cbd5e0;
+        }
+        
+        .project-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .project-description {
+            font-size: 1.1rem;
+            color: #4a5568;
+            margin-bottom: 25px;
+            line-height: 1.7;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-item {
+            background: #f7fafc;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .meta-label {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .meta-value {
+            color: #4a5568;
+            margin-left: 5px;
+        }
+        
+        /* 主要内容样式 */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .content-body {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #4a5568;
+        }
+        
+        .content-body h1, .content-body h2, .content-body h3 {
+            color: #2d3748;
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+        }
+        
+        .content-body h1 { font-size: 1.8rem; }
+        .content-body h2 { font-size: 1.5rem; }
+        .content-body h3 { font-size: 1.2rem; }
+        
+        .content-body p {
+            margin-bottom: 15px;
+        }
+        
+        .content-body ul, .content-body ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        .content-body li {
+            margin-bottom: 8px;
+        }
+        
+        .content-body a {
+            color: #3182ce;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        
+        .content-body a:hover {
+            border-bottom-color: #3182ce;
+        }
+
+        /* 增强的表格样式 */
+        .enhanced-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .enhanced-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .enhanced-table th {
+            padding: 15px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-bottom: none;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .enhanced-table th:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .enhanced-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .enhanced-table tbody tr:hover {
+            background: #f7fafc;
+            transition: background-color 0.3s ease;
+        }
+
+        .enhanced-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 增强的代码块样式 - 灰色主题 */
+        .enhanced-code-block {
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #333333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            background: #f5f5f5;
+        }
+
+        .code-header {
+            background: #e8e8e8;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333333;
+        }
+
+        .code-lang {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #333333;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .lang-icon {
+            font-size: 1rem;
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .code-btn {
+            background: #d0d0d0;
+            color: #333333;
+            border: 1px solid #999999;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .code-btn:hover {
+            background: #c0c0c0;
+            border-color: #666666;
+            transform: translateY(-1px);
+        }
+
+        .code-content {
+            background: #f5f5f5;
+            color: #333333;
+            padding: 20px;
+            margin: 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-height: 400px;
+            transition: max-height 0.3s ease;
+            border: none;
+        }
+
+        .code-content.expanded {
+            max-height: none;
+        }
+
+        .code-content code {
+            background: none;
+            color: #333333;
+            padding: 0;
+            font-size: inherit;
+            font-weight: 500;
+        }
+
+        /* 行内代码样式调整 */
+        .inline-code {
+            background: #e8e8e8;
+            color: #333333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #cccccc;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        /* 流程图样式 */
+        .flow-diagram {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .diagram-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .diagram-header h4 {
+            color: #2d3748;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .diagram-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .diagram-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .flow-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            background: #f7fafc;
+            padding: 15px 20px;
+            border-radius: 10px;
+            flex: 1;
+            color: #4a5568;
+            font-size: 0.95rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-arrow {
+            position: absolute;
+            left: 19px;
+            bottom: -25px;
+            color: #667eea;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Mermaid图表样式 */
+        .mermaid-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .mermaid-diagram {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            background: transparent !important;
+        }
+
+        /* Toast通知样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #48bb78;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            background: #f56565;
+        }
+        
+        .inline-code {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        
+        /* 功能区域样式 */
+        .features-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .feature-card p {
+            color: #4a5568;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        /* 页脚样式 */
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer p {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .footer-links a {
+            color: #3182ce;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: #2c5282;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .nav-links {
+                justify-content: center;
+            }
+            
+            .project-title {
+                font-size: 2rem;
+            }
+            
+            .project-meta {
+                flex-direction: column;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .content-section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>🤖 ProductMind AI</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">首页</a>
+                <a href="/templates" class="nav-link">模板</a>
+                <a href="/projects" class="nav-link">项目</a>
+            </div>
+        </nav>
+
+        <!-- 头部信息 -->
+        <header class="header">
+            <div class="breadcrumb">
+                <span>项目</span> 
+                <span class="separator">></span> 
+                <span>样式修复测试项目</span>
+                <span class="separator">></span> 
+                <span>样式测试模板</span>
+            </div>
+            <h1 class="project-title">样式修复测试项目</h1>
+            <p class="project-description">测试表格、代码块和流程图的样式修复效果</p>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="meta-label">模板:</span>
+                    <span class="meta-value">样式测试模板</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">语言:</span>
+                    <span class="meta-value">中文</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">生成时间:</span>
+                    <span class="meta-value">6/20/2025</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <div class="content-section">
+                <h2 class="section-title">生成内容</h2>
+                <div class="content-body">
+                    <h1>样式测试页面</h1><br><br><h2>📊 表格展示测试</h2><br><br><table class="enhanced-table"><thead><tr><th>特征类型</th><th>计算逻辑</th><th>存储形式</th></tr></thead><tbody><tr><td>广告主价值等级</td><td>RFM模型：最近活动、生成量、平均单价</td><td>Elasticsearch Doc</td></tr><tr><td>创作者合规指数</td><td>版权协议完备性 × 素材侵权风险预测</td><td>MongoDB JSON</td></tr><tr><td>内容偏好向量</td><td>BERT多语言嵌入（sentence-transformers 2.2）</td><td>768维Float数组</td></tr></tbody></table><br><br><h2>💻 代码块展示测试</h2><br><br><br>      <div class="enhanced-code-block"><br>        <div class="code-header"><br>          <div class="code-lang"><br>            <span class="lang-icon">💻</span><br>            <span class="lang-text">JavaScript</span><br>          </div><br>          <div class="code-actions"><br>            <button class="code-btn" onclick="copyCode(this)" title="复制代码"><br>              <span class="btn-icon">📋</span><br>              <span class="btn-text">复制</span><br>            </button><br>            <button class="code-btn" onclick="toggleCodeExpand(this)" title="展开/收起"><br>              <span class="btn-icon">📖</span><br>              <span class="btn-text">展开</span><br>            </button><br>          </div><br>        </div><br>        <pre class="code-content" data-language="javascript"><code>// AI特征工程核心算法<br>class FeatureEngine {<br>constructor(config) {<br>this.config = config;<br>this.features = new Map();<br>}<br><br>async processUserBehavior(userData) {<br>const rfmScore = await this.calculateRFM(userData);<br>const complianceIndex = await this.assessCompliance(userData);<br><br>return {<br>rfmScore,<br>complianceIndex,<br>timestamp: Date.now()<br>};<br>}<br>}</code></pre><br>      </div><br>    <br><br><h2>🔄 流程图展示测试</h2><br><br><h3>简化流程图</h3><br><br><br>      <div class="flow-diagram"><br>        <div class="diagram-header"><br>          <h4>🔄 流程步骤</h4><br>        </div><br>        <div class="flow-steps"><br>          <br>        <div class="flow-step" data-step="1"><br>          <div class="step-number">1</div><br>          <div class="step-content">数据收集：从多个数据源收集用户行为数据</div><br>          <div class="step-arrow">↓</div><br>        </div><br>      <br>        <div class="flow-step" data-step="2"><br>          <div class="step-number">2</div><br>          <div class="step-content">特征提取：使用AI模型提取关键特征</div><br>          <div class="step-arrow">↓</div><br>        </div><br>      <br>        <div class="flow-step" data-step="3"><br>          <div class="step-number">3</div><br>          <div class="step-content">特征工程：对原始特征进行变换和组合</div><br>          <div class="step-arrow">↓</div><br>        </div><br>      <br>        <div class="flow-step" data-step="4"><br>          <div class="step-number">4</div><br>          <div class="step-content">模型训练：训练机器学习模型</div><br>          <div class="step-arrow">↓</div><br>        </div><br>      <br>        <div class="flow-step" data-step="5"><br>          <div class="step-number">5</div><br>          <div class="step-content">结果输出：生成最终的特征向量</div><br>          <br>        </div><br>      <br>        </div><br>      </div><br>    <br><br><h3>Mermaid流程图测试</h3><br><br>#### 基础流程图<br><br>      <div class="mermaid-container"><br>        <div class="diagram-header"><br>          <h4>📊 流程图</h4><br>          <button class="diagram-btn" onclick="toggleDiagram('mermaid-46vhdvp1t')">展开/收起</button><br>        </div><br>        <div id="mermaid-46vhdvp1t" class="mermaid-diagram"><br>          <div class="mermaid">flowchart TD A["数据采集"] --> B["特征提取"] B --> C["特征工程"] C --> D["模型训练"] D --> E["结果输出"] style A fill:#667eea,stroke:#333,stroke-width:2px,color:#fff style E fill:#48bb78,stroke:#333,stroke-width:2px,color:#fff</div><br>        </div><br>      </div><br>    <br><br>#### 复杂决策流程图<br><br>      <div class="mermaid-container"><br>        <div class="diagram-header"><br>          <h4>📊 流程图</h4><br>          <button class="diagram-btn" onclick="toggleDiagram('mermaid-hfzx7cvd9')">展开/收起</button><br>        </div><br>        <div id="mermaid-hfzx7cvd9" class="mermaid-diagram"><br>          <div class="mermaid">flowchart TD Start[开始] --> Input[输入数据] Input --> Validate{数据验证} Validate --> |通过| Process[数据处理] Validate --> |失败| Error[错误处理] Process --> AI["AI分析"] AI --> Decision{结果判断} Decision --> |满意| Output[输出结果] Decision --> |不满意| Retry[重新处理] Retry --> Process Output --> End[结束] Error --> End style Start fill:#e1f5fe style End fill:#f3e5f5 style Decision fill:#fff3e0 style Error fill:#ffebee</div><br>        </div><br>      </div><br>    <br><br>#### 系统架构图<br><br>      <div class="mermaid-container"><br>        <div class="diagram-header"><br>          <h4>📊 流程图</h4><br>          <button class="diagram-btn" onclick="toggleDiagram('mermaid-8h07b494a')">展开/收起</button><br>        </div><br>        <div id="mermaid-8h07b494a" class="mermaid-diagram"><br>          <div class="mermaid">flowchart LR User[用户] --> Frontend[前端应用] Frontend --> API["API网关"] API --> Auth[认证服务] API --> Business[业务逻辑] Business --> Database[(数据库)] Business --> Cache[(缓存)] Business --> AI["AI服务"]</div><br>        </div><br>      </div><br>    <br><br><h2>📝 行内代码测试</h2><br><br>这里有一些行内代码：<code class="inline-code">const result = await api.getData()</code>，还有 <code class="inline-code">SELECT * FROM users</code>。<br>
+                </div>
+            </div>
+            
+            
+            
+            <!-- 功能区域 -->
+            <div class="features-section">
+                <h2 class="section-title">功能特性</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>智能表格</h3>
+                        <p>美观的表格渲染，支持排序和筛选</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">💻</div>
+                        <h3>增强代码</h3>
+                        <p>语法高亮，支持复制和展开功能</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔄</div>
+                        <h3>流程图表</h3>
+                        <p>交互式流程图和过程图表</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>&copy; 2024 ProductMind AI. 版权所有。</p>
+            <div class="footer-links">
+                <a href="/privacy">隐私政策</a>
+                <a href="/terms">服务条款</a>
+                <a href="/contact">联系我们</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        
+        // 初始化Mermaid
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof mermaid !== 'undefined') {
+                try {
+                    mermaid.initialize({ 
+                        startOnLoad: false, // 改为手动控制
+                        theme: 'neutral',
+                        securityLevel: 'loose',
+                        logLevel: 'error', // 减少控制台日志
+                        flowchart: {
+                            useMaxWidth: true,
+                            htmlLabels: true,
+                            curve: 'basis'
+                        },
+                        themeVariables: {
+                            primaryColor: '#667eea',
+                            primaryTextColor: '#333333',
+                            primaryBorderColor: '#764ba2',
+                            lineColor: '#666666',
+                            sectionBkgColor: '#f9f9f9',
+                            altSectionBkgColor: '#ffffff',
+                            gridColor: '#e0e0e0'
+                        }
+                    });
+                    
+                    // 手动渲染所有mermaid图表
+                    setTimeout(() => {
+                        const mermaidElements = document.querySelectorAll('.mermaid');
+                        mermaidElements.forEach((element, index) => {
+                            try {
+                                if (element.getAttribute('data-processed') !== 'true') {
+                                    element.setAttribute('data-processed', 'true');
+                                    
+                                    // 获取图表内容并进行预处理
+                                    const graphDefinition = element.textContent.trim();
+                                    
+                                    // 验证基本语法
+                                    if (!graphDefinition || graphDefinition.length < 5) {
+                                        throw new Error('图表内容为空或过短');
+                                    }
+                                    
+                                    // 使用mermaid.render进行渲染
+                                    const elementId = 'mermaid-svg-' + index;
+                                    mermaid.render(elementId, graphDefinition)
+                                        .then(result => {
+                                            element.innerHTML = result.svg;
+                                        })
+                                        .catch(error => {
+                                            console.warn('Mermaid渲染失败:', error);
+                                            element.innerHTML = `
+                                                <div style="padding: 20px; background: #fff3cd; border: 2px solid #ffeaa7; border-radius: 8px; color: #856404; text-align: center;">
+                                                    <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ 流程图渲染失败</h4>
+                                                    <p style="margin: 0; font-size: 14px;">Mermaid语法错误，请检查图表定义</p>
+                                                    <details style="margin-top: 10px; text-align: left;">
+                                                        <summary style="cursor: pointer; color: #856404;">查看原始内容</summary>
+                                                        <pre style="background: #f8f9fa; padding: 10px; margin-top: 5px; border-radius: 4px; font-size: 12px; overflow-x: auto;">${graphDefinition}</pre>
+                                                    </details>
+                                                </div>
+                                            `;
+                                        });
+                                }
+                            } catch (error) {
+                                console.warn('Mermaid处理失败:', error);
+                                element.innerHTML = `
+                                    <div style="padding: 20px; background: #f8d7da; border: 2px solid #f5c6cb; border-radius: 8px; color: #721c24; text-align: center;">
+                                        <h4 style="margin: 0 0 10px 0; color: #721c24;">❌ 流程图无法显示</h4>
+                                        <p style="margin: 0; font-size: 14px;">图表处理过程中发生错误</p>
+                                    </div>
+                                `;
+                            }
+                        });
+                    }, 100);
+                } catch (error) {
+                    console.warn('Mermaid初始化失败:', error);
+                }
+            } else {
+                console.warn('Mermaid库未加载');
+            }
+        });
+
+        // 复制代码功能
+        function copyCode(button) {
+            const codeBlock = button.closest('.enhanced-code-block');
+            const code = codeBlock.querySelector('code');
+            const text = code.textContent;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('代码已复制到剪贴板！', 'success');
+                    
+                    // 更新按钮状态
+                    const btnText = button.querySelector('.btn-text');
+                    const originalText = btnText.textContent;
+                    btnText.textContent = '已复制!';
+                    button.style.background = '#48bb78';
+                    
+                    setTimeout(() => {
+                        btnText.textContent = originalText;
+                        button.style.background = '#4a5568';
+                    }, 2000);
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(text);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text);
+            }
+        }
+
+        // 降级复制方法
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.position = 'fixed';
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('代码已复制到剪贴板！', 'success');
+            } catch (err) {
+                showToast('复制失败', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // 展开/收起代码块
+        function toggleCodeExpand(button) {
+            const codeBlock = button.closest('.enhanced-code-block');
+            const codeContent = codeBlock.querySelector('.code-content');
+            const btnText = button.querySelector('.btn-text');
+            
+            if (codeContent.classList.contains('expanded')) {
+                codeContent.classList.remove('expanded');
+                btnText.textContent = '展开';
+            } else {
+                codeContent.classList.add('expanded');
+                btnText.textContent = '收起';
+            }
+        }
+
+        // 切换图表显示
+        function toggleDiagram(diagramId) {
+            const diagram = document.getElementById(diagramId);
+            if (diagram.style.display === 'none') {
+                diagram.style.display = 'block';
+            } else {
+                diagram.style.display = 'none';
+            }
+        }
+        
+        // 备用复制方法
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("代码已复制到剪贴板！", 'success');
+                button.textContent = "✅ 已复制";
+                setTimeout(() => {
+                    button.innerHTML = "📋 复制";
+                }, 2000);
+            } catch (err) {
+                showToast("复制失败", 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // Toast通知
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#4299e1'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                z-index: 1000;
+                opacity: 0;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            `;
+            
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            // 显示动画
+            setTimeout(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // 隐藏动画
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加加载动画
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+            
+            // 代码块语言标识
+            document.querySelectorAll('.code-block[data-language]').forEach(block => {
+                const language = block.getAttribute('data-language');
+                if (language && language !== 'text') {
+                    const label = document.createElement('span');
+                    label.className = 'code-language-label';
+                    label.textContent = language.toUpperCase();
+                    label.style.cssText = `
+                        position: absolute;
+                        top: 10px;
+                        left: 15px;
+                        background: rgba(255, 255, 255, 0.1);
+                        color: #e2e8f0;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                        font-size: 0.7rem;
+                        font-weight: 500;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    `;
+                    block.appendChild(label);
+                }
+            });
+        });
+    
+    </script>
+</body>
+</html>
