@@ -29,7 +29,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 配置
 const OUTPUT_DIR = './static-pages';
-const PUBLIC_BASE_URL = 'https://productmindai.com';
+const PUBLIC_BASE_URL = 'http://productmindai.com';
 
 /**
  * 获取项目的模板数据
@@ -340,7 +340,7 @@ function generateSEOTemplate(project, categoriesWithTemplates, categoryInfo) {
     "author": {
       "@type": "Organization",
       "name": "ProductMind AI",
-      "url": "https://productmindai.com"
+      "url": "http://productmindai.com"
     },
     "offers": {
       "@type": "Offer",
@@ -385,47 +385,195 @@ function generateSEOTemplate(project, categoriesWithTemplates, categoryInfo) {
     <!-- 样式 -->
     <style>
         ${getAIProductStyles()}
+        
+        /* 模仿模板详情页面的头部导航样式 */
+        .site-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-bottom: none;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            height: 80px;
+            gap: 24px;
+        }
+        .nav-left {
+            display: flex;
+            justify-content: flex-start;
+        }
+        .nav-center {
+            display: flex;
+            justify-content: center;
+        }
+        .nav-right {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .site-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+        }
+        .site-logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: 6px;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+        }
+        .logo-subtitle {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.2;
+        }
+        .nav-highlight {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .highlight-icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+        .highlight-text {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-btn.secondary {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .nav-btn.primary {
+            color: #667eea;
+            background: white;
+            border: 1px solid white;
+        }
+        .nav-btn.primary:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-1px);
+        }
+        .btn-icon {
+            margin-right: 6px;
+            font-size: 0.9em;
+        }
+        
+        /* 面包屑导航 */
+        .breadcrumb {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 0;
+        }
+        .breadcrumb-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb-separator {
+            margin: 0 8px;
+            color: #9ca3af;
+        }
+        .breadcrumb-current {
+            color: #1f2937;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
-    <div class="ai-container">
-        <!-- 导航栏 -->
-        <nav class="ai-nav">
-            <div class="nav-content">
-                <div class="logo">
-                    <svg class="logo-icon" viewBox="0 0 32 32">
-                        <defs>
-                            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#667eea"/>
-                                <stop offset="100%" style="stop-color:#764ba2"/>
-                            </linearGradient>
-                        </defs>
-                        <circle cx="16" cy="16" r="14" fill="url(#logoGradient)"/>
-                        <path d="M12 10h8v2h-8v-2zm0 4h8v2h-8v-2zm0 4h6v2h-6v-2z" fill="white"/>
-                    </svg>
-                    <span class="logo-text">ProductMind AI</span>
+    <!-- 网站导航 -->
+    <nav class="site-nav">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="${PUBLIC_BASE_URL}" class="site-logo">
+                    <img src="${PUBLIC_BASE_URL}/logo.png" alt="ProductMind AI Logo" onerror="this.style.display='none'">
+                    <div class="logo-text">
+                        <span class="logo-title">ProductMind AI</span>
+                        <span class="logo-subtitle">发现并构建令人惊叹的AI解决方案</span>
                 </div>
+                </a>
+            </div>
+            
+            <div class="nav-center">
+                <div class="nav-highlight">
+                    <span class="highlight-icon">⚡</span>
+                    <span class="highlight-text">AI产品中心</span>
+                </div>
+            </div>
+            
+            <div class="nav-right">
                 <div class="nav-actions">
-                    <a href="/" class="nav-link">首页</a>
-                    <a href="/projects" class="nav-link">项目库</a>
-                    <a href="/dashboard?projectId=${project.id}&isPublic=true" class="nav-link">控制台</a>
+                    <!-- 删除多余链接，只保留语言切换功能 -->
+                </div>
                 </div>
             </div>
         </nav>
 
         <!-- 面包屑导航 -->
-        <nav class="breadcrumb">
-            <div class="breadcrumb-content">
-                <a href="/">首页</a>
-                <span class="separator">›</span>
-                <a href="/projects">项目库</a>
-                <span class="separator">›</span>
-                <a href="/category/${project.primary_category_code}">${categoryName}</a>
-                <span class="separator">›</span>
-                <span class="current">${projectName}</span>
+    <div class="breadcrumb">
+        <div class="breadcrumb-container">
+            <a href="${PUBLIC_BASE_URL}">首页</a>
+            <span class="breadcrumb-separator">｜</span>
+            <a href="${PUBLIC_BASE_URL}/ai-products">AI产品中心</a>
+            <span class="breadcrumb-separator">｜</span>
+            <a href="${PUBLIC_BASE_URL}/ai-products/${project.primary_category_code || 'all'}">${categoryName}</a>
+            <span class="breadcrumb-separator">｜</span>
+            <span class="breadcrumb-current">${projectName}</span>
             </div>
-        </nav>
+    </div>
 
+    <div class="ai-container">
         <!-- 主要内容 -->
         <main class="main-content">
             <!-- 项目头部 -->
@@ -452,11 +600,11 @@ function generateSEOTemplate(project, categoriesWithTemplates, categoryInfo) {
                 
                 <!-- 快速操作 -->
                 <div class="quick-actions">
-                    <a href="/dashboard?projectId=${project.id}&isPublic=true" class="btn-primary">
+                    <a href="${PUBLIC_BASE_URL}/dashboard?projectId=${project.id}&isPublic=true" class="btn-primary">
                         <svg viewBox="0 0 24 24">
                             <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
                         </svg>
-                        查看详情
+                        重新生成
                     </a>
                 </div>
             </header>
@@ -510,14 +658,6 @@ function generateSEOTemplate(project, categoriesWithTemplates, categoryInfo) {
                     <div class="footer-section">
                         <h3>ProductMind AI</h3>
                         <p>智能产品管理平台，让产品管理更简单</p>
-                    </div>
-                    <div class="footer-section">
-                        <h4>产品</h4>
-                        <ul>
-                            <li><a href="/templates">模板库</a></li>
-                            <li><a href="/tools">AI工具</a></li>
-                            <li><a href="/pricing">价格方案</a></li>
-                        </ul>
                     </div>
                 </div>
                 <div class="footer-bottom">
