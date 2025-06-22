@@ -58,6 +58,7 @@ app.use((req, res, next) => {
 // 主页 - 显示可用的页面列表
 app.get('/', (req, res) => {
   const staticDir = path.join(__dirname, 'static-pages');
+  const pdhtmlDir = path.join(__dirname, 'static-pages', 'pdhtml');
   
   if (!fs.existsSync(staticDir)) {
     return res.send(`
@@ -66,57 +67,162 @@ app.get('/', (req, res) => {
         <body style="font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px;">
           <h1>SEO页面展示</h1>
           <p>❌ 静态页面目录不存在</p>
-          <p>请先运行 <code>node generate-seo-pages.cjs</code> 生成页面</p>
+          <p>请先运行 <code>node aws-backend/enhanced-template-generator.mjs</code> 生成页面</p>
         </body>
       </html>
     `);
   }
 
-  const files = fs.readdirSync(staticDir).filter(file => file.endsWith('.html'));
+  // 获取旧版本的页面文件
+  const oldFiles = fs.readdirSync(staticDir).filter(file => file.endsWith('.html'));
   
-  const fileList = files.map(file => {
+  // 获取新版本的模板详情页面
+  let templateFiles = [];
+  if (fs.existsSync(pdhtmlDir)) {
+    const projectDirs = fs.readdirSync(pdhtmlDir);
+    projectDirs.forEach(projectDir => {
+      const projectPath = path.join(pdhtmlDir, projectDir);
+      if (fs.statSync(projectPath).isDirectory()) {
+        const htmlFiles = fs.readdirSync(projectPath).filter(file => file.endsWith('.html'));
+        htmlFiles.forEach(file => {
+          const templateId = file.replace('.html', '').replace('en', '');
+          const isEnglish = file.includes('en.html');
+          templateFiles.push({
+            templateId,
+            filename: file,
+            projectId: projectDir,
+            language: isEnglish ? 'en' : 'zh',
+            fullPath: path.join('pdhtml', projectDir, file)
+          });
+        });
+      }
+    });
+  }
+
+  // 生成旧版本文件列表
+  const oldFileList = oldFiles.map(file => {
     const projectId = file.replace('.html', '');
-    return `<li><a href="/preview/${projectId}">${projectId}</a> | <a href="/${file}">直接访问</a></li>`;
+    return `<li><strong>旧版本:</strong> <a href="/preview/${projectId}">${projectId}</a> | <a href="/${file}">直接访问</a></li>`;
+  }).join('');
+
+  // 生成新版本模板详情页面列表
+  const templateFileList = templateFiles.map(template => {
+    const lang = template.language === 'en' ? '英文' : '中文';
+    const previewUrl = template.language === 'en' ? `/preview/${template.templateId}-en` : `/preview/${template.templateId}`;
+    return `<li><strong>模板详情 (${lang}):</strong> <a href="${previewUrl}">${template.templateId}</a> | 项目: ${template.projectId}</li>`;
   }).join('');
 
   res.send(`
     <html>
       <head>
-        <title>SEO页面展示</title>
+        <title>ProductMind AI - SEO页面展示中心</title>
         <style>
-          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-          h1 { color: #333; }
+          body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+          }
+          .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+          }
+          h1 { 
+            color: #333; 
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+          }
+          h2 { color: #555; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
           ul { list-style: none; padding: 0; }
-          li { margin: 10px 0; padding: 15px; background: #f5f5f5; border-radius: 8px; }
-          a { text-decoration: none; color: #667eea; font-weight: 500; margin-right: 10px; }
+          li { 
+            margin: 10px 0; 
+            padding: 15px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #667eea;
+          }
+          a { 
+            text-decoration: none; 
+            color: #667eea; 
+            font-weight: 500; 
+            margin-right: 15px; 
+          }
           a:hover { color: #764ba2; }
-          .stats { background: #e8f4fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
-          .demo-link { background: #667eea; color: white; padding: 12px 24px; border-radius: 6px; display: inline-block; margin: 20px 0; }
+          .stats { 
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0e8ff 100%); 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin: 20px 0; 
+            border: 1px solid #667eea;
+          }
+          .demo-link { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 8px; 
+            display: inline-block; 
+            margin: 10px 10px 10px 0; 
+            transition: transform 0.2s;
+          }
+          .demo-link:hover { transform: translateY(-2px); }
+          .section { margin: 30px 0; }
+          .highlight { background: #fff3cd; padding: 10px; border-radius: 6px; margin: 10px 0; }
         </style>
       </head>
       <body>
-        <h1>🎨 AI产品项目SEO页面展示</h1>
-        <div class="stats">
-          <strong>📊 统计信息：</strong><br>
-          已生成页面数量: ${files.length}<br>
-          服务器端口: ${PORT}
+        <div class="container">
+          <h1>🎨 ProductMind AI - SEO页面展示中心</h1>
+          
+          <div class="stats">
+            <strong>📊 统计信息：</strong><br>
+            模板详情页面: ${templateFiles.length} 个<br>
+            旧版本页面: ${oldFiles.length} 个<br>
+            服务器端口: ${PORT}<br>
+            <strong>版本:</strong> Enhanced Template Generator v2.0.0
+          </div>
+          
+          <div class="section">
+            <h2>🎯 最新模板详情页面 (重构版)</h2>
+            <div class="highlight">
+              ✨ 包含面包屑导航、侧边栏、完整SEO优化和品牌一致性设计
+            </div>
+            ${templateFiles.length > 0 ? `<ul>${templateFileList}</ul>` : '<p>暂无生成的模板详情页面，请运行 <code>node aws-backend/enhanced-template-generator.mjs</code></p>'}
+          </div>
+
+          <div class="section">
+            <h2>📋 旧版本页面</h2>
+            ${oldFiles.length > 0 ? `<ul>${oldFileList}</ul>` : '<p>暂无旧版本页面</p>'}
+          </div>
+          
+          <div class="section">
+            <h2>🚀 快速演示：</h2>
+            <a href="/preview/0077993c-1cfd-4175-892e-5dcfa12b09f2" class="demo-link">
+              📄 模板详情演示 (中文)
+            </a>
+            <a href="/preview/0077993c-1cfd-4175-892e-5dcfa12b09f2-en" class="demo-link">
+              📄 模板详情演示 (英文)
+            </a>
+            <a href="/preview/f738a8c4-dacc-49c5-b325-78df5b0d8dc7" class="demo-link">
+              🎬 Chat Video 项目
+            </a>
+          </div>
+          
+          <div class="section">
+            <h2>⚡ 开发工具：</h2>
+            <p><strong>生成模板详情页面:</strong> <code>node aws-backend/enhanced-template-generator.mjs</code></p>
+            <p><strong>生成单个页面:</strong> <code>node aws-backend/enhanced-template-generator.mjs --id [模板版本ID]</code></p>
+            <p><strong>API信息:</strong> <a href="/api/pages">GET /api/pages</a></p>
+            <p><strong>直接访问:</strong> <code>http://localhost:${PORT}/preview/[模板版本ID]</code></p>
+          </div>
         </div>
-        
-        <h2>📋 可用页面：</h2>
-        ${files.length > 0 ? `<ul>${fileList}</ul>` : '<p>暂无生成的页面</p>'}
-        
-        <h2>🚀 演示页面：</h2>
-        <a href="/arc-portrait-enhancement-demo.html" class="demo-link">
-          直接访问: ARC 人像修复演示页面
-        </a>
-        <a href="/preview/f738a8c4-dacc-49c5-b325-78df5b0d8dc7" class="demo-link">
-          预览: Chat Video 项目页面
-        </a>
-        
-        <h2>⚡ 快速操作：</h2>
-        <p>• 生成更多页面: <code>node generate-seo-pages-fixed.cjs</code></p>
-        <p>• 直接访问HTML: <code>http://localhost:${PORT}/[文件名].html</code></p>
-        <p>• 预览页面: <code>http://localhost:${PORT}/preview/[项目ID]</code></p>
       </body>
     </html>
   `);
