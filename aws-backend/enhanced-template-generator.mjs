@@ -288,16 +288,20 @@ class ModernHtmlGenerator {
       </nav>
     `;
 
-    // 其他模板列表 - 显示同一项目下的其他模板
+    // 其他模板列表 - 显示同一项目下的其他模板（使用相对路径）
     const otherCategoriesHtml = `
       <div class="other-categories">
         <h3>${lang === 'zh' ? '集成AI编程其他文档' : 'Other AI Programming Documents'}</h3>
         <div class="category-grid">
-          ${otherTemplates.map(template => `
-            <a href="/preview/${template.id}" class="category-item">
+          ${otherTemplates.map(template => {
+            // 生成相对路径链接 - 根据当前页面语言生成对应的文件名
+            const targetFileName = lang === 'zh' ? `${template.id}.html` : `${template.id}en.html`;
+            return `
+            <a href="./${targetFileName}" class="category-item">
               <span class="category-name">${lang === 'zh' ? template.name_zh : (template.name_en || template.name_zh)}</span>
             </a>
-          `).join('')}
+          `;
+          }).join('')}
           ${otherTemplates.length === 0 ? `
             <div class="more-templates">
               <span class="more-text">${lang === 'zh' ? '暂无其他模板' : 'No other templates'}</span>
@@ -583,12 +587,43 @@ class ModernHtmlGenerator {
             color: white; 
             padding: 48px 40px; 
             text-align: center; 
+            position: relative;
         }
         .page-header h1 { 
             margin: 0; 
             font-size: 2.5rem; 
             font-weight: 700; 
             line-height: 1.2;
+        }
+        
+        /* 返回按钮样式 */
+        .header-actions {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        .back-to-project-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .back-to-project-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .back-icon {
+            flex-shrink: 0;
         }
         
         /* 内容样式 */
@@ -842,6 +877,8 @@ class ModernHtmlGenerator {
             .main-container { padding: 16px; }
             .page-header { padding: 32px 24px; }
             .page-header h1 { font-size: 2rem; }
+            .header-actions { top: 12px; left: 12px; }
+            .back-to-project-btn { padding: 8px 12px; font-size: 0.8rem; }
             .content { padding: 24px; }
             .other-categories { padding: 16px; }
         }
@@ -916,6 +953,14 @@ class ModernHtmlGenerator {
         <!-- 主内容 -->
         <div class="main-content">
             <div class="page-header">
+                <div class="header-actions">
+                    <a href="./index.html" class="back-to-project-btn">
+                        <svg class="back-icon" viewBox="0 0 24 24" width="16" height="16">
+                            <path d="M19 12H5m7-7l-7 7 7 7" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                        <span>${lang === 'zh' ? '返回产品主页' : 'Back to Product'}</span>
+                    </a>
+                </div>
                 <h1>${pageHeader}</h1>
             </div>
             <div class="content">
@@ -1063,12 +1108,14 @@ class EnhancedTemplateGenerator {
       throw new Error('数据库连接失败');
     }
     
-    // 检查输出目录
+    // 检查输出目录是否存在（不创建目录）
     try {
-      await fs.access('../static-pages/pdhtml');
+      await fs.access('static-pages/pdhtml');
+      console.log('✅ 输出目录存在: static-pages/pdhtml/');
     } catch {
-      await fs.mkdir('../static-pages/pdhtml', { recursive: true });
-      console.log('✅ 创建输出目录: ../static-pages/pdhtml/');
+      console.log('⚠️  输出目录不存在: static-pages/pdhtml/');
+      console.log('📝 请手动创建目录或确保目录权限正确');
+      // 不抛出错误，继续执行，让processRecord处理具体的目录问题
     }
     
     // 检查外部JavaScript文件
@@ -1129,71 +1176,55 @@ class EnhancedTemplateGenerator {
   }
 
   /**
-   * 获取所有可见分类的记录（批量模式）
+   * 获取所有可见分类的记录（批量模式 - 优化查询）
    */
   async fetchVisibleRecords() {
-    console.log('🔍 获取所有可见分类的记录...');
+    console.log('🔍 获取所有可见分类的记录（优化查询）...');
     
+    // 简化查询：直接从template_versions表获取记录，然后过滤
     const { data, error } = await supabase
-      .from('template_categories')
+      .from('template_versions')
       .select(`
         id,
-        name_zh,
-        name_en,
-        isshow,
-        templates!inner (
-          id,
+        project_id,
+        output_content_zh,
+        output_content_en,
+        templates:template_id (
           name_zh,
           name_en,
-          template_versions!inner (
+          template_categories:category_id (
             id,
-            project_id,
-            output_content_zh,
-            output_content_en
+            name_zh,
+            name_en,
+            isshow
           )
         )
       `)
-      .eq('isshow', 1);
+      .not('output_content_zh', 'is', null)
+      .not('output_content_en', 'is', null)
+      .limit(500); // 限制数量避免超时
 
     if (error) {
       console.error('❌ 查询失败:', error.message);
       throw error;
     }
 
-    // 扁平化数据结构
-    const records = [];
+    // 过滤可见分类的记录
+    const visibleRecords = [];
     if (data && data.length > 0) {
-      data.forEach(category => {
-        if (category.templates && category.templates.length > 0) {
-          category.templates.forEach(template => {
-            if (template.template_versions && template.template_versions.length > 0) {
-              template.template_versions.forEach(version => {
-                records.push({
-                  id: version.id,
-                  project_id: version.project_id,
-                  output_content_zh: version.output_content_zh,
-                  output_content_en: version.output_content_en,
-                  templates: {
-                    name_zh: template.name_zh,
-                    name_en: template.name_en
-                  },
-                  category: {
-                    name_zh: category.name_zh,
-                    name_en: category.name_en
-                  }
-                });
-              });
-            }
-          });
+      data.forEach(record => {
+        const category = record.templates?.template_categories;
+        if (category && category.isshow === 1) {
+          visibleRecords.push(this.processRecordData(record));
         }
       });
     }
 
-    this.stats.total = records.length;
-    this.stats.visible = records.length;
+    this.stats.total = data ? data.length : 0;
+    this.stats.visible = visibleRecords.length;
     
-    console.log(`✅ 找到 ${records.length} 条可见分类的记录`);
-    return records;
+    console.log(`✅ 查询到 ${this.stats.total} 条记录，其中 ${visibleRecords.length} 条属于可见分类`);
+    return visibleRecords;
   }
 
   /**
@@ -1394,9 +1425,15 @@ class EnhancedTemplateGenerator {
     }
     
     try {
-      // 创建输出目录
-      const outputDir = path.join('../static-pages/pdhtml', record.project_id);
-      await fs.mkdir(outputDir, { recursive: true });
+      // 检查输出目录是否存在（不强制创建）
+      const outputDir = path.join('static-pages/pdhtml', record.project_id);
+      try {
+        await fs.access(outputDir);
+        console.log(`✅ 项目目录存在: ${outputDir}`);
+      } catch {
+        console.log(`⚠️  项目目录不存在: ${outputDir}`);
+        console.log(`📝 将尝试直接写入文件，如果失败请手动创建目录`);
+      }
       
       // 获取项目分类信息
       const projectInfo = await this.getProjectCategoryInfo(record.project_id);
@@ -1409,7 +1446,8 @@ class EnhancedTemplateGenerator {
       const templateData = {
         projectInfo: projectInfo,
         otherTemplates: otherTemplates,
-        currentTemplateId: record.id
+        currentTemplateId: record.id,
+        projectId: record.project_id
       };
       
       const generatedFiles = {};
@@ -1424,7 +1462,7 @@ class EnhancedTemplateGenerator {
         await fs.writeFile(filePath, html);
         generatedFiles.cnhtmlpath = path.relative(process.cwd(), filePath);
         
-        console.log(`✅ 中文页面: ${generatedFiles.cnhtmlpath}`);
+        console.log(`✅ 中文页面: ${generatedFiles.cnhtmlpath} (文件已覆盖)`);
       }
       
       // 处理英文版本
@@ -1437,7 +1475,7 @@ class EnhancedTemplateGenerator {
         await fs.writeFile(filePath, html);
         generatedFiles.enhtmlpath = path.relative(process.cwd(), filePath);
         
-        console.log(`✅ 英文页面: ${generatedFiles.enhtmlpath}`);
+        console.log(`✅ 英文页面: ${generatedFiles.enhtmlpath} (文件已覆盖)`);
       }
       
       if (Object.keys(generatedFiles).length > 0) {

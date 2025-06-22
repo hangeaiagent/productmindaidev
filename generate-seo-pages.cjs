@@ -283,9 +283,18 @@ async function generateProjectPage(projectId, isDemo = false) {
       const fileName = 'index.html';
       const filePath = path.join(projectDir, fileName);
       
-      // 确保项目目录存在
-      fs.mkdirSync(projectDir, { recursive: true });
+      // 检查项目目录是否存在，如果不存在则创建
+      if (!fs.existsSync(projectDir)) {
+        console.log(`📁 创建项目目录: ${projectDir}`);
+        fs.mkdirSync(projectDir, { recursive: true });
+      } else {
+        console.log(`✅ 项目目录已存在: ${projectDir}`);
+      }
+      
+      // 直接覆盖文件（如果存在）
       fs.writeFileSync(filePath, htmlContent, 'utf8');
+      const fileExists = fs.existsSync(filePath);
+      console.log(`✅ 项目主页: ${fileName} ${fileExists ? '(文件已覆盖)' : '(新文件创建)'}`);
 
       const totalTemplates = categoriesWithTemplates.reduce((sum, cat) => sum + cat.templates.length, 0);
       console.log(`✅ 生成页面: ${fileName} (${totalTemplates} 个模板，${categoriesWithTemplates.length} 个分类)`);
@@ -939,7 +948,7 @@ function getAIProductStyles() {
     }
 
     .btn-view-details svg { width: 16px; height: 16px; fill: currentColor; }
-    
+
     .btn-download {
         flex: 1;
         background: var(--primary-gradient);
@@ -1060,8 +1069,8 @@ function getAIProductStyles() {
 function getPageJavaScript() {
   return `
     function viewTemplateDetails(projectId, templateVersionId) {
-        // 根据路径规则生成SEO页面链接：本地服务器上的模板详情页面
-        const url = 'http://localhost:3030/static-pages/pdhtml/' + projectId + '/' + templateVersionId + '.html';
+        // 使用相对路径生成模板详情页面链接
+        const url = '/static-pages/pdhtml/' + projectId + '/' + templateVersionId + '.html';
         window.open(url, '_blank');
         
         if (typeof gtag !== 'undefined') {

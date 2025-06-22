@@ -564,7 +564,7 @@ const AIProductsPage: React.FC = () => {
                             <div>
                               <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
                             <button
-                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
+                              onClick={() => window.open(`/static-pages/pdhtml/${project.id}/index.html`, '_blank')}
                                   className="text-left hover:underline"
                             >
                               {project.name}
@@ -600,24 +600,9 @@ const AIProductsPage: React.FC = () => {
 
                           {/* Enhanced Action Buttons */}
                           <div className="flex items-center space-x-4">
+                            {/* try now 和 livePreview 按钮已隐藏 */}
                             <button
-                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
-                              className="flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            >
-                              <Play className="w-4 h-4 mr-2" />
-                              <span className="font-medium">{t.tryNow}</span>
-                            </button>
-
-                            <button
-                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
-                              className="flex items-center px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 shadow-lg hover:shadow-xl"
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              <span className="font-medium">{t.livePreview}</span>
-                            </button>
-
-                            <button
-                              onClick={() => window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank')}
+                              onClick={() => window.open(`/static-pages/pdhtml/${project.id}/index.html`, '_blank')}
                               className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl"
                             >
                               <Download className="w-4 h-4 mr-2" />
@@ -641,7 +626,7 @@ const AIProductsPage: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              window.open(`/dashboard?projectId=${project.id}&isPublic=true`, '_blank');
+                              window.open(`/static-pages/pdhtml/${project.id}/index.html`, '_blank');
                             }}
                             className="flex items-center px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-colors"
                           >

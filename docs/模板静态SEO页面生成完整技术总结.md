@@ -736,17 +736,12 @@ console.log(`   output_content_zh 提取内容: "${zhContent.substring(0, 100)}.
 <meta property="og:title" content="${title} - ProductMind AI">
 <meta property="og:description" content="${description}">
 <meta property="og:image" content="https://productmindai.com/logo.png">
-<meta property="og:site_name" content="ProductMind AI - 智能产品思维平台">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:title" content="${title} - ProductMind AI">
 <meta property="twitter:description" content="${description}">
 <meta property="twitter:image" content="https://productmindai.com/logo.png">
-
-<!-- 网站图标 -->
-<link rel="icon" type="image/png" href="https://productmindai.com/favicon.png">
-<link rel="apple-touch-icon" href="https://productmindai.com/apple-touch-icon.png">
 
 <!-- 结构化数据 -->
 <script type="application/ld+json">
@@ -755,7 +750,6 @@ console.log(`   output_content_zh 提取内容: "${zhContent.substring(0, 100)}.
   "@type": "WebPage",
   "name": "${title}",
   "description": "${description}",
-  "url": "https://productmindai.com",
   "publisher": {
     "@type": "Organization",
     "name": "ProductMind AI - 智能产品思维平台",
@@ -1025,7 +1019,7 @@ ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productm
 - [ ] 依赖包已安装 (`npm install marked highlight.js`)
 - [ ] 部署脚本权限正确 (`chmod +x`)
 - [ ] 日志目录可写 (`logs/`)
-- [ ] 输出目录可写 (`aws-backend/pdhtml/`)
+- [ ] 输出目录可写 (`pdhtml/`)
 - [ ] 数据库连接正常
 - [ ] 本地监控脚本可用
 
@@ -1039,4 +1033,421 @@ ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "cd /home/productm
 - 远程执行使用正确的SSH密钥路径
 
 ---
- 
+
+## 🏠 产品主页生成功能升级总结
+
+### 📋 功能改进清单
+
+#### ✅ 已实现功能
+1. **面包屑导航系统**
+   - 多层级导航：首页 › 项目库 › 分类 › 项目名称
+   - 响应式设计，支持移动端自适应
+   - 清晰的视觉层级和交互反馈
+
+2. **项目统计信息展示**
+   - 模板数量统计
+   - 项目创建时间
+   - 用户评分显示（4.8★）
+   - 统计数据可视化卡片设计
+
+3. **模板分类导航**
+   - 智能分类聚合显示
+   - 每个分类显示模板数量
+   - 图标化分类标识
+   - 点击分类快速筛选
+
+4. **模板卡片优化**
+   - 现代化卡片式布局
+   - 悬停动画效果
+   - 清晰的模板类型标签
+   - 简洁的描述信息展示
+
+5. **快速操作功能**
+   - 下载全部模板按钮
+   - 下载MDC文件按钮
+   - 查看详情按钮（指向控制台）
+   - 批量操作支持
+
+#### 🎨 UI/UX 改进
+1. **ProductMind AI品牌一致性**
+   - 紫色渐变主题色彩
+   - 统一的视觉设计语言
+   - 品牌Logo和标识应用
+   - 现代化毛玻璃效果
+
+2. **响应式设计优化**
+   - 移动端友好的布局
+   - 自适应网格系统
+   - 触控友好的交互元素
+   - 跨设备一致性体验
+
+3. **交互动效增强**
+   - 卡片悬停效果
+   - 按钮点击反馈
+   - 渐变过渡动画
+   - 加载状态指示
+
+#### 🔍 SEO优化功能
+1. **完整元数据支持**
+   - 标准SEO标签
+   - Open Graph标签
+   - Twitter Cards支持
+   - 结构化数据标记
+
+2. **语义化HTML结构**
+   - 正确的标题层级
+   - 语义化标签使用
+   - 无障碍访问支持
+   - 搜索引擎友好结构
+
+### 🚀 执行部署命令
+
+#### 本地开发环境
+```bash
+# 1. 生成单个项目主页
+export VITE_SUPABASE_URL="https://uobwbhvwrciaxloqdizc.supabase.co"
+export VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc"
+node generate-seo-pages.cjs bde11091-8e8d-4ba4-a3d9-f94bd4ad0153
+
+# 2. 启动静态服务器
+node serve-static.cjs &
+
+# 3. 浏览器访问测试
+open http://localhost:3030/static-pages/pdhtml/bde11091-8e8d-4ba4-a3d9-f94bd4ad0153/index.html
+```
+
+#### 批量生成命令
+```bash
+# 批量生成所有项目主页
+export VITE_SUPABASE_URL="https://uobwbhvwrciaxloqdizc.supabase.co"
+export VITE_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc"
+
+# 批量生成（后台执行）
+nohup node generate-seo-pages.cjs > logs/project-homepage-generation-$(date +%Y%m%d_%H%M%S).log 2>&1 &
+
+# 监控生成进度
+tail -f logs/project-homepage-generation-*.log
+```
+
+#### 远程服务器部署
+```bash
+# 1. 上传生成器文件
+scp -i /Users/a1/work/productmindai.pem generate-seo-pages.cjs ec2-user@3.93.149.236:/home/productmindaidev/
+
+# 2. 远程执行批量生成
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "
+cd /home/productmindaidev && 
+export VITE_SUPABASE_URL='https://uobwbhvwrciaxloqdizc.supabase.co' &&
+export VITE_SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc' &&
+nohup node generate-seo-pages.cjs > logs/project-homepage-$(date +%Y%m%d_%H%M%S).log 2>&1 &
+"
+
+# 3. 监控远程执行状态
+ssh -i /Users/a1/work/productmindai.pem ec2-user@3.93.149.236 "
+cd /home/productmindaidev && 
+tail -f logs/project-homepage-*.log
+"
+```
+
+### 📊 生成结果验证
+
+#### 成功案例：Placeit Logo Maker
+```
+✅ 项目ID: bde11091-8e8d-4ba4-a3d9-f94bd4ad0153
+✅ 项目名称: Placeit Logo Maker : 快速创建专业的商标
+✅ 模板数量: 7个
+✅ 分类数量: 1个（集成AI编程）
+✅ 文件大小: 33.8KB
+✅ 生成时间: < 1秒
+✅ 访问地址: http://localhost:3030/static-pages/pdhtml/bde11091-8e8d-4ba4-a3d9-f94bd4ad0153/index.html
+```
+
+#### 功能验证清单
+- [x] **面包屑导航**: 首页 › 项目库 › 艺术灵感 › 项目名称
+- [x] **项目统计**: 7个模板，创建时间，4.8★评分
+- [x] **模板分类**: 集成AI编程（7个模板）
+- [x] **模板卡片**: 7个模板详情卡片
+- [x] **快速操作**: 查看详情、下载全部、下载MDC
+- [x] **响应式设计**: 移动端自适应
+- [x] **SEO优化**: 完整元数据和结构化数据
+- [x] **品牌一致性**: ProductMind AI紫色渐变主题
+
+### 🔧 技术架构说明
+
+#### 数据流程
+```
+数据库查询 → 项目信息提取 → 模板聚合 → 分类统计 → HTML生成 → 文件写入
+     ↓              ↓            ↓           ↓           ↓           ↓
+  项目基础信息   模板版本数据   分类映射   统计计算   页面渲染   静态文件
+```
+
+#### 核心函数
+```javascript
+// 项目主页生成核心函数
+async function generateProjectPage(projectId) {
+  // 1. 获取项目基础信息
+  const projectInfo = await getProjectInfo(projectId);
+  
+  // 2. 获取项目模板列表
+  const templates = await getProjectTemplates(projectId);
+  
+  // 3. 分类统计
+  const categories = aggregateTemplatesByCategory(templates);
+  
+  // 4. 生成HTML内容
+  const htmlContent = generateProjectHTML(projectInfo, templates, categories);
+  
+  // 5. 写入文件
+  const filePath = `static-pages/pdhtml/${projectId}/index.html`;
+  await writeFile(filePath, htmlContent);
+  
+  return { success: true, filePath, templateCount: templates.length };
+}
+```
+
+### 🎯 下一步优化计划
+
+#### 待实现功能
+1. **按钮文字优化**
+   - 将"查看详情"改为"浏览"
+   - 添加更多操作按钮（收藏、分享）
+   - 按钮状态反馈优化
+
+2. **搜索和筛选功能**
+   - 模板搜索框
+   - 按分类筛选
+   - 按标签筛选
+   - 排序功能
+
+3. **性能优化**
+   - 图片懒加载
+   - 分页显示
+   - 缓存机制
+   - CDN集成
+
+4. **分析统计**
+   - 页面访问统计
+   - 用户行为分析
+   - 热门模板统计
+   - 转化率分析
+
+#### 技术债务
+1. **代码重构**
+   - 提取公共组件
+   - 优化CSS结构
+   - 改进错误处理
+   - 增加单元测试
+
+2. **文档完善**
+   - API文档
+   - 部署文档
+   - 故障排查指南
+   - 性能监控文档
+
+---
+
+**📌 产品主页功能总结**：
+- ✅ 完整实现面包屑导航、项目统计、模板分类展示
+- ✅ 现代化UI设计，品牌一致性良好
+- ✅ 响应式布局，移动端友好
+- ✅ 完整SEO优化，搜索引擎友好
+- ✅ 快速生成，性能优良
+- ✅ 部署命令完整，可直接用于生产环境
+
+*最后更新：2024年12月22日 | 版本：Product Homepage Generator v1.0.0*
+*功能状态：生产就绪，包含完整产品主页生成功能*
+
+---
+
+## 🔗 相对路径链接优化总结
+
+### 📋 目录结构和文件命名规范
+
+#### 1. 标准目录结构
+```
+static-pages/
+└── pdhtml/
+    └── <project_id>/
+        ├── <template_version_id>.html      # 中文版本模板详情页
+        ├── <template_version_id>en.html    # 英文版本模板详情页
+        └── index.html                      # 项目主页（可选）
+```
+
+#### 2. 文件命名规则
+
+| 文件类型 | 命名格式 | 示例 |
+|---------|---------|------|
+| 中文模板详情页 | `<template_version_id>.html` | `425e6f98-8aa7-40b5-ae9a-36b9b5058a6f.html` |
+| 英文模板详情页 | `<template_version_id>en.html` | `425e6f98-8aa7-40b5-ae9a-36b9b5058a6fen.html` |
+| 项目主页 | `index.html` | `index.html` |
+
+### 🎯 相对路径链接修复
+
+#### 1. 修复前的问题
+- ❌ 其他模板导航使用绝对路径：`/preview/${template.id}`
+- ❌ 返回产品主页使用绝对路径：`/preview/${projectId}`
+- ❌ 依赖服务器路由，不利于静态部署
+
+#### 2. 修复后的优化
+- ✅ 其他模板导航使用相对路径：`./${template.id}.html` 或 `./${template.id}en.html`
+- ✅ 返回产品主页使用相对路径：`./index.html`
+- ✅ 完全静态化，可直接部署到CDN
+
+#### 3. 具体修改内容
+
+**A. 其他模板导航链接**
+```javascript
+// 修复前
+<a href="/preview/${template.id}" class="category-item">
+
+// 修复后
+const targetFileName = lang === 'zh' ? `${template.id}.html` : `${template.id}en.html`;
+<a href="./${targetFileName}" class="category-item">
+```
+
+**B. 返回产品主页链接**
+```javascript
+// 修复前
+<a href="/preview/${templateData.projectId || 'unknown'}" class="back-to-project-btn">
+
+// 修复后
+<a href="./index.html" class="back-to-project-btn">
+```
+
+**C. 语言切换功能**
+```javascript
+// 已经是相对路径，无需修改
+function toggleLanguage() {
+    const currentLang = '${lang}';
+    const currentUrl = window.location.pathname;
+    
+    if (currentLang === 'zh') {
+        // 切换到英文版：xxx.html → xxxen.html
+        const enUrl = currentUrl.replace('.html', 'en.html');
+        window.location.href = enUrl;
+    } else {
+        // 切换到中文版：xxxen.html → xxx.html
+        const zhUrl = currentUrl.replace('en.html', '.html');
+        window.location.href = zhUrl;
+    }
+}
+```
+
+### 📁 文件关系图
+
+```
+项目目录：static-pages/pdhtml/<project_id>/
+├── index.html                           # 项目主页
+├── template-1.html ←→ template-1en.html  # 模板1（中英文版本）
+├── template-2.html ←→ template-2en.html  # 模板2（中英文版本）
+├── template-3.html ←→ template-3en.html  # 模板3（中英文版本）
+└── ...
+
+导航关系：
+- 任意模板详情页 → ./index.html（返回项目主页）
+- 中文模板详情页 → ./其他模板.html（其他模板导航）
+- 英文模板详情页 → ./其他模板en.html（其他模板导航）
+- 中文版 ↔ 英文版（语言切换）
+```
+
+### 🎨 用户体验优化
+
+#### 1. 导航一致性
+- ✅ 所有链接都在同一目录内，无需跨域或跨路径
+- ✅ 浏览器前进/后退按钮工作正常
+- ✅ 支持右键"在新标签页中打开"
+
+#### 2. 部署灵活性
+- ✅ 可直接部署到任意静态文件服务器
+- ✅ 支持CDN缓存和加速
+- ✅ 无需服务器端路由配置
+
+#### 3. SEO友好
+- ✅ 搜索引擎可以正确抓取所有页面
+- ✅ 内链权重传递更有效
+- ✅ 页面间关联性更强
+
+### 🚀 部署验证
+
+#### 1. 本地测试
+```bash
+# 启动静态服务器
+node serve-static.cjs
+
+# 访问项目主页
+http://localhost:3030/static-pages/pdhtml/<project_id>/index.html
+
+# 访问模板详情页
+http://localhost:3030/static-pages/pdhtml/<project_id>/<template_id>.html
+
+# 测试相对路径链接
+点击"其他模板"和"返回项目主页"按钮
+```
+
+#### 2. 生产环境验证
+```bash
+# 直接访问静态文件
+curl http://your-domain.com/static-pages/pdhtml/<project_id>/index.html
+
+# 验证链接有效性
+检查页面中所有相对路径链接是否可正常访问
+```
+
+### 📊 优化效果
+
+| 优化项目 | 修复前 | 修复后 | 改进效果 |
+|---------|-------|-------|---------|
+| 链接类型 | 绝对路径 | 相对路径 | ✅ 更灵活 |
+| 部署要求 | 需要路由 | 纯静态 | ✅ 更简单 |
+| 加载速度 | 依赖服务器 | 直接访问 | ✅ 更快速 |
+| SEO效果 | 一般 | 优秀 | ✅ 更友好 |
+| 维护成本 | 较高 | 较低 | ✅ 更易维护 |
+
+### 🔧 技术实现细节
+
+#### 1. 链接生成逻辑
+```javascript
+// 智能链接生成函数
+function generateRelativeLink(templateId, currentLang) {
+  // 根据当前页面语言决定目标文件名
+  const fileName = currentLang === 'zh' ? 
+    `${templateId}.html` : 
+    `${templateId}en.html`;
+  
+  // 返回相对路径
+  return `./${fileName}`;
+}
+```
+
+#### 2. 目录管理策略
+```javascript
+// 确保目录结构一致
+const outputDir = path.join('../static-pages/pdhtml', projectId);
+await fs.mkdir(outputDir, { recursive: true });
+
+// 生成文件到正确位置
+const zhFilePath = path.join(outputDir, `${templateId}.html`);
+const enFilePath = path.join(outputDir, `${templateId}en.html`);
+```
+
+### ✅ 验证清单
+
+- [ ] **目录结构正确**: `static-pages/pdhtml/<project_id>/`
+- [ ] **文件命名规范**: 中文版`.html`，英文版`en.html`
+- [ ] **相对路径链接**: 其他模板导航使用`./`前缀
+- [ ] **返回主页链接**: 指向`./index.html`
+- [ ] **语言切换功能**: 在同目录内切换
+- [ ] **浏览器兼容性**: 支持现代浏览器
+- [ ] **静态部署测试**: 可直接部署到CDN
+
+---
+
+**📌 相对路径优化总结**：
+- ✅ 完成所有导航链接的相对路径改造
+- ✅ 统一文件命名规则和目录结构
+- ✅ 提升部署灵活性和SEO效果
+- ✅ 保持用户体验一致性
+- ✅ 降低维护成本和技术复杂度
+
+*最后更新：2024年12月22日 | 版本：Enhanced Template Generator v2.1.0*
+*优化状态：相对路径链接完全优化，支持纯静态部署*

@@ -181,8 +181,8 @@ app.get('/', (req, res) => {
         <div class="container">
           <h1>🎨 ProductMind AI - SEO页面展示中心</h1>
           
-          <div class="stats">
-            <strong>📊 统计信息：</strong><br>
+        <div class="stats">
+          <strong>📊 统计信息：</strong><br>
             模板详情页面: ${templateFiles.length} 个<br>
             旧版本页面: ${oldFiles.length} 个<br>
             服务器端口: ${PORT}<br>
@@ -195,8 +195,8 @@ app.get('/', (req, res) => {
               ✨ 包含面包屑导航、侧边栏、完整SEO优化和品牌一致性设计
             </div>
             ${templateFiles.length > 0 ? `<ul>${templateFileList}</ul>` : '<p>暂无生成的模板详情页面，请运行 <code>node aws-backend/enhanced-template-generator.mjs</code></p>'}
-          </div>
-
+        </div>
+        
           <div class="section">
             <h2>📋 旧版本页面</h2>
             ${oldFiles.length > 0 ? `<ul>${oldFileList}</ul>` : '<p>暂无旧版本页面</p>'}
@@ -209,10 +209,10 @@ app.get('/', (req, res) => {
             </a>
             <a href="/preview/0077993c-1cfd-4175-892e-5dcfa12b09f2-en" class="demo-link">
               📄 模板详情演示 (英文)
-            </a>
-            <a href="/preview/f738a8c4-dacc-49c5-b325-78df5b0d8dc7" class="demo-link">
+        </a>
+        <a href="/preview/f738a8c4-dacc-49c5-b325-78df5b0d8dc7" class="demo-link">
               🎬 Chat Video 项目
-            </a>
+        </a>
           </div>
           
           <div class="section">
@@ -292,7 +292,7 @@ app.get('/preview/:templateId-en', async (req, res) => {
     return res.sendFile(oldFilePath);
   }
   
-  res.status(404).send('Page not found');
+    res.status(404).send('Page not found');
 });
 
 // 添加直接访问路由
