@@ -295,6 +295,7 @@ class ModernHtmlGenerator {
         <div class="category-grid">
           ${otherTemplates.map(template => {
             // 生成相对路径链接 - 根据当前页面语言生成对应的文件名
+            // 使用template_version_id作为文件名（template.id就是template_version_id）
             const targetFileName = lang === 'zh' ? `${template.id}.html` : `${template.id}en.html`;
             return `
             <a href="./${targetFileName}" class="category-item">

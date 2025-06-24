@@ -336,6 +336,7 @@ class TemplateGenerator {
       const htmlContentZh = this.markdownParser.parse(contentZh);
       const title = templates.name_zh || '中文模板';
       const html = HtmlGenerator.generate(title, title, `版本ID: ${id}`, htmlContentZh, 'zh');
+      // 使用template_version_id作为文件名（id就是template_version_id）
       const filePath = path.join(dirPath, `${id}.html`);
       await fs.writeFile(filePath, html);
       generatedFiles.cnhtmlpath = path.relative(process.cwd(), filePath);
@@ -348,6 +349,7 @@ class TemplateGenerator {
       const htmlContentEn = this.markdownParser.parse(contentEn);
       const title = templates.name_en || 'English Template';
       const html = HtmlGenerator.generate(title, title, `Version ID: ${id}`, htmlContentEn, 'en');
+      // 使用template_version_id作为文件名（id就是template_version_id）
       const filePath = path.join(dirPath, `${id}en.html`);
       await fs.writeFile(filePath, html);
       generatedFiles.enhtmlpath = path.relative(process.cwd(), filePath);

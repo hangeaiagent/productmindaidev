@@ -295,6 +295,7 @@ class ModernHtmlGenerator {
         <div class="category-grid">
           ${otherTemplates.map(template => {
             // 生成相对路径链接 - 根据当前页面语言生成对应的文件名
+            // 使用template_version_id作为文件名（template.id就是template_version_id）
             const targetFileName = lang === 'zh' ? `${template.id}.html` : `${template.id}en.html`;
             return `
             <a href="./${targetFileName}" class="category-item">
@@ -1446,6 +1447,7 @@ class EnhancedTemplateGenerator {
         const title = record.templates.name_zh || '中文模板';
         const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'zh', templateData);
         
+        // 使用template_version_id作为文件名（record.id就是template_version_id）
         const filePath = path.join(outputDir, `${record.id}.html`);
         await fs.writeFile(filePath, html);
         generatedFiles.cnhtmlpath = path.relative(process.cwd(), filePath);
@@ -1459,6 +1461,7 @@ class EnhancedTemplateGenerator {
         const title = record.templates.name_en || 'English Template';
         const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'en', templateData);
         
+        // 使用template_version_id作为文件名（record.id就是template_version_id）
         const filePath = path.join(outputDir, `${record.id}en.html`);
         await fs.writeFile(filePath, html);
         generatedFiles.enhtmlpath = path.relative(process.cwd(), filePath);

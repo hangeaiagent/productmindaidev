@@ -170,6 +170,7 @@ function testHtmlGeneration(data) {
   // 预览目录结构
   const outputDir = path.join(__dirname, '..', 'pdhtml');
   const projectDir = path.join(outputDir, data.project_id);
+  // 使用template_version_id作为文件名（data.id就是template_version_id）
   const zhFilePath = path.join(projectDir, `${data.id}.html`);
   const enFilePath = path.join(projectDir, `${data.id}en.html`);
   

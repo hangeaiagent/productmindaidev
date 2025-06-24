@@ -1289,7 +1289,7 @@ static-pages/
 - ❌ 依赖服务器路由，不利于静态部署
 
 #### 2. 修复后的优化
-- ✅ 其他模板导航使用相对路径：`./${template.id}.html` 或 `./${template.id}en.html`
+- ✅ 其他模板导航使用相对路径：`./<template_version_id>.html` 或 `./<template_version_id>en.html`
 - ✅ 返回产品主页使用相对路径：`./index.html`
 - ✅ 完全静态化，可直接部署到CDN
 
@@ -1301,7 +1301,7 @@ static-pages/
 <a href="/preview/${template.id}" class="category-item">
 
 // 修复后
-const targetFileName = lang === 'zh' ? `${template.id}.html` : `${template.id}en.html`;
+const targetFileName = lang === 'zh' ? `${template_version_id}.html` : `${template_version_id}en.html`;
 <a href="./${targetFileName}" class="category-item">
 ```
 
@@ -1337,16 +1337,16 @@ function toggleLanguage() {
 
 ```
 项目目录：static-pages/pdhtml/<project_id>/
-├── index.html                           # 项目主页
-├── template-1.html ←→ template-1en.html  # 模板1（中英文版本）
-├── template-2.html ←→ template-2en.html  # 模板2（中英文版本）
-├── template-3.html ←→ template-3en.html  # 模板3（中英文版本）
+├── index.html                                                    # 项目主页
+├── <template_version_id>.html ←→ <template_version_id>en.html     # 模板1（中英文版本）
+├── <template_version_id>.html ←→ <template_version_id>en.html     # 模板2（中英文版本）
+├── <template_version_id>.html ←→ <template_version_id>en.html     # 模板3（中英文版本）
 └── ...
 
 导航关系：
 - 任意模板详情页 → ./index.html（返回项目主页）
-- 中文模板详情页 → ./其他模板.html（其他模板导航）
-- 英文模板详情页 → ./其他模板en.html（其他模板导航）
+- 中文模板详情页 → ./<template_version_id>.html（其他模板导航）
+- 英文模板详情页 → ./<template_version_id>en.html（其他模板导航）
 - 中文版 ↔ 英文版（语言切换）
 ```
 
@@ -1378,7 +1378,7 @@ node serve-static.cjs
 http://localhost:3030/static-pages/pdhtml/<project_id>/index.html
 
 # 访问模板详情页
-http://localhost:3030/static-pages/pdhtml/<project_id>/<template_id>.html
+http://localhost:3030/static-pages/pdhtml/<project_id>/<template_version_id>.html
 
 # 测试相对路径链接
 点击"其他模板"和"返回项目主页"按钮
