@@ -164,6 +164,9 @@ export async function generateStream(
       switch (response.status) {
         case 401:
           throw new APIError('API密钥无效或已过期', 'AUTH_ERROR');
+        case 402:
+          // 余额不足错误，转换为用户友好的提示
+          throw new APIError('系统大模型能力异常，请联系客服邮件 402493977@qq.com 解决！', 'BALANCE_ERROR');
         case 403:
           throw new APIError('没有访问权限', 'AUTH_ERROR');
         case 429:
@@ -174,6 +177,10 @@ export async function generateStream(
         case 504:
           throw new APIError('AI服务暂时不可用，请稍后再试', 'SERVICE_ERROR');
         default:
+          // 检查错误信息是否包含余额不足相关内容
+          if (errorText && (errorText.includes('Insufficient Balance') || errorText.includes('insufficient_quota'))) {
+            throw new APIError('系统大模型能力异常，请联系客服邮件 402493977@qq.com 解决！', 'BALANCE_ERROR');
+          }
           throw new APIError(`API请求失败: ${response.status} ${errorText}`, 'UNKNOWN_ERROR');
       }
     }

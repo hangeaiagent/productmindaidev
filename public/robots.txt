@@ -1,0 +1,83 @@
+# ProductMind AI - Robots.txt (Bilingual Support)
+# 更新时间 / Updated: 2025-06-22
+# 中英文双语网站爬虫配置 / Bilingual Website Crawler Configuration
+
+User-agent: *
+Allow: /
+
+# 中文页面 / Chinese Pages
+Allow: /
+Allow: /ai-products
+Allow: /dashboard
+Allow: /static-pages/
+
+# 英文页面 / English Pages  
+Allow: /en/
+Allow: /en/ai-products
+Allow: /en/dashboard
+
+# 静态资源 / Static Resources
+Allow: /assets/
+Allow: /images/
+Allow: /public/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+Allow: /*.webp
+
+# 禁止访问的目录 / Disallowed Directories
+Disallow: /admin/
+Disallow: /.netlify/
+Disallow: /api/
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /logs/
+Disallow: /.git/
+Disallow: /*.log
+Disallow: /*?*
+Disallow: /private/
+Disallow: /temp/
+Disallow: /backup/
+
+# 搜索引擎特定规则 / Search Engine Specific Rules
+User-agent: Googlebot
+Crawl-delay: 1
+Allow: /
+
+User-agent: Bingbot  
+Crawl-delay: 2
+Allow: /
+
+User-agent: Baiduspider
+Crawl-delay: 3
+Allow: /
+
+User-agent: YandexBot
+Crawl-delay: 2
+Allow: /
+
+# 禁止不良爬虫 / Block Bad Bots
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# 站点地图 / Sitemaps
+Sitemap: https://productmindai.com/sitemap.xml
+Sitemap: https://productmindai.com/sitemap-zh.xml
+Sitemap: https://productmindai.com/sitemap-en.xml
+Sitemap: https://productmindai.com/sitemap-images.xml
+Sitemap: https://productmindai.com/sitemap-static.xml
+
+# 缓存友好设置 / Cache-Friendly Settings
+# 建议爬取频率: 每日一次主要页面，每周一次静态页面
+# Recommended crawl frequency: Daily for main pages, weekly for static pages

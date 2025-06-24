@@ -1,0 +1,110 @@
+📝 日志文件: logs/sitemap-generation-20250624_115914.log
+
+1️⃣ 环境检查...
+✅ Node.js版本: v20.18.2
+✅ 环境变量文件存在
+✅ SSH密钥文件存在
+
+2️⃣ 生成完整sitemap体系...
+🚀 开始生成完整的sitemap体系...
+=====================================
+📅 生成时间: 6/24/2025, 11:59:16 AM
+🌐 网站地址: https://productmindai.com
+
+📊 从数据库获取项目数据...
+✅ 获取到 425 个项目
+✅ 获取到 489 个静态页面
+🏠 生成基础页面URL...
+✅ 生成了 10 个基础页面URL
+🔍 生成产品页面URL...
+✅ 生成了 850 个产品页面URL
+📄 生成静态SEO页面URL...
+✅ 生成了 489 个静态页面URL
+
+📄 生成sitemap文件...
+✅ sitemap.xml 已保存
+   - 条目数量: 1349
+   - 文件大小: 307.22 KB
+✅ sitemap-zh.xml 已保存
+   - 条目数量: 919
+   - 文件大小: 211.56 KB
+✅ sitemap-en.xml 已保存
+   - 条目数量: 430
+   - 文件大小: 95.82 KB
+🖼️ 生成图片sitemap...
+✅ sitemap-images.xml 已保存
+   - 条目数量: 2
+   - 文件大小: 1.10 KB
+📋 生成sitemap索引文件...
+✅ sitemap-index.xml 已保存
+   - 条目数量: 4
+   - 文件大小: 0.62 KB
+
+🎉 完整sitemap体系生成完成！
+=====================================
+📊 生成统计:
+   - 主sitemap: 1349 URLs
+   - 中文sitemap: 919 URLs
+   - 英文sitemap: 430 URLs
+   - 图片sitemap: 2 URLs
+   - sitemap索引: 4 sitemaps
+
+🔗 访问地址:
+   - 主sitemap: https://productmindai.com/sitemap.xml
+   - 中文sitemap: https://productmindai.com/sitemap-zh.xml
+   - 英文sitemap: https://productmindai.com/sitemap-en.xml
+   - 图片sitemap: https://productmindai.com/sitemap-images.xml
+   - sitemap索引: https://productmindai.com/sitemap-index.xml
+✅ sitemap生成成功
+
+3️⃣ 上传sitemap文件到服务器...
+📤 上传 sitemap.xml...
+✅ sitemap.xml 上传成功
+📤 上传 sitemap-zh.xml...
+✅ sitemap-zh.xml 上传成功
+📤 上传 sitemap-en.xml...
+✅ sitemap-en.xml 上传成功
+📤 上传 sitemap-index.xml...
+✅ sitemap-index.xml 上传成功
+📤 上传 sitemap-images.xml...
+✅ sitemap-images.xml 上传成功
+
+4️⃣ 验证远程访问...
+🔍 验证 https://productmindai.com/sitemap.xml...
+✅ https://productmindai.com/sitemap.xml 访问正常 (HTTP 200, URLs: 1349)
+🔍 验证 https://productmindai.com/sitemap-zh.xml...
+✅ https://productmindai.com/sitemap-zh.xml 访问正常 (HTTP 200, URLs: 919)
+🔍 验证 https://productmindai.com/sitemap-en.xml...
+✅ https://productmindai.com/sitemap-en.xml 访问正常 (HTTP 200, URLs: 430)
+🔍 验证 https://productmindai.com/sitemap-index.xml...
+✅ https://productmindai.com/sitemap-index.xml 访问正常 (HTTP 200, URLs: 0
+N/A)
+🔍 验证 https://productmindai.com/sitemap-images.xml...
+✅ https://productmindai.com/sitemap-images.xml 访问正常 (HTTP 200, URLs: 2)
+
+5️⃣ 生成统计报告...
+📊 统计报告已保存: logs/sitemap-report-20250624_120006.md
+
+🎉 完整Sitemap生成完成！
+==========================================
+📊 生成的文件:
+   ✅ sitemap.xml (308K)
+   ✅ sitemap-zh.xml (212K)
+   ✅ sitemap-en.xml ( 96K)
+   ✅ sitemap-index.xml (4.0K)
+   ✅ sitemap-images.xml (4.0K)
+
+🔗 访问地址:
+   - 主sitemap: https://productmindai.com/sitemap.xml
+   - 中文sitemap: https://productmindai.com/sitemap-zh.xml
+   - 英文sitemap: https://productmindai.com/sitemap-en.xml
+   - sitemap索引: https://productmindai.com/sitemap-index.xml
+
+📋 Google Search Console提交顺序:
+   1. sitemap-index.xml (主索引)
+   2. sitemap.xml (主文件)
+   3. sitemap-zh.xml (中文)
+   4. sitemap-en.xml (英文)
+   5. sitemap-images.xml (图片)
+
+✅ 脚本执行完成！

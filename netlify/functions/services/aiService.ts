@@ -7,10 +7,7 @@ const API_ENDPOINTS = {
   openai: 'https://api.openai.com/v1/chat/completions'
 } as const;
 
-// 简单的 token 估算（每个单词约1.3个token）
-function estimateTokens(text: string): number {
-  return Math.ceil(text.split(/\s+/).length * 1.3);
-}
+// estimateTokens函数已从utils/text-processor导入
 
 // 截断文本以适应token限制
 function truncateText(text: string, maxTokens: number): string {
@@ -89,6 +86,12 @@ export async function generateStream(
       promptLength: truncatedPrompt.length,
       estimatedTokens: estimateTokens(truncatedPrompt)
     });
+    
+    // 根据状态码返回用户友好的错误信息
+    if (response.status === 402 || (errorText && errorText.includes('Insufficient Balance'))) {
+      throw new Error('系统大模型能力异常，请联系客服邮件 402493977@qq.com 解决！');
+    }
+    
     throw new Error(`API请求失败: ${response.status} ${errorText}`);
   }
 

@@ -1,0 +1,657 @@
+{
+  "timestamp": "2025-06-22T17:33:17.226Z",
+  "summary": {
+    "totalChecks": 15,
+    "successfulChecks": 15,
+    "failedChecks": 0,
+    "criticalIssues": 0
+  },
+  "languages": {
+    "zh": [
+      {
+        "url": "https://productmindai.com/",
+        "status": 200,
+        "loadTime": 1927,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:19 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "首页",
+        "critical": true,
+        "language": "zh"
+      },
+      {
+        "url": "https://productmindai.com/ai-products",
+        "status": 200,
+        "loadTime": 340,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:19 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "AI产品中心",
+        "critical": true,
+        "language": "zh"
+      },
+      {
+        "url": "https://productmindai.com/dashboard",
+        "status": 200,
+        "loadTime": 312,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:20 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "仪表板",
+        "critical": false,
+        "language": "zh"
+      },
+      {
+        "url": "https://productmindai.com/login",
+        "status": 200,
+        "loadTime": 304,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:20 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "登录页",
+        "critical": false,
+        "language": "zh"
+      },
+      {
+        "url": "https://productmindai.com/register",
+        "status": 200,
+        "loadTime": 301,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:20 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "注册页",
+        "critical": false,
+        "language": "zh"
+      }
+    ],
+    "en": [
+      {
+        "url": "https://productmindai.com/en/",
+        "status": 200,
+        "loadTime": 313,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:21 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "Homepage",
+        "critical": true,
+        "language": "en"
+      },
+      {
+        "url": "https://productmindai.com/en/ai-products",
+        "status": 200,
+        "loadTime": 317,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:21 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "AI Products Center",
+        "critical": true,
+        "language": "en"
+      },
+      {
+        "url": "https://productmindai.com/en/dashboard",
+        "status": 200,
+        "loadTime": 300,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:21 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "Dashboard",
+        "critical": false,
+        "language": "en"
+      },
+      {
+        "url": "https://productmindai.com/en/login",
+        "status": 200,
+        "loadTime": 313,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:21 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "Login Page",
+        "critical": false,
+        "language": "en"
+      },
+      {
+        "url": "https://productmindai.com/en/register",
+        "status": 200,
+        "loadTime": 330,
+        "headers": {
+          "server": "nginx/1.26.3",
+          "date": "Sun, 22 Jun 2025 17:33:22 GMT",
+          "content-type": "text/html",
+          "content-length": "746",
+          "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+          "connection": "keep-alive",
+          "etag": "\"6857d289-2ea\"",
+          "x-frame-options": "SAMEORIGIN",
+          "x-xss-protection": "1; mode=block",
+          "x-content-type-options": "nosniff",
+          "referrer-policy": "no-referrer-when-downgrade",
+          "accept-ranges": "bytes"
+        },
+        "contentLength": 746,
+        "hasMetaDescription": false,
+        "hasOpenGraph": false,
+        "hasStructuredData": false,
+        "hasHreflang": false,
+        "title": "ProductMind AI - Product Manager's AI Assistant",
+        "description": "",
+        "success": true,
+        "pageName": "Register Page",
+        "critical": false,
+        "language": "en"
+      }
+    ]
+  },
+  "seoFiles": [
+    {
+      "url": "https://productmindai.com/sitemap.xml",
+      "status": 200,
+      "loadTime": 307,
+      "headers": {
+        "server": "nginx/1.26.3",
+        "date": "Sun, 22 Jun 2025 17:33:22 GMT",
+        "content-type": "text/html",
+        "content-length": "746",
+        "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+        "connection": "keep-alive",
+        "etag": "\"6857d289-2ea\"",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "1; mode=block",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "accept-ranges": "bytes"
+      },
+      "contentLength": 746,
+      "hasMetaDescription": false,
+      "hasOpenGraph": false,
+      "hasStructuredData": false,
+      "hasHreflang": false,
+      "title": "ProductMind AI - Product Manager's AI Assistant",
+      "description": "",
+      "success": true,
+      "fileName": "主站点地图",
+      "fileType": "sitemap"
+    },
+    {
+      "url": "https://productmindai.com/sitemap-zh.xml",
+      "status": 200,
+      "loadTime": 332,
+      "headers": {
+        "server": "nginx/1.26.3",
+        "date": "Sun, 22 Jun 2025 17:33:22 GMT",
+        "content-type": "text/html",
+        "content-length": "746",
+        "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+        "connection": "keep-alive",
+        "etag": "\"6857d289-2ea\"",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "1; mode=block",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "accept-ranges": "bytes"
+      },
+      "contentLength": 746,
+      "hasMetaDescription": false,
+      "hasOpenGraph": false,
+      "hasStructuredData": false,
+      "hasHreflang": false,
+      "title": "ProductMind AI - Product Manager's AI Assistant",
+      "description": "",
+      "success": true,
+      "fileName": "中文站点地图",
+      "fileType": "sitemap"
+    },
+    {
+      "url": "https://productmindai.com/sitemap-en.xml",
+      "status": 200,
+      "loadTime": 336,
+      "headers": {
+        "server": "nginx/1.26.3",
+        "date": "Sun, 22 Jun 2025 17:33:23 GMT",
+        "content-type": "text/html",
+        "content-length": "746",
+        "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+        "connection": "keep-alive",
+        "etag": "\"6857d289-2ea\"",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "1; mode=block",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "accept-ranges": "bytes"
+      },
+      "contentLength": 746,
+      "hasMetaDescription": false,
+      "hasOpenGraph": false,
+      "hasStructuredData": false,
+      "hasHreflang": false,
+      "title": "ProductMind AI - Product Manager's AI Assistant",
+      "description": "",
+      "success": true,
+      "fileName": "英文站点地图",
+      "fileType": "sitemap"
+    },
+    {
+      "url": "https://productmindai.com/sitemap-images.xml",
+      "status": 200,
+      "loadTime": 303,
+      "headers": {
+        "server": "nginx/1.26.3",
+        "date": "Sun, 22 Jun 2025 17:33:23 GMT",
+        "content-type": "text/html",
+        "content-length": "746",
+        "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+        "connection": "keep-alive",
+        "etag": "\"6857d289-2ea\"",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "1; mode=block",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "accept-ranges": "bytes"
+      },
+      "contentLength": 746,
+      "hasMetaDescription": false,
+      "hasOpenGraph": false,
+      "hasStructuredData": false,
+      "hasHreflang": false,
+      "title": "ProductMind AI - Product Manager's AI Assistant",
+      "description": "",
+      "success": true,
+      "fileName": "图片站点地图",
+      "fileType": "sitemap"
+    },
+    {
+      "url": "https://productmindai.com/robots.txt",
+      "status": 200,
+      "loadTime": 318,
+      "headers": {
+        "server": "nginx/1.26.3",
+        "date": "Sun, 22 Jun 2025 17:33:23 GMT",
+        "content-type": "text/html",
+        "content-length": "746",
+        "last-modified": "Sun, 22 Jun 2025 09:53:13 GMT",
+        "connection": "keep-alive",
+        "etag": "\"6857d289-2ea\"",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "1; mode=block",
+        "x-content-type-options": "nosniff",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "accept-ranges": "bytes"
+      },
+      "contentLength": 746,
+      "hasMetaDescription": false,
+      "hasOpenGraph": false,
+      "hasStructuredData": false,
+      "hasHreflang": false,
+      "title": "ProductMind AI - Product Manager's AI Assistant",
+      "description": "",
+      "success": true,
+      "fileName": "Robots文件",
+      "fileType": "robots"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"首页\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"首页\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"首页\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"AI产品中心\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"AI产品中心\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"AI产品中心\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"仪表板\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"仪表板\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"仪表板\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"登录页\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"登录页\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"登录页\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"注册页\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"注册页\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "zh",
+      "message": "中文页面 \"注册页\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Homepage\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Homepage\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Homepage\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"AI Products Center\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"AI Products Center\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"AI Products Center\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Dashboard\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Dashboard\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Dashboard\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Login Page\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Login Page\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Login Page\" 缺少hreflang标签",
+      "priority": "high"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Register Page\" 缺少meta description",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Register Page\" 缺少Open Graph标签",
+      "priority": "medium"
+    },
+    {
+      "type": "seo",
+      "language": "en",
+      "message": "English页面 \"Register Page\" 缺少hreflang标签",
+      "priority": "high"
+    }
+  ],
+  "performance": {
+    "averageLoadTime": 476,
+    "fastestPage": {
+      "name": "Dashboard",
+      "time": 300
+    },
+    "slowestPage": {
+      "name": "首页",
+      "time": 1927
+    },
+    "performanceGrade": "A",
+    "totalPages": 10
+  }
+}

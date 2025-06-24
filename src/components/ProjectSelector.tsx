@@ -882,27 +882,26 @@ ${copyrightText}
   // 生成并下载Cursor文件的函数
   const handleGenerateAndDownloadCursor = async () => {
     if (!currentProject?.id) {
-      setError(language === 'zh' ? '请先选择或创建一个项目' : 'Please select or create a project first');
-      return;
-    }
-
-    if (!currentProject?.description) {
-      setError(language === 'zh' ? '请先输入产品描述' : 'Please enter product description first');
+      setError(language === 'zh' ? '请先选择项目' : 'Please select a project first');
       return;
     }
 
     setIsGeneratingCursor(true);
+    setIsDownloadingCursor(false);
     setError(null);
 
     try {
       logger.log('开始生成Cursor文件', { projectId: currentProject.id });
 
-      // 获取所有模板，包括mdcprompt字段，且isshow=1
+      // 获取所有模板，包括mdcprompt字段，且template_categories.isshow=1
       const { data: templates, error: templatesError } = await supabase
         .from('templates')
-        .select('*')
+        .select(`
+          id, name_zh, name_en, prompt_content, mdcprompt, category_id,
+          template_categories!inner (id, name_zh, isshow)
+        `)
         .not('mdcprompt', 'is', null)
-        .eq('isshow', 1);
+        .eq('template_categories.isshow', 1);
 
       if (templatesError) throw templatesError;
 
@@ -911,90 +910,141 @@ ${copyrightText}
         return;
       }
 
+      logger.log('找到模板', { count: templates.length, projectId: currentProject.id });
+
+      // 批量查询所有模板的现有Cursor内容，提高效率
+      const { data: existingVersions, error: versionsError } = await supabase
+        .from('template_versions')
+        .select('template_id, mdcpromptcontent_en, created_at, updated_at')
+        .eq('project_id', currentProject.id)
+        .in('template_id', templates.map(t => t.id))
+        .not('mdcpromptcontent_en', 'is', null);
+
+      if (versionsError) {
+        logger.warn('查询现有版本失败，将重新生成所有内容', { error: versionsError });
+      }
+
+      // 创建现有内容的映射，便于快速查找
+      const existingContentMap = new Map();
+      if (existingVersions) {
+        existingVersions.forEach(version => {
+          existingContentMap.set(version.template_id, version.mdcpromptcontent_en);
+        });
+      }
+
+      logger.log('现有内容统计', { 
+        totalTemplates: templates.length,
+        existingCount: existingContentMap.size,
+        needGenerate: templates.length - existingContentMap.size
+      });
+
       // 检查或生成每个模板的Cursor内容
       const cursorContents: { templateName: string; content: string }[] = [];
+      let useExistingCount = 0;
+      let generateNewCount = 0;
 
       for (const template of templates) {
         if (!template.mdcprompt) continue;
 
-        // 检查是否已存在该模板的Cursor内容
-        const { data: existingVersion, error: versionError } = await supabase
-          .from('template_versions')
-          .select('mdcpromptcontent_en')
-          .eq('template_id', template.id)
-          .eq('project_id', currentProject.id)
-          .not('mdcpromptcontent_en', 'is', null)
-          .single();
-
         let cursorContent = '';
+        const existingContent = existingContentMap.get(template.id);
 
-        if (existingVersion && existingVersion.mdcpromptcontent_en) {
+        if (existingContent) {
           // 使用已存在的内容
-          cursorContent = existingVersion.mdcpromptcontent_en;
-          logger.log('使用已存在的Cursor内容', { templateId: template.id });
+          cursorContent = existingContent;
+          useExistingCount++;
+          logger.log('使用已存在的Cursor内容', { 
+            templateId: template.id, 
+            templateName: template.name_zh,
+            contentLength: cursorContent.length 
+          });
         } else {
           // 生成新的Cursor内容
-          logger.log('生成新的Cursor内容', { templateId: template.id });
+          generateNewCount++;
+          logger.log('生成新的Cursor内容', { 
+            templateId: template.id, 
+            templateName: template.name_zh 
+          });
           
-          const cursorPrompt = buildPrompt(
-            template,
-            currentProject.name || '未命名项目',
-            currentProject.description,
-            'en'
-          );
+          try {
+            const cursorPrompt = buildPrompt(
+              template,
+              currentProject.name || '未命名项目',
+              currentProject.description,
+              'en'
+            );
 
-          // 使用mdcprompt字段作为系统提示词
-          const messages = [
-            {
-              role: 'system' as const,
-              content: template.mdcprompt
-            },
-            {
-              role: 'user' as const,
-              content: cursorPrompt
+            // 使用mdcprompt字段作为系统提示词
+            const messages = [
+              {
+                role: 'system' as const,
+                content: template.mdcprompt
+              },
+              {
+                role: 'user' as const,
+                content: cursorPrompt
+              }
+            ];
+
+            const config = {
+              id: 'deepseek' as const,
+              name: 'DeepSeek',
+              version: 'deepseek-chat',
+              apiKey: 'sk-567abb67b99d4a65acaa2d9ed06c3782',
+              useSystemCredit: true
+            };
+
+            const stream = await generateStream('deepseek', config, cursorPrompt);
+            const reader = stream.getReader();
+            const decoder = new TextDecoder();
+            let generatedContent = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value);
+              generatedContent += chunk;
             }
-          ];
 
-          const config = {
-            id: 'deepseek' as const,
-            name: 'DeepSeek',
-            version: 'deepseek-chat',
-            apiKey: 'sk-567abb67b99d4a65acaa2d9ed06c3782',
-            useSystemCredit: true
-          };
+            cursorContent = generatedContent;
 
-          const stream = await generateStream('deepseek', config, cursorPrompt);
-          const reader = stream.getReader();
-          const decoder = new TextDecoder();
-          let generatedContent = '';
+            // 保存到数据库
+            const { error: saveError } = await supabase
+              .from('template_versions')
+              .upsert({
+                template_id: template.id,
+                project_id: currentProject.id,
+                input_content: currentProject.description,
+                mdcpromptcontent_en: cursorContent,
+                created_by: user?.id,
+                is_active: true,
+                version_number: 1
+              }, {
+                onConflict: 'template_id,project_id'
+              });
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            generatedContent += chunk;
-          }
-
-          cursorContent = generatedContent;
-
-          // 保存到数据库
-          const { error: saveError } = await supabase
-            .from('template_versions')
-            .upsert({
-              template_id: template.id,
-              project_id: currentProject.id,
-              input_content: currentProject.description,
-              mdcpromptcontent_en: cursorContent,
-              created_by: user?.id,
-              is_active: true,
-              version_number: 1
+            if (saveError) {
+              logger.error('保存Cursor内容失败', { 
+                error: saveError, 
+                templateId: template.id,
+                templateName: template.name_zh 
+              });
+            } else {
+              logger.log('Cursor内容保存成功', { 
+                templateId: template.id,
+                templateName: template.name_zh,
+                contentLength: cursorContent.length 
+              });
+            }
+          } catch (genError) {
+            logger.error('生成Cursor内容失败', { 
+              error: genError, 
+              templateId: template.id,
+              templateName: template.name_zh 
             });
-
-          if (saveError) {
-            logger.error('保存Cursor内容失败', { error: saveError, templateId: template.id });
-          } else {
-            logger.log('Cursor内容保存成功', { templateId: template.id });
+            // 继续处理其他模板，不中断整个流程
+            continue;
           }
         }
 
@@ -1006,6 +1056,15 @@ ${copyrightText}
           });
         }
       }
+
+      // 记录处理统计
+      logger.log('Cursor内容处理完成', {
+        totalTemplates: templates.length,
+        useExistingCount,
+        generateNewCount,
+        finalCount: cursorContents.length,
+        efficiency: useExistingCount > 0 ? `节省了${useExistingCount}次AI调用` : '全部重新生成'
+      });
 
       if (cursorContents.length === 0) {
         setError(language === 'zh' ? '没有生成任何Cursor内容' : 'No Cursor content generated');
@@ -1020,7 +1079,24 @@ ${copyrightText}
       const zip = new JSZip();
       
       // 添加项目信息文件
-      const readmeContent = `# ${currentProject.name || ''} - Cursor Rules\n\n${currentProject.description || ''}\n\n${language === 'zh' ? '生成时间' : 'Generated at'}：${new Date().toLocaleString()}`;
+      const readmeContent = `# ${currentProject.name || ''} - Cursor Rules
+
+${currentProject.description || ''}
+
+## 生成信息
+- ${language === 'zh' ? '生成时间' : 'Generated at'}：${new Date().toLocaleString()}
+- ${language === 'zh' ? '模板总数' : 'Total templates'}：${cursorContents.length}
+- ${language === 'zh' ? '使用缓存' : 'Used cache'}：${useExistingCount}
+- ${language === 'zh' ? '新生成' : 'Newly generated'}：${generateNewCount}
+
+## 使用说明
+1. 将.mdc文件放入项目根目录
+2. 在Cursor中打开项目
+3. 文件将自动生效，为您的编程提供智能提示
+
+---
+*由ProductMind AI智能生成*`;
+      
       zip.file('README.md', readmeContent);
 
       // 添加每个模板的.mdc文件
@@ -1052,7 +1128,9 @@ ${copyrightText}
 
       logger.log('Cursor文件下载完成', { 
         projectName: currentProject.name, 
-        filesCount: cursorContents.length 
+        filesCount: cursorContents.length,
+        useExistingCount,
+        generateNewCount
       });
 
     } catch (err) {

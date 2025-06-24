@@ -237,6 +237,12 @@ async function generateWithAI(prompt: string): Promise<string> {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('API请求失败:', response.status, errorText);
+      
+      // 根据状态码返回用户友好的错误信息
+      if (response.status === 402 || (errorText && errorText.includes('Insufficient Balance'))) {
+        throw new Error('系统大模型能力异常，请联系客服邮件 402493977@qq.com 解决！');
+      }
+      
       throw new Error(`API请求失败: ${response.status} ${errorText}`);
     }
 

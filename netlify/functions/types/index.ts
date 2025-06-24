@@ -24,7 +24,7 @@ export interface DeepseekStreamResponse {
 export class APIError extends Error {
   constructor(
     message: string,
-    public type: 'AUTH_ERROR' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_RESPONSE' | 'TIMEOUT_ERROR' | 'UNKNOWN_ERROR'
+    public type: 'AUTH_ERROR' | 'BALANCE_ERROR' | 'RATE_LIMIT' | 'SERVICE_ERROR' | 'INVALID_RESPONSE' | 'TIMEOUT_ERROR' | 'UNKNOWN_ERROR'
   ) {
     super(message);
     this.name = 'APIError';

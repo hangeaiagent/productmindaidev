@@ -1,0 +1,55 @@
+{
+  "site": {
+    "domain": "https://productmindai.com",
+    "name": {
+      "zh": "ProductMind AI - 智能产品管理平台",
+      "en": "ProductMind AI - Intelligent Product Management Platform"
+    },
+    "description": {
+      "zh": "ProductMind AI是专业的智能产品管理平台，为产品经理提供AI驱动的产品分析、文档生成、模板管理等服务。提供PRD、MRD、BRD等25+专业模板，助力产品成功。",
+      "en": "ProductMind AI is a professional intelligent product management platform that provides product managers with AI-driven product analysis, document generation, template management and other services. Offering 25+ professional templates including PRD, MRD, BRD to help product success."
+    },
+    "keywords": {
+      "zh": "ProductMind AI,产品管理,AI产品经理,PRD模板,产品需求文档,MRD模板,BRD模板,产品分析,智能产品管理,AI助手,产品文档生成",
+      "en": "ProductMind AI,Product Management,AI Product Manager,PRD Template,Product Requirements Document,MRD Template,BRD Template,Product Analysis,Intelligent Product Management,AI Assistant,Product Document Generation"
+    }
+  },
+  "pages": {
+    "home": {
+      "zh": {
+        "title": "ProductMind AI - 智能产品管理平台 | AI驱动的产品经理助手",
+        "description": "ProductMind AI是专业的智能产品管理平台，为产品经理提供AI驱动的产品分析、文档生成、模板管理等服务。提供PRD、MRD、BRD等25+专业模板，助力产品成功。",
+        "keywords": "ProductMind AI,产品管理,AI产品经理,PRD模板,产品需求文档,MRD模板,BRD模板,产品分析,智能产品管理,AI助手,产品文档生成"
+      },
+      "en": {
+        "title": "ProductMind AI - Intelligent Product Management Platform | AI-Driven Product Manager Assistant",
+        "description": "ProductMind AI is a professional intelligent product management platform that provides product managers with AI-driven product analysis, document generation, template management and other services.",
+        "keywords": "ProductMind AI,Product Management,AI Product Manager,PRD Template,Product Requirements Document,MRD Template,BRD Template,Product Analysis,Intelligent Product Management,AI Assistant"
+      }
+    },
+    "aiProducts": {
+      "zh": {
+        "title": "AI产品中心 - 智能产品管理模板库 | ProductMind AI",
+        "description": "探索ProductMind AI的智能产品管理模板库，包含PRD、MRD、BRD等25+专业模板。AI驱动的产品分析工具，助力产品经理高效工作。",
+        "keywords": "AI产品,产品模板,PRD模板,MRD模板,BRD模板,产品需求文档,市场需求文档,商业需求文档,产品管理工具"
+      },
+      "en": {
+        "title": "AI Products Center - Intelligent Product Management Template Library | ProductMind AI",
+        "description": "Explore ProductMind AI's intelligent product management template library, including 25+ professional templates such as PRD, MRD, BRD. AI-driven product analysis tools to help product managers work efficiently.",
+        "keywords": "AI Products,Product Templates,PRD Template,MRD Template,BRD Template,Product Requirements Document,Market Requirements Document,Business Requirements Document,Product Management Tools"
+      }
+    },
+    "dashboard": {
+      "zh": {
+        "title": "产品管理仪表板 - 智能数据分析 | ProductMind AI",
+        "description": "使用ProductMind AI的智能仪表板管理您的产品项目。实时数据分析、进度跟踪、团队协作，让产品管理更高效。",
+        "keywords": "产品仪表板,数据分析,项目管理,团队协作,产品进度,智能分析,产品指标"
+      },
+      "en": {
+        "title": "Product Management Dashboard - Intelligent Data Analysis | ProductMind AI",
+        "description": "Manage your product projects with ProductMind AI's intelligent dashboard. Real-time data analysis, progress tracking, team collaboration for more efficient product management.",
+        "keywords": "Product Dashboard,Data Analysis,Project Management,Team Collaboration,Product Progress,Intelligent Analysis,Product Metrics"
+      }
+    }
+  }
+}

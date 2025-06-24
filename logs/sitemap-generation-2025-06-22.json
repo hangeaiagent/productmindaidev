@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-06-22T17:33:01.448Z",
+  "mainSitemap": {
+    "path": "/Users/a1/work/productmindai0521/public/sitemap.xml",
+    "totalPages": 13,
+    "staticPages": 3
+  },
+  "languageSitemaps": {
+    "zh": {
+      "path": "/Users/a1/work/productmindai0521/public/sitemap-zh.xml",
+      "pages": 5
+    },
+    "en": {
+      "path": "/Users/a1/work/productmindai0521/public/sitemap-en.xml",
+      "pages": 5
+    }
+  },
+  "imageSitemap": "/Users/a1/work/productmindai0521/public/sitemap-images.xml",
+  "sitemapIndex": "/Users/a1/work/productmindai0521/public/sitemap-index.xml",
+  "summary": {
+    "totalSitemaps": 5,
+    "totalPages": 13,
+    "languages": 2
+  }
+}

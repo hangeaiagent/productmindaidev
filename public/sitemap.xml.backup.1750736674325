@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://productmindai.com/</loc>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/ai-products</loc>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/ai-products"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/ai-products"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/dashboard</loc>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/dashboard"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/dashboard"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/login</loc>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/login"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/login"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/register</loc>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/register"/>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/register"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/en/</loc>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/"/>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>1.0</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/en/ai-products</loc>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/ai-products"/>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/ai-products"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/en/dashboard</loc>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/dashboard"/>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/dashboard"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/en/login</loc>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/login"/>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/login"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/en/register</loc>
+        <xhtml:link rel="alternate" hreflang="en-US" href="https://productmindai.com/en/register"/>
+        <xhtml:link rel="alternate" hreflang="zh-CN" href="https://productmindai.com/register"/>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/static-pages/pdhtml/111c5e34-058d-4293-9cc6-02c0d1535297/index.html</loc>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/static-pages/pdhtml/46135634-79a3-45e8-98ea-5f7b97b7ef43/index.html</loc>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://productmindai.com/static-pages/pdhtml/bde11091-8e8d-4ba4-a3d9-f94bd4ad0153/index.html</loc>
+        <lastmod>2025-06-22</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+</urlset>
