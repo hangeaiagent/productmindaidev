@@ -71,24 +71,53 @@ class CompleteSitemapGenerator {
     return urlEntry;
   }
 
-  // 获取数据库中的所有项目
+  // 获取数据库中的所有项目（支持分页循环查询）
   async fetchProjects() {
     try {
-      console.log('📊 从数据库获取项目数据...');
+      console.log('📊 从数据库获取项目数据（支持分页循环）...');
       
-      const { data: projects, error } = await supabase
-        .from('user_projects')
-        .select('id, name, description, primary_category, created_at')
-        .not('primary_category', 'is', null)
-        .order('created_at', { ascending: false });
+      let allProjects = [];
+      let currentPage = 0;
+      const pageSize = 1000; // 每页1000条记录
+      
+      while (true) {
+        console.log(`📄 正在查询第 ${currentPage + 1} 页数据 (每页${pageSize}条)...`);
+        
+        const { data: projects, error } = await supabase
+          .from('user_projects')
+          .select('id, name, description, primary_category, created_at')
+          .not('primary_category', 'is', null)
+          .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ 数据库查询错误:', error);
-        return [];
+        if (error) {
+          console.error('❌ 数据库查询错误:', error);
+          return [];
+        }
+
+        // 如果没有数据了，退出循环
+        if (!projects || projects.length === 0) {
+          console.log(`✅ 第 ${currentPage + 1} 页无数据，查询完成`);
+          break;
+        }
+
+        console.log(`📊 第 ${currentPage + 1} 页查询到 ${projects.length} 个项目`);
+        allProjects = allProjects.concat(projects);
+
+        // 如果返回的记录数少于pageSize，说明已经是最后一页
+        if (projects.length < pageSize) {
+          console.log(`✅ 已到达最后一页，查询完成`);
+          break;
+        }
+
+        currentPage++;
       }
 
-      console.log(`✅ 获取到 ${projects.length} 个项目`);
-      return projects || [];
+      console.log(`\n📊 分页查询完成统计:`);
+      console.log(`  总页数: ${currentPage + 1} 页`);
+      console.log(`  总项目数: ${allProjects.length} 个`);
+      
+      return allProjects;
     } catch (error) {
       console.error('❌ 数据库连接错误:', error);
       return [];

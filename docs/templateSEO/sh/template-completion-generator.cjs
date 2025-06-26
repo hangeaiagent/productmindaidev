@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 /**
- * ProductMind AI 模板补充生成脚本 (专注版)
- * 文件: docs/templateSEO/sh/gennofinishpage.cjs
+ * ProductMind AI 模板补充生成器 (API调用版)
+ * 文件: docs/templateSEO/sh/template-completion-generator.cjs
  * 
  * 功能：
  * 1. 分析所有项目是否包含完整的7个模板 (isshow=1的模板)
  * 2. 统计缺失的模板数量和详细清单
- * 3. 只补充生成缺失的template_versions数据
- * 4. 不处理HTML页面生成（由其他脚本处理）
+ * 3. 调用现有的批量生成API补充缺失的模板
+ * 4. 不重新开发生成逻辑，复用现有系统
  */
 
 const fs = require('fs').promises;
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const { execSync } = require('child_process');
 
 // 环境变量配置
 require('dotenv').config({ path: 'aws-backend/.env' });
@@ -29,7 +30,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-class TemplateCompletionAnalyzer {
+class TemplateCompletionGenerator {
     constructor() {
         this.stats = {
             totalProjects: 0,
@@ -37,16 +38,22 @@ class TemplateCompletionAnalyzer {
             projectsNeedingTemplates: 0,
             totalMissingTemplates: 0,
             generatedTemplates: 0,
+            apiCalls: 0,
             errors: 0,
             startTime: new Date()
         };
         this.activeTemplates = [];
         this.detailedResults = [];
-        this.batchSize = 5; // 控制生成速度
+        this.apiConfig = {
+            baseUrl: 'http://productmindai.com/.netlify/functions/batch-generate-templates',
+            userId: 'afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1',
+            timeout: 30000,
+            retryAttempts: 2
+        };
     }
 
     async run() {
-        console.log('🔍 ProductMind AI 模板补充生成分析器');
+        console.log('🔍 ProductMind AI 模板补充生成器 (API调用版)');
         console.log('分析时间:', new Date().toLocaleString('zh-CN'));
         console.log('='.repeat(80));
 
@@ -73,7 +80,7 @@ class TemplateCompletionAnalyzer {
                 await this.executeTemplateGeneration();
             } else {
                 console.log('\n💡 提示: 添加 --execute 或 -e 参数来执行实际的模板补充生成');
-                console.log('例如: node docs/templateSEO/sh/gennofinishpage.cjs --execute');
+                console.log('例如: node docs/templateSEO/sh/template-completion-generator.cjs --execute');
             }
 
             // 6. 生成统计报告
@@ -126,7 +133,7 @@ class TemplateCompletionAnalyzer {
 
     async analyzeProjectTemplates(projects) {
         const results = [];
-        const progressInterval = Math.max(1, Math.floor(projects.length / 20)); // 显示20次进度
+        const progressInterval = Math.max(1, Math.floor(projects.length / 20));
         
         for (let i = 0; i < projects.length; i++) {
             const project = projects[i];
@@ -149,7 +156,7 @@ class TemplateCompletionAnalyzer {
 
             const existingTemplateIds = new Set(existingVersions?.map(v => v.template_id) || []);
             const missingTemplates = this.activeTemplates.filter(t => !existingTemplateIds.has(t.id));
-
+            
             const projectResult = {
                 project: project,
                 existingCount: existingVersions?.length || 0,
@@ -199,15 +206,14 @@ class TemplateCompletionAnalyzer {
         const incompleteProjects = this.detailedResults.filter(r => !r.isComplete);
         
         if (incompleteProjects.length > 0) {
-            console.log(`\n⚠️  需要补充模板的项目详情:`);
+            console.log(`\n⚠️  需要补充模板的项目详情 (前20个):`);
             console.log('-'.repeat(80));
             
-            // 按缺失数量排序，显示前20个
             incompleteProjects
                 .sort((a, b) => b.missingCount - a.missingCount)
                 .slice(0, 20)
                 .forEach((result, i) => {
-                const project = result.project;
+                    const project = result.project;
                     const projectName = project.name_zh || project.name || `项目${i+1}`;
                     
                     console.log(`${String(i + 1).padStart(3, ' ')}. ${projectName.substring(0, 30).padEnd(30, ' ')} | 缺失: ${String(result.missingCount).padStart(2, ' ')}/${this.activeTemplates.length} | 完成度: ${result.completionRate.padStart(5, ' ')}%`);
@@ -253,7 +259,7 @@ class TemplateCompletionAnalyzer {
     }
 
     async executeTemplateGeneration() {
-        console.log('\n🚀 5. 开始执行模板补充生成');
+        console.log('\n🚀 5. 开始执行模板补充生成 (调用现有API)');
         console.log('='.repeat(80));
         
         const incompleteProjects = this.detailedResults.filter(r => !r.isComplete);
@@ -264,7 +270,8 @@ class TemplateCompletionAnalyzer {
         }
 
         console.log(`📋 需要处理 ${incompleteProjects.length} 个项目，共 ${this.stats.totalMissingTemplates} 个模板`);
-        console.log(`⏱️  预计耗时: ${Math.ceil(this.stats.totalMissingTemplates * 2 / 60)} 分钟\n`);
+        console.log(`🔧 使用现有API: ${this.apiConfig.baseUrl}`);
+        console.log(`⏱️  预计耗时: ${Math.ceil(this.stats.totalMissingTemplates * 3 / 60)} 分钟\n`);
         
         let processedProjects = 0;
         let processedTemplates = 0;
@@ -278,19 +285,26 @@ class TemplateCompletionAnalyzer {
             console.log(`   项目ID: ${project.id}`);
             console.log(`   需要生成: ${result.missingCount} 个模板`);
             
+            // 按模板分组调用API
             for (const template of result.missingTemplates) {
                 processedTemplates++;
                 
                 try {
                     console.log(`   📝 [${processedTemplates}/${this.stats.totalMissingTemplates}] 生成: ${template.name_zh}...`);
                     
-                    await this.generateTemplateVersion(project, template);
+                    const apiResult = await this.callBatchGenerateAPI(project.id, template.id);
                     
-                    console.log(`   ✅ 成功生成: ${template.name_zh}`);
-                    this.stats.generatedTemplates++;
+                    if (apiResult.success) {
+                        console.log(`   ✅ 成功生成: ${template.name_zh} (${JSON.stringify(apiResult.stats || {})})`);
+                        this.stats.generatedTemplates += apiResult.stats?.generated || 1;
+                    } else {
+                        throw new Error(apiResult.error || '未知API错误');
+                    }
                     
-                    // 控制生成速度，避免API限制
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    this.stats.apiCalls++;
+                    
+                    // 控制API调用频率
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                     
                 } catch (error) {
                     console.error(`   ❌ 生成失败 ${template.name_zh}: ${error.message}`);
@@ -306,151 +320,46 @@ class TemplateCompletionAnalyzer {
         console.log('\n✅ 模板补充生成完成！');
     }
 
-    async generateTemplateVersion(project, template) {
-        try {
-            console.log(`   🔧 调用现有批量生成API...`);
-            
-            // 调用现有的批量生成模板API
-            const response = await this.callBatchGenerateAPI(project.id, template.id);
-            
-            if (!response.success) {
-                throw new Error(`API调用失败: ${response.error || '未知错误'}`);
-            }
-            
-            console.log(`   ✅ API调用成功，生成结果: ${JSON.stringify(response.stats || {})}`);
-            return response;
-            
-                    } catch (error) {
-            throw new Error(`调用生成API失败: ${error.message}`);
-        }
-    }
-
     async callBatchGenerateAPI(projectId, templateId) {
         try {
-            const { execSync } = require('child_process');
-            
-            // 构建API调用URL
-            const baseUrl = 'http://productmindai.com/.netlify/functions/batch-generate-templates';
+            // 构建API调用参数
             const params = new URLSearchParams({
-                user_id: 'afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1',
+                user_id: this.apiConfig.userId,
                 languages: 'zh,en',
                 table: 'user_projects',
                 batch_size: 1,
                 template_batch_size: 1,
                 max_time: 25000,
-                project_id: projectId,      // 指定项目ID
-                template_ids: templateId,   // 指定模板ID
+                project_id: projectId,
+                template_ids: templateId,
                 limit: 1
             });
             
-            const url = `${baseUrl}?${params.toString()}`;
+            const url = `${this.apiConfig.baseUrl}?${params.toString()}`;
             
-            // 使用curl调用API（更可靠）
-            const curlCommand = `curl -s -X GET "${url}" -H "User-Agent: TemplateCompletion/1.0"`;
+            // 使用curl调用API
+            const curlCommand = `curl -s -X GET "${url}" -H "User-Agent: TemplateCompletion/1.0" --max-time 35`;
             
-            console.log(`   🌐 API调用: ${url.substring(0, 100)}...`);
+            console.log(`   🌐 API调用: 项目=${projectId.substring(0, 8)}..., 模板=${templateId.substring(0, 8)}...`);
             
             const result = execSync(curlCommand, { 
                 encoding: 'utf8',
-                timeout: 30000,
-                maxBuffer: 1024 * 1024 // 1MB buffer
+                timeout: this.apiConfig.timeout,
+                maxBuffer: 1024 * 1024
             });
             
             const response = JSON.parse(result);
-            return response;
             
-        } catch (error) {
-            // 如果API调用失败，回退到直接数据库操作
-            console.warn(`   ⚠️  API调用失败，使用直接生成: ${error.message}`);
-            return await this.generateTemplateDirectly(projectId, templateId);
-        }
-    }
-
-    async generateTemplateDirectly(projectId, templateId) {
-        try {
-            // 获取项目和模板信息
-            const [projectData, templateData] = await Promise.all([
-                this.getProjectInfo(projectId),
-                this.getTemplateInfo(templateId)
-            ]);
-            
-            if (!projectData || !templateData) {
-                throw new Error('获取项目或模板信息失败');
+            if (response.success) {
+                return response;
+            } else {
+                throw new Error(response.error || 'API返回失败状态');
             }
             
-            const projectName = projectData.name_zh || projectData.name || '未命名项目';
-            const templateNameZh = templateData.name_zh;
-            const templateNameEn = templateData.name_en || templateData.name_zh;
-            
-            // 生成基础内容
-            const versionData = {
-                template_id: templateId,
-                project_id: projectId,
-                created_by: 'afd0fdbc-4ad3-4e92-850b-7c26b2d8efc1',
-                version_number: 1,
-                output_content_zh: JSON.stringify({
-                    content: `# ${templateNameZh}\n\n这是为项目"${projectName}"生成的${templateNameZh}内容。\n\n## 项目信息\n- 项目名称: ${projectName}\n- 项目描述: ${projectData.description || '暂无描述'}\n- 生成时间: ${new Date().toLocaleString('zh-CN')}\n\n## ${templateNameZh}详细内容\n\n[此处应包含具体的${templateNameZh}内容]\n\n---\n*此内容由模板补充系统自动生成*`,
-                    language: 'zh',
-                    generated_at: new Date().toISOString(),
-                    generation_method: 'template_completion'
-                }),
-                output_content_en: JSON.stringify({
-                    content: `# ${templateNameEn}\n\nThis is the ${templateNameEn} content generated for project "${projectName}".\n\n## Project Information\n- Project Name: ${projectName}\n- Project Description: ${projectData.description || 'No description available'}\n- Generated At: ${new Date().toLocaleString('en-US')}\n\n## ${templateNameEn} Detailed Content\n\n[Specific ${templateNameEn} content should be included here]\n\n---\n*This content is automatically generated by the template completion system*`,
-                    language: 'en',
-                    generated_at: new Date().toISOString(),
-                    generation_method: 'template_completion'
-                })
-            };
-
-            const { data, error } = await supabase
-                .from('template_versions')
-                .insert(versionData)
-                .select()
-                .single();
-
-            if (error) {
-                throw new Error(`数据库保存失败: ${error.message}`);
-            }
-
-            return {
-                success: true,
-                data: data,
-                stats: { generated: 1, skipped: 0, errors: 0 }
-            };
-            
         } catch (error) {
-            throw new Error(`直接生成失败: ${error.message}`);
+            console.warn(`   ⚠️  API调用失败: ${error.message}`);
+            throw error;
         }
-    }
-
-    async getProjectInfo(projectId) {
-        const { data, error } = await supabase
-            .from('user_projects')
-            .select('id, name, name_zh, name_en, description')
-            .eq('id', projectId)
-            .single();
-        
-        if (error) {
-            console.error('获取项目信息失败:', error);
-            return null;
-        }
-        
-        return data;
-    }
-
-    async getTemplateInfo(templateId) {
-        const { data, error } = await supabase
-            .from('templates')
-            .select('id, name_zh, name_en, prompt_content')
-            .eq('id', templateId)
-            .single();
-        
-        if (error) {
-            console.error('获取模板信息失败:', error);
-            return null;
-        }
-        
-        return data;
     }
 
     generateFinalReport() {
@@ -464,6 +373,7 @@ class TemplateCompletionAnalyzer {
         console.log(`✅ 完整项目: ${this.stats.projectsWithCompleteTemplates}`);
         console.log(`⚠️  需要补充: ${this.stats.projectsNeedingTemplates}`);
         console.log(`📋 缺失模板总数: ${this.stats.totalMissingTemplates}`);
+        console.log(`🌐 API调用次数: ${this.stats.apiCalls}`);
         console.log(`🎯 成功生成: ${this.stats.generatedTemplates}`);
         console.log(`❌ 生成错误: ${this.stats.errors}`);
         
@@ -486,7 +396,7 @@ class TemplateCompletionAnalyzer {
 
 // 执行分析器
 if (require.main === module) {
-    new TemplateCompletionAnalyzer().run();
+    new TemplateCompletionGenerator().run();
 }
 
-module.exports = TemplateCompletionAnalyzer;
+module.exports = TemplateCompletionGenerator; 

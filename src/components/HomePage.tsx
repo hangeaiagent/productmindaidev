@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Database, Globe, BarChart3, Github, LogIn, UserPlus, Languages } from 'lucide-react';
+import AIProductIdeaGenerator from './AIProductIdeaGenerator';
 
 interface Content {
   [key: string]: {
@@ -30,6 +31,8 @@ const HomePage: React.FC = () => {
       feature2Desc: 'Essential documents including PRD, MRD, BRD for product management',
       feature3Title: 'AI-Powered Analysis',
       feature3Desc: 'Data-driven product insights and decision support',
+      ideaGeneratorTitle: 'AI Product Idea Generator',
+      ideaGeneratorDesc: 'Enter your creative requirements and get comprehensive product analysis with technical recommendations',
       stat1: 'AI Products',
       stat2: 'Templates',
       stat3: 'Categories',
@@ -54,6 +57,8 @@ const HomePage: React.FC = () => {
       feature2Desc: 'PRD、MRD、BRD等产品管理必备文档',
       feature3Title: 'AI智能分析',
       feature3Desc: '基于数据的产品洞察和决策支持',
+      ideaGeneratorTitle: 'AI产品创意生成器',
+      ideaGeneratorDesc: '输入创意需求，获得全面的产品分析和技术建议',
       stat1: 'AI产品案例',
       stat2: '专业模板',
       stat3: '产品分类',
@@ -249,6 +254,11 @@ const HomePage: React.FC = () => {
             <h4 className="text-lg font-semibold text-gray-900 mb-2">{t.feature3Title}</h4>
             <p className="text-gray-600">{t.feature3Desc}</p>
           </div>
+        </div>
+
+        {/* AI Product Idea Generator */}
+        <div className="mt-20">
+          <AIProductIdeaGenerator />
         </div>
 
         {/* Statistics */}

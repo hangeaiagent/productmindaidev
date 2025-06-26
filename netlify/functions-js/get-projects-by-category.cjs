@@ -44,7 +44,7 @@ exports.handler = async (event, context) => {
 
     console.log(`📊 获取项目数据 - 分类: ${categoryCode || '全部'}, 搜索: ${search || '无'}, 语言: ${language}`);
 
-    // 构建查询 user_projects 表
+    // 构建查询 user_projects 表 - 只返回有分类信息的项目
     let query = supabase
       .from('user_projects')
       .select(`
@@ -64,6 +64,8 @@ exports.handler = async (event, context) => {
       `)
       .not('name', 'is', null)
       .not('name', 'eq', '')
+      .not('primary_category_code', 'is', null)
+      .not('secondary_category_code', 'is', null)
       .order('created_at', { ascending: false });
 
     // 按分类筛选
@@ -112,12 +114,14 @@ exports.handler = async (event, context) => {
       };
     });
 
-    // 获取总数
+    // 获取总数 - 只统计有分类信息的项目
     let countQuery = supabase
       .from('user_projects')
       .select('id', { count: 'exact' })
       .not('name', 'is', null)
-      .not('name', 'eq', '');
+      .not('name', 'eq', '')
+      .not('primary_category_code', 'is', null)
+      .not('secondary_category_code', 'is', null);
 
     if (categoryCode) {
       countQuery = countQuery.or(`primary_category_code.eq.${categoryCode},secondary_category_code.eq.${categoryCode}`);

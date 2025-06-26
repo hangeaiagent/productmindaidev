@@ -13,19 +13,20 @@ import hljs from 'highlight.js';
 import fs from 'fs/promises';
 import path from 'path';
 
-// 加载环境变量
-dotenv.config();
+// 加载环境变量 - 使用标准路径
+const envPath = path.join(process.cwd(), 'aws-backend/.env');
+dotenv.config({ path: envPath });
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('❌ 错误：缺少环境变量 VITE_SUPABASE_URL 或 VITE_SUPABASE_ANON_KEY');
-  console.error('请检查根目录 .env 文件配置');
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('❌ 错误：缺少环境变量 SUPABASE_URL 或 SUPABASE_SERVICE_ROLE_KEY');
+  console.error('请检查 aws-backend/.env 文件配置');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 /**
  * 筛选统计类
@@ -271,8 +272,9 @@ class ModernHtmlGenerator {
     const otherTemplates = templateData.otherTemplates || [];
     const currentTemplateId = templateData.currentTemplateId || '';
     
-    // 面包屑导航 - 使用实际的项目分类
-    const breadcrumbHtml = `
+    // 面包屑导航 - 使用实际的项目分类，如果是未知分类则不显示
+    const hasValidCategory = projectInfo.category !== '未知分类' && projectInfo.subcategory !== '未知子分类';
+    const breadcrumbHtml = hasValidCategory ? `
       <nav class="breadcrumb">
         <a href="/ai-products">${lang === 'zh' ? 'AI产品中心' : 'AI Products Hub'}</a>
         <span class="breadcrumb-separator">｜</span>
@@ -286,7 +288,7 @@ class ModernHtmlGenerator {
           `<span class="breadcrumb-current">${lang === 'zh' ? projectInfo.subcategory : projectInfo.subcategory}</span>`
         }
       </nav>
-    `;
+    ` : '';
 
     // 其他模板列表 - 显示同一项目下的其他模板（使用相对路径）
     const otherCategoriesHtml = `
@@ -930,12 +932,14 @@ class ModernHtmlGenerator {
         </div>
     </nav>
     
-    <!-- 面包屑导航 -->
+    <!-- 面包屑导航 - 只在有有效分类时显示 -->
+    ${breadcrumbHtml ? `
     <div class="breadcrumb">
         <div class="breadcrumb-container">
             ${breadcrumbHtml}
         </div>
     </div>
+    ` : ''}
     
     <!-- 主内容容器 -->
     <div class="main-container">
@@ -1168,52 +1172,172 @@ class EnhancedTemplateGenerator {
    * 获取所有可见分类的记录（批量模式 - 优化查询）
    */
   async fetchVisibleRecords() {
-    console.log('🔍 获取所有可见分类的记录（优化查询）...');
+    console.log('🔍 获取所有可见分类的记录（支持分页循环）...');
     
-    // 简化查询：直接从template_versions表获取记录，然后过滤
-    const { data, error } = await supabase
-      .from('template_versions')
-      .select(`
-        id,
-        project_id,
-        output_content_zh,
-        output_content_en,
-        templates:template_id (
-          name_zh,
-          name_en,
-          template_categories:category_id (
-            id,
+    let allVisibleRecords = [];
+    let totalRecords = 0;
+    let currentPage = 0;
+    const pageSize = 1000; // 每页1000条记录
+    
+    while (true) {
+      console.log(`📄 正在查询第 ${currentPage + 1} 页数据 (每页${pageSize}条)...`);
+      
+      // 简化查询：直接从template_versions表获取记录，然后过滤
+      const { data, error } = await supabase
+        .from('template_versions')
+        .select(`
+          id,
+          project_id,
+          output_content_zh,
+          output_content_en,
+          templates:template_id (
             name_zh,
             name_en,
-            isshow
+            template_categories:category_id (
+              id,
+              name_zh,
+              name_en,
+              isshow
+            )
           )
-        )
-      `)
-      .not('output_content_zh', 'is', null)
-      .not('output_content_en', 'is', null)
-      .limit(500); // 限制数量避免超时
+        `)
+        .not('output_content_zh', 'is', null)
+        .not('output_content_en', 'is', null)
+        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+        .order('created_at', { ascending: true }); // 按创建时间排序确保一致性
 
-    if (error) {
-      console.error('❌ 查询失败:', error.message);
-      throw error;
-    }
+      if (error) {
+        console.error('❌ 查询失败:', error.message);
+        throw error;
+      }
 
-    // 过滤可见分类的记录
-    const visibleRecords = [];
-    if (data && data.length > 0) {
+      // 如果没有数据了，退出循环
+      if (!data || data.length === 0) {
+        console.log(`✅ 第 ${currentPage + 1} 页无数据，查询完成`);
+        break;
+      }
+
+      console.log(`📊 第 ${currentPage + 1} 页查询到 ${data.length} 条记录`);
+      totalRecords += data.length;
+
+      // 过滤可见分类的记录
+      const pageVisibleRecords = [];
       data.forEach(record => {
         const category = record.templates?.template_categories;
         if (category && category.isshow === 1) {
-          visibleRecords.push(this.processRecordData(record));
+          pageVisibleRecords.push(this.processRecordData(record));
         }
       });
+
+      allVisibleRecords = allVisibleRecords.concat(pageVisibleRecords);
+      console.log(`✅ 第 ${currentPage + 1} 页筛选出 ${pageVisibleRecords.length} 条可见分类记录`);
+
+      // 如果返回的记录数少于pageSize，说明已经是最后一页
+      if (data.length < pageSize) {
+        console.log(`✅ 已到达最后一页，查询完成`);
+        break;
+      }
+
+      currentPage++;
     }
 
-    this.stats.total = data ? data.length : 0;
-    this.stats.visible = visibleRecords.length;
+    this.stats.total = totalRecords;
+    this.stats.visible = allVisibleRecords.length;
     
-    console.log(`✅ 查询到 ${this.stats.total} 条记录，其中 ${visibleRecords.length} 条属于可见分类`);
-    return visibleRecords;
+    console.log(`\n📊 分页查询完成统计:`);
+    console.log(`  总页数: ${currentPage + 1} 页`);
+    console.log(`  总记录数: ${totalRecords} 条`);
+    console.log(`  可见分类记录: ${allVisibleRecords.length} 条`);
+    console.log(`  筛选率: ${totalRecords > 0 ? (allVisibleRecords.length/totalRecords*100).toFixed(1) : 0}%`);
+    
+    return allVisibleRecords;
+  }
+
+  /**
+   * 获取cnhtmlpath为空的记录（新增方法）
+   */
+  async fetchEmptyPathRecords() {
+    console.log('🔍 获取cnhtmlpath为空的记录（支持分页循环）...');
+    
+    let allVisibleRecords = [];
+    let totalRecords = 0;
+    let currentPage = 0;
+    const pageSize = 1000; // 每页1000条记录
+    
+    while (true) {
+      console.log(`📄 正在查询第 ${currentPage + 1} 页数据 (每页${pageSize}条)...`);
+      
+      const { data, error } = await supabase
+        .from('template_versions')
+        .select(`
+          id,
+          project_id,
+          output_content_zh,
+          output_content_en,
+          cnhtmlpath,
+          enhtmlpath,
+          templates:template_id (
+            name_zh,
+            name_en,
+            template_categories:category_id (
+              id,
+              name_zh,
+              name_en,
+              isshow
+            )
+          )
+        `)
+        .not('output_content_zh', 'is', null)
+        .not('output_content_en', 'is', null)
+        .or('cnhtmlpath.is.null,cnhtmlpath.eq.') // cnhtmlpath为空或null
+        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+        .order('created_at', { ascending: true }); // 按创建时间排序确保一致性
+
+      if (error) {
+        console.error('❌ 查询失败:', error.message);
+        throw error;
+      }
+
+      // 如果没有数据了，退出循环
+      if (!data || data.length === 0) {
+        console.log(`✅ 第 ${currentPage + 1} 页无数据，查询完成`);
+        break;
+      }
+
+      console.log(`📊 第 ${currentPage + 1} 页查询到 ${data.length} 条记录`);
+      totalRecords += data.length;
+
+      // 过滤可见分类的记录
+      const pageVisibleRecords = [];
+      data.forEach(record => {
+        const category = record.templates?.template_categories;
+        if (category && category.isshow === 1) {
+          pageVisibleRecords.push(this.processRecordData(record));
+        }
+      });
+
+      allVisibleRecords = allVisibleRecords.concat(pageVisibleRecords);
+      console.log(`✅ 第 ${currentPage + 1} 页筛选出 ${pageVisibleRecords.length} 条可见分类记录`);
+
+      // 如果返回的记录数少于pageSize，说明已经是最后一页
+      if (data.length < pageSize) {
+        console.log(`✅ 已到达最后一页，查询完成`);
+        break;
+      }
+
+      currentPage++;
+    }
+
+    this.stats.total = totalRecords;
+    this.stats.visible = allVisibleRecords.length;
+    
+    console.log(`\n📊 分页查询完成统计:`);
+    console.log(`  总页数: ${currentPage + 1} 页`);
+    console.log(`  总记录数: ${totalRecords} 条`);
+    console.log(`  可见分类记录: ${allVisibleRecords.length} 条`);
+    console.log(`  筛选率: ${totalRecords > 0 ? (allVisibleRecords.length/totalRecords*100).toFixed(1) : 0}%`);
+    
+    return allVisibleRecords;
   }
 
   /**
@@ -1414,6 +1538,17 @@ class EnhancedTemplateGenerator {
     }
     
     try {
+      // 获取项目分类信息 - 提前检查
+      const projectInfo = await this.getProjectCategoryInfo(record.project_id);
+      
+      // 检查项目是否有有效分类信息，如果没有则跳过处理
+      if (projectInfo.category === '未知分类' || projectInfo.subcategory === '未知子分类') {
+        console.log(`⚠️  项目 ${record.project_id} 缺少有效分类信息，跳过处理`);
+        console.log(`   分类信息: ${projectInfo.category} / ${projectInfo.subcategory}`);
+        this.stats.emptyContent++;
+        return {};
+      }
+      
       // 检查输出目录是否存在（不强制创建）
       const outputDir = path.join('static-pages/pdhtml', record.project_id);
       try {
@@ -1423,9 +1558,6 @@ class EnhancedTemplateGenerator {
         console.log(`⚠️  项目目录不存在: ${outputDir}`);
         console.log(`📝 将尝试直接写入文件，如果失败请手动创建目录`);
       }
-      
-      // 获取项目分类信息
-      const projectInfo = await this.getProjectCategoryInfo(record.project_id);
       
       // 获取同一项目下的其他模板
       const otherTemplates = await this.getProjectTemplates(record.project_id, record.id);
@@ -1447,7 +1579,6 @@ class EnhancedTemplateGenerator {
         const title = record.templates.name_zh || '中文模板';
         const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'zh', templateData);
         
-        // 使用template_version_id作为文件名（record.id就是template_version_id）
         const filePath = path.join(outputDir, `${record.id}.html`);
         await fs.writeFile(filePath, html);
         generatedFiles.cnhtmlpath = path.relative(process.cwd(), filePath);
@@ -1461,7 +1592,6 @@ class EnhancedTemplateGenerator {
         const title = record.templates.name_en || 'English Template';
         const html = ModernHtmlGenerator.generate(title, title, '', htmlContent, 'en', templateData);
         
-        // 使用template_version_id作为文件名（record.id就是template_version_id）
         const filePath = path.join(outputDir, `${record.id}en.html`);
         await fs.writeFile(filePath, html);
         generatedFiles.enhtmlpath = path.relative(process.cwd(), filePath);
@@ -1511,7 +1641,7 @@ class EnhancedTemplateGenerator {
    */
   async run() {
     console.log('🚀 增强版模版静态页面生成器启动...');
-    console.log('版本: v2.0.0 | 集成: Mermaid突破技术 + 智能分类筛选');
+    console.log('版本: v2.2.0 | 新增: 分页循环查询 + cnhtmlpath为空记录处理');
     
     try {
       // 系统环境验证
@@ -1521,11 +1651,16 @@ class EnhancedTemplateGenerator {
       const args = process.argv.slice(2);
       const idIndex = args.indexOf('--id');
       const onlyId = idIndex !== -1 && args[idIndex + 1] ? args[idIndex + 1] : null;
+      const emptyPathMode = args.includes('--empty-path'); // 新增参数
+      
+      console.log(`📋 运行模式: ${onlyId ? '单记录模式' : emptyPathMode ? 'cnhtmlpath为空模式' : '全量模式'}`);
       
       // 获取数据
       let records;
       if (onlyId) {
         records = await this.fetchSingleRecord(onlyId);
+      } else if (emptyPathMode) {
+        records = await this.fetchEmptyPathRecords(); // 新增逻辑
       } else {
         records = await this.fetchVisibleRecords();
       }

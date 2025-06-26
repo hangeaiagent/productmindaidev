@@ -32,7 +32,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
     console.log(`📊 获取项目数据 - 分类: ${categoryCode || '全部'}, 搜索: ${search || '无'}, 语言: ${language}`);
 
-    // 构建查询，包含多语言字段
+    // 构建查询，包含多语言字段 - 只返回有分类信息的项目
     let query = supabase
       .from('user_projects')
       .select(`
@@ -51,6 +51,8 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       `)
       .not('name', 'is', null)
       .not('name', 'eq', '')
+      .not('primary_category_code', 'is', null)
+      .not('secondary_category_code', 'is', null)
       .order('created_at', { ascending: false });
 
     // 按分类筛选
@@ -92,12 +94,14 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       };
     }) || [];
 
-    // 获取总数（用于分页）
+    // 获取总数（用于分页） - 只统计有分类信息的项目
     let countQuery = supabase
       .from('user_projects')
       .select('id', { count: 'exact' })
       .not('name', 'is', null)
-      .not('name', 'eq', '');
+      .not('name', 'eq', '')
+      .not('primary_category_code', 'is', null)
+      .not('secondary_category_code', 'is', null);
 
     if (categoryCode) {
       countQuery = countQuery.or(`primary_category_code.eq.${categoryCode},secondary_category_code.eq.${categoryCode}`);

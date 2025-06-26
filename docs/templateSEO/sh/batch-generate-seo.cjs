@@ -1,8 +1,8 @@
 const dotenv = require('dotenv');
 const path = require('path');
 
-// Load environment variables from .env file
-dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Load environment variables from aws-backend/.env file (按照项目标准)
+dotenv.config({ path: path.resolve(__dirname, '../../../aws-backend/.env') });
 
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
@@ -10,14 +10,15 @@ const { generateProjectPage } = require('./generate-seo-pages.cjs');
 
 // Supabase配置 - 从环境变量获取
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 // 验证必需的环境变量
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ 错误: 缺少必需的环境变量');
   console.error('请设置以下环境变量:');
   console.error('- VITE_SUPABASE_URL');
-  console.error('- VITE_SUPABASE_ANON_KEY');
+  console.error('- VITE_SUPABASE_SERVICE_ROLE_KEY');
+  console.error('\n请检查环境变量文件: aws-backend/.env');
   process.exit(1);
 }
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -27,23 +28,53 @@ const OUTPUT_DIR = './static-pages';
 const MAX_CONCURRENT = 3; // 并发处理数量
 
 /**
- * 获取所有符合条件的项目
+ * 获取所有符合条件的项目（支持分页循环查询）
  */
 async function getEligibleProjects() {
   try {
-    console.log('🔍 查询符合条件的项目...');
+    console.log('🔍 查询符合条件的项目（支持分页循环）...');
     
-    const { data: projects, error } = await supabase
-      .from('user_projects')
-      .select('*')
-      .not('primary_category', 'is', null)
-      .order('created_at', { ascending: false });
+    let allProjects = [];
+    let currentPage = 0;
+    const pageSize = 1000; // 每页1000条记录
+    
+    while (true) {
+      console.log(`📄 正在查询第 ${currentPage + 1} 页数据 (每页${pageSize}条)...`);
+      
+      const { data: projects, error } = await supabase
+        .from('user_projects')
+        .select('*')
+        .not('primary_category', 'is', null)
+        .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      throw new Error(`查询项目失败: ${error.message}`);
+      if (error) {
+        throw new Error(`查询项目失败: ${error.message}`);
+      }
+
+      // 如果没有数据了，退出循环
+      if (!projects || projects.length === 0) {
+        console.log(`✅ 第 ${currentPage + 1} 页无数据，查询完成`);
+        break;
+      }
+
+      console.log(`📊 第 ${currentPage + 1} 页查询到 ${projects.length} 个项目`);
+      allProjects = allProjects.concat(projects);
+
+      // 如果返回的记录数少于pageSize，说明已经是最后一页
+      if (projects.length < pageSize) {
+        console.log(`✅ 已到达最后一页，查询完成`);
+        break;
+      }
+
+      currentPage++;
     }
 
-    return projects || [];
+    console.log(`\n📊 分页查询完成统计:`);
+    console.log(`  总页数: ${currentPage + 1} 页`);
+    console.log(`  总项目数: ${allProjects.length} 个`);
+    
+    return allProjects;
   } catch (error) {
     console.error('❌ 获取项目列表失败:', error);
     return [];
@@ -52,6 +83,7 @@ async function getEligibleProjects() {
 
 /**
  * 检查项目是否有模板内容
+ * 注意：此函数不屏蔽cnhtmlpath为空的数据，只检查是否有output_content_zh内容
  */
 async function hasTemplateContent(projectId) {
   try {
@@ -128,7 +160,8 @@ function generateReport(results) {
  * 主函数
  */
 async function main() {
-  console.log('🚀 开始批量生成SEO页面\n');
+  console.log('🚀 开始批量生成SEO页面');
+  console.log('版本: v2.0.0 | 新增: 分页循环查询 + 不屏蔽cnhtmlpath为空的数据\n');
 
   // 创建输出目录
   if (!fs.existsSync(OUTPUT_DIR)) {

@@ -5,15 +5,16 @@ const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
 // 环境变量配置
-require('dotenv').config({ path: 'aws-backend/.env' });
+require('dotenv').config({ path: '../../../aws-backend/.env' });
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 // 验证环境变量
 if (!supabaseUrl || !supabaseKey) {
   console.error('❌ 错误: 缺少必需的环境变量');
   console.error('请检查 aws-backend/.env 文件');
+  console.error('需要: VITE_SUPABASE_URL, VITE_SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
@@ -74,61 +75,86 @@ class CompleteSitemapGenerator {
     return urlEntry;
   }
 
-  // 获取数据库中的所有项目
+  // 获取数据库中的所有项目（支持分页循环查询）
   async fetchProjects() {
     try {
-      console.log('📊 从数据库获取项目数据...');
+      console.log('📊 从数据库获取项目数据（支持分页循环）...');
       
-      const { data: projects, error } = await supabase
-        .from('user_projects')
-        .select('id, name, description, primary_category, created_at')
-        .not('primary_category', 'is', null)
-        .order('created_at', { ascending: false });
+      let allProjects = [];
+      let currentPage = 0;
+      const pageSize = 1000; // 每页1000条记录
+      
+      while (true) {
+        console.log(`📄 正在查询第 ${currentPage + 1} 页数据 (每页${pageSize}条)...`);
+        
+        const { data: projects, error } = await supabase
+          .from('user_projects')
+          .select('id, name, description, primary_category, created_at')
+          .not('primary_category', 'is', null)
+          .range(currentPage * pageSize, (currentPage + 1) * pageSize - 1)
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ 数据库查询错误:', error);
-        return [];
+        if (error) {
+          console.error('❌ 数据库查询错误:', error);
+          return [];
+        }
+
+        // 如果没有数据了，退出循环
+        if (!projects || projects.length === 0) {
+          console.log(`✅ 第 ${currentPage + 1} 页无数据，查询完成`);
+          break;
+        }
+
+        console.log(`📊 第 ${currentPage + 1} 页查询到 ${projects.length} 个项目`);
+        allProjects = allProjects.concat(projects);
+
+        // 如果返回的记录数少于pageSize，说明已经是最后一页
+        if (projects.length < pageSize) {
+          console.log(`✅ 已到达最后一页，查询完成`);
+          break;
+        }
+
+        currentPage++;
       }
 
-      console.log(`✅ 获取到 ${projects.length} 个项目`);
-      return projects || [];
+      console.log(`\n📊 分页查询完成统计:`);
+      console.log(`  总页数: ${currentPage + 1} 页`);
+      console.log(`  总项目数: ${allProjects.length} 个`);
+      
+      return allProjects;
     } catch (error) {
       console.error('❌ 数据库连接错误:', error);
       return [];
     }
   }
 
-  // 获取远程静态页面列表
+  // 获取本地静态页面列表
   async fetchStaticPages() {
-    return new Promise((resolve) => {
-      const { spawn } = require('child_process');
-      const ssh = spawn('ssh', [
-        '-i', '/Users/a1/work/productmindai.pem',
-        'ec2-user@3.93.149.236',
-        'ls /home/productmindaidev/static-pages/pdhtml/'
-      ]);
-
-      let output = '';
-      ssh.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      ssh.on('close', (code) => {
-        if (code === 0) {
-          const pageIds = output.trim().split('\n').filter(id => id.trim().length > 0);
-          console.log(`✅ 获取到 ${pageIds.length} 个静态页面`);
-          resolve(pageIds);
-        } else {
-          console.error('❌ 获取静态页面列表失败');
-          resolve([]);
-        }
-      });
-
-      ssh.on('error', (error) => {
-        console.error('❌ SSH连接错误:', error);
-        resolve([]);
-      });
-    });
+    try {
+      console.log('📄 获取静态页面列表...');
+      
+      const fs = require('fs');
+      const staticPagesPath = 'static-pages/pdhtml';
+      
+      // 检查目录是否存在
+      if (!fs.existsSync(staticPagesPath)) {
+        console.log('⚠️ 静态页面目录不存在，跳过静态页面处理');
+        return [];
+      }
+      
+      // 读取目录列表
+      const pageIds = fs.readdirSync(staticPagesPath)
+        .filter(item => {
+          const fullPath = path.join(staticPagesPath, item);
+          return fs.statSync(fullPath).isDirectory();
+        });
+      
+      console.log(`✅ 获取到 ${pageIds.length} 个静态页面目录`);
+      return pageIds;
+    } catch (error) {
+      console.error('❌ 获取静态页面列表失败:', error.message);
+      return [];
+    }
   }
 
   // 生成基础页面URL
@@ -198,17 +224,48 @@ class CompleteSitemapGenerator {
   generateStaticPages(staticPageIds) {
     console.log('📄 生成静态SEO页面URL...');
     
+    let totalStaticUrls = 0;
+    
     staticPageIds.forEach(pageId => {
-      const staticUrl = this.generateUrlEntry(`${SITE_CONFIG.staticPagesPath}/${pageId}/index.html`, {
-        priority: '0.7',
-        changefreq: 'weekly'
-      });
-      this.allUrls.push(staticUrl);
-      // 静态页面主要是中文，也加入中文sitemap
-      this.zhUrls.push(staticUrl);
+      try {
+        const fs = require('fs');
+        const projectDir = path.join('static-pages/pdhtml', pageId);
+        
+        if (fs.existsSync(projectDir)) {
+          // 读取项目目录下的所有HTML文件
+          const htmlFiles = fs.readdirSync(projectDir)
+            .filter(file => file.endsWith('.html'));
+          
+          htmlFiles.forEach(htmlFile => {
+            // 生成中文页面URL
+            if (!htmlFile.endsWith('en.html')) {
+              const staticUrl = this.generateUrlEntry(`${SITE_CONFIG.staticPagesPath}/${pageId}/${htmlFile}`, {
+                priority: '0.7',
+                changefreq: 'weekly'
+              });
+              this.allUrls.push(staticUrl);
+              this.zhUrls.push(staticUrl);
+              totalStaticUrls++;
+            }
+            
+            // 生成英文页面URL
+            if (htmlFile.endsWith('en.html')) {
+              const staticUrl = this.generateUrlEntry(`${SITE_CONFIG.staticPagesPath}/${pageId}/${htmlFile}`, {
+                priority: '0.7',
+                changefreq: 'weekly'
+              });
+              this.allUrls.push(staticUrl);
+              this.enUrls.push(staticUrl);
+              totalStaticUrls++;
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`❌ 处理项目 ${pageId} 的静态页面失败:`, error.message);
+      }
     });
 
-    console.log(`✅ 生成了 ${staticPageIds.length} 个静态页面URL`);
+    console.log(`✅ 生成了 ${totalStaticUrls} 个静态页面URL`);
   }
 
   // 生成XML sitemap
