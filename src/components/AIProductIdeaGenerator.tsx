@@ -106,14 +106,17 @@ const AIProductIdeaGenerator: React.FC = () => {
   const t = content[language];
 
   const handleGenerate = async () => {
-    if (!requirement.trim()) {
-      toast.error(language === 'zh' ? '请输入您的产品需求' : 'Please enter your product requirements');
-      return;
-    }
+    if (!requirement.trim()) return;
 
     setIsLoading(true);
     try {
-      const response = await fetch('/.netlify/functions/generate-ai-product-analysis', {
+      // 使用aws-backend API
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isDevelopment 
+        ? 'http://localhost:3000/api/ai-product-analysis'
+        : 'http://3.93.149.236:3000/api/ai-product-analysis';
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

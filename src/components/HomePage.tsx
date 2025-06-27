@@ -176,6 +176,11 @@ const HomePage: React.FC = () => {
             {t.subtitle}
           </p>
           
+          {/* AI Product Idea Generator - 首屏显示 */}
+          <div className="mb-16">
+            <AIProductIdeaGenerator />
+          </div>
+          
           {/* Main Navigation Buttons */}
           <div className="flex flex-col md:flex-row gap-6 justify-center items-center max-w-4xl mx-auto">
             
@@ -256,10 +261,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Product Idea Generator */}
-        <div className="mt-20">
-          <AIProductIdeaGenerator />
-        </div>
+
 
         {/* Statistics */}
         <div className="bg-white rounded-3xl p-8 mt-16 shadow-lg border border-gray-100">

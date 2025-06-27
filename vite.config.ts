@@ -14,7 +14,16 @@ export default defineConfig({
       'localhost',
       'productmindai.com',
       'www.productmindai.com'
-    ]
+    ],
+    proxy: {
+      // 代理Netlify Functions到8888端口
+      '/.netlify/functions': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path
+      }
+    }
   },
   optimizeDeps: {
     exclude: ['lucide-react'],

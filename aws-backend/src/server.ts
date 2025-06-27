@@ -108,6 +108,400 @@ app.use('/health', healthRoutes);
 // 模板路由（不需要认证）
 app.use('/api/templates', templateRoutes);
 
+// AI产品分析路由（不需要认证）
+app.post('/api/ai-product-analysis', async (req, res) => {
+  try {
+    const { requirement, language = 'zh' } = req.body;
+
+    logger.info('收到AI产品分析请求', { 
+      requirement: requirement?.substring(0, 50) + '...', 
+      language 
+    });
+
+    if (!requirement || requirement.trim().length < 10) {
+      return res.status(400).json({
+        error: language === 'zh' ? '请输入至少10个字符的产品需求' : 'Please enter at least 10 characters for product requirement'
+      });
+    }
+
+    // 根据需求生成智能分析
+    const analysis = await generateProductAnalysis(requirement, language);
+
+    logger.info('AI产品分析完成', { 
+      title: analysis.minimumViableProduct.title,
+      modulesCount: analysis.developmentModules.length
+    });
+
+    res.json(analysis);
+
+  } catch (error: any) {
+    logger.error('AI产品分析失败:', error);
+    res.status(500).json({
+      error: req.body.language === 'zh' ? '分析失败，请重试' : 'Analysis failed, please try again'
+    });
+  }
+});
+
+// 分析函数实现
+interface AIProductAnalysis {
+  minimumViableProduct: {
+    title: string;
+    description: string;
+    coreFeatures: string[];
+    targetUsers: string[];
+    businessModel: string;
+  };
+  technicalSolution: {
+    recommendedModels: Array<{
+      name: string;
+      provider: string;
+      reason: string;
+      pricing: string;
+    }>;
+    keyAlgorithms: string[];
+    mcpTools: Array<{
+      name: string;
+      purpose: string;
+      implementation: string;
+    }>;
+    architecture: string[];
+  };
+  developmentModules: Array<{
+    moduleName: string;
+    functionality: string;
+    priority: 'High' | 'Medium' | 'Low';
+    estimatedTime: string;
+    cursorPrompts: {
+      fileName: string;
+      content: string;
+    }[];
+  }>;
+}
+
+async function generateProductAnalysis(requirement: string, language: 'en' | 'zh'): Promise<AIProductAnalysis> {
+  // 检测产品类型
+  const productType = detectProductType(requirement, language);
+  
+  // 如果配置了DEEPSEEK_API_KEY，尝试调用AI API
+  const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+  if (DEEPSEEK_API_KEY && DEEPSEEK_API_KEY.startsWith('sk-')) {
+    try {
+      const aiAnalysis = await callDeepSeekAPI(requirement, language);
+      if (aiAnalysis) {
+        return aiAnalysis;
+      }
+    } catch (error) {
+      logger.error('AI API调用失败，使用模板分析:', error);
+    }
+  }
+  
+  // 使用智能模板生成
+  return generateTemplateAnalysis(requirement, productType, language);
+}
+
+function detectProductType(requirement: string, language: 'en' | 'zh'): string {
+  const req = requirement.toLowerCase();
+  
+  // 检测关键词
+  if (req.includes('健身') || req.includes('fitness') || req.includes('运动') || req.includes('workout')) {
+    return 'fitness';
+  }
+  if (req.includes('教育') || req.includes('education') || req.includes('学习') || req.includes('learning')) {
+    return 'education';
+  }
+  if (req.includes('电商') || req.includes('商城') || req.includes('ecommerce') || req.includes('shopping')) {
+    return 'ecommerce';
+  }
+  if (req.includes('社交') || req.includes('social') || req.includes('聊天') || req.includes('chat')) {
+    return 'social';
+  }
+  if (req.includes('金融') || req.includes('finance') || req.includes('支付') || req.includes('payment')) {
+    return 'finance';
+  }
+  if (req.includes('医疗') || req.includes('health') || req.includes('医院') || req.includes('doctor')) {
+    return 'healthcare';
+  }
+  
+  return 'general';
+}
+
+async function callDeepSeekAPI(requirement: string, language: 'en' | 'zh'): Promise<AIProductAnalysis | null> {
+  try {
+    const prompt = buildPrompt(requirement, language);
+    
+    logger.info('调用DeepSeek API...');
+    
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`DeepSeek API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    // 尝试解析JSON响应
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      logger.info('DeepSeek API响应解析成功');
+      return parsed;
+    }
+    
+    return null;
+  } catch (error) {
+    logger.error('DeepSeek API调用失败:', error);
+    return null;
+  }
+}
+
+function buildPrompt(requirement: string, language: 'en' | 'zh'): string {
+  if (language === 'zh') {
+    return `
+作为专业的AI产品经理，请分析以下产品需求并以JSON格式返回详细分析：
+
+需求：${requirement}
+
+请返回包含以下结构的JSON：
+{
+  "minimumViableProduct": {
+    "title": "产品标题",
+    "description": "产品描述",
+    "coreFeatures": ["功能1", "功能2", "功能3", "功能4"],
+    "targetUsers": ["用户群1", "用户群2", "用户群3"],
+    "businessModel": "商业模式描述"
+  },
+  "technicalSolution": {
+    "recommendedModels": [{"name": "模型名", "provider": "提供商", "reason": "选择理由", "pricing": "价格"}],
+    "keyAlgorithms": ["算法1", "算法2", "算法3", "算法4"],
+    "mcpTools": [{"name": "工具名", "purpose": "用途", "implementation": "实现方式"}],
+    "architecture": ["架构组件1", "架构组件2", "架构组件3", "架构组件4"]
+  },
+  "developmentModules": [
+    {
+      "moduleName": "模块名",
+      "functionality": "功能描述",
+      "priority": "High",
+      "estimatedTime": "开发时间",
+      "cursorPrompts": [{"fileName": "文件名.md", "content": "详细的Cursor提示词内容，包含具体的开发指导"}]
+    }
+  ]
+}`;
+  } else {
+    return `
+As a professional AI product manager, please analyze the following product requirement and return detailed analysis in JSON format:
+
+Requirement: ${requirement}
+
+Please return JSON with the following structure:
+{
+  "minimumViableProduct": {
+    "title": "Product Title",
+    "description": "Product Description", 
+    "coreFeatures": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
+    "targetUsers": ["User Group 1", "User Group 2", "User Group 3"],
+    "businessModel": "Business Model Description"
+  },
+  "technicalSolution": {
+    "recommendedModels": [{"name": "Model Name", "provider": "Provider", "reason": "Selection Reason", "pricing": "Pricing"}],
+    "keyAlgorithms": ["Algorithm 1", "Algorithm 2", "Algorithm 3", "Algorithm 4"],
+    "mcpTools": [{"name": "Tool Name", "purpose": "Purpose", "implementation": "Implementation"}],
+    "architecture": ["Architecture Component 1", "Architecture Component 2", "Architecture Component 3", "Architecture Component 4"]
+  },
+  "developmentModules": [
+    {
+      "moduleName": "Module Name",
+      "functionality": "Functionality Description",
+      "priority": "High",
+      "estimatedTime": "Development Time",
+      "cursorPrompts": [{"fileName": "filename.md", "content": "Detailed Cursor prompt content with specific development guidance"}]
+    }
+  ]
+}`;
+  }
+}
+
+function generateTemplateAnalysis(requirement: string, productType: string, language: 'en' | 'zh'): AIProductAnalysis {
+  // 获取产品类型相关的模板
+  const template = getProductTemplate(productType, language);
+  
+  // 基于需求定制化模板
+  return customizeTemplate(template, requirement, language);
+}
+
+function getProductTemplate(productType: string, language: 'en' | 'zh') {
+  const templates = {
+    fitness: language === 'zh' ? {
+      title: 'AI智能健身助手',
+      description: '基于人工智能的个性化健身指导平台，通过用户数据分析提供定制化训练方案',
+      features: ['个性化训练计划生成', 'AI动作识别与纠正', '健康数据智能分析', '社区互动与挑战', '营养建议系统'],
+      users: ['健身爱好者', '健身初学者', '专业运动员', '健身教练'],
+      businessModel: '免费基础版 + 高级订阅制 + 个人教练服务'
+    } : {
+      title: 'AI Smart Fitness Coach',
+      description: 'AI-powered personalized fitness guidance platform with data-driven training recommendations',
+      features: ['Personalized Training Plans', 'AI Motion Recognition', 'Health Data Analytics', 'Community Challenges', 'Nutrition Guidance'],
+      users: ['Fitness Enthusiasts', 'Beginners', 'Professional Athletes', 'Fitness Trainers'],
+      businessModel: 'Freemium + Premium Subscription + Personal Training Services'
+    },
+    
+    education: language === 'zh' ? {
+      title: 'AI智能学习平台',
+      description: '个性化AI教育解决方案，提供智能化学习路径和个性化教学内容',
+      features: ['智能课程推荐', '学习进度实时跟踪', 'AI答疑助手', '互动式练习', '学习效果评估'],
+      users: ['在校学生', '教师', '终身学习者', '企业培训'],
+      businessModel: '按课程付费 + 订阅制 + 企业定制服务'
+    } : {
+      title: 'AI Smart Learning Platform',
+      description: 'Personalized AI education solution with intelligent learning paths and adaptive content',
+      features: ['Smart Course Recommendations', 'Real-time Progress Tracking', 'AI Q&A Assistant', 'Interactive Exercises', 'Learning Analytics'],
+      users: ['Students', 'Teachers', 'Lifelong Learners', 'Corporate Training'],
+      businessModel: 'Pay-per-Course + Subscription + Enterprise Solutions'
+    },
+    
+    general: language === 'zh' ? {
+      title: 'AI智能产品助手',
+      description: '基于用户需求的智能解决方案，提供全方位的AI驱动功能',
+      features: ['智能需求分析', '个性化推荐引擎', '数据洞察面板', '自动化流程处理', '多模态交互'],
+      users: ['普通消费者', '专业用户', '企业客户', '开发者'],
+      businessModel: '免费试用 + 高级订阅 + 企业定制'
+    } : {
+      title: 'AI Smart Product Assistant',
+      description: 'Intelligent solution based on user requirements with comprehensive AI-driven features',
+      features: ['Smart Requirements Analysis', 'Personalized Recommendations', 'Data Insights Dashboard', 'Automated Processing', 'Multi-modal Interaction'],
+      users: ['General Consumers', 'Professional Users', 'Enterprise Clients', 'Developers'],
+      businessModel: 'Free Trial + Premium Subscription + Enterprise Custom'
+    }
+  };
+  
+  return templates[productType as keyof typeof templates] || templates.general;
+}
+
+function customizeTemplate(template: any, requirement: string, language: 'en' | 'zh'): AIProductAnalysis {
+  const isZh = language === 'zh';
+  
+  return {
+    minimumViableProduct: {
+      title: template.title,
+      description: template.description,
+      coreFeatures: template.features,
+      targetUsers: template.users,
+      businessModel: template.businessModel
+    },
+    technicalSolution: {
+      recommendedModels: [
+        {
+          name: 'GPT-4o',
+          provider: 'OpenAI',
+          reason: isZh ? '最新一代多模态模型，支持文本、图像、音频处理，推理能力强' : 'Latest multimodal model supporting text, image, audio with strong reasoning',
+          pricing: '$0.0025/1K input tokens, $0.01/1K output tokens'
+        },
+        {
+          name: 'Claude-3.5 Sonnet',
+          provider: 'Anthropic',
+          reason: isZh ? '安全性高，长上下文处理能力强，适合复杂业务逻辑' : 'High safety, excellent long context handling, suitable for complex business logic',
+          pricing: '$0.003/1K input tokens, $0.015/1K output tokens'
+        },
+        {
+          name: 'DeepSeek-V2.5',
+          provider: 'DeepSeek',
+          reason: isZh ? '成本效益最优，中文支持优秀，推理能力突出' : 'Most cost-effective, excellent Chinese support, outstanding reasoning',
+          pricing: '¥0.0014/1K tokens (约$0.0002)'
+        }
+      ],
+      keyAlgorithms: [
+        isZh ? '大语言模型 (LLM)' : 'Large Language Models (LLM)',
+        isZh ? '强化学习 (RLHF)' : 'Reinforcement Learning (RLHF)',
+        isZh ? '向量相似度检索 (RAG)' : 'Retrieval Augmented Generation (RAG)',
+        isZh ? '多模态融合算法' : 'Multimodal Fusion Algorithms',
+        isZh ? '个性化推荐算法' : 'Personalized Recommendation Algorithms'
+      ],
+      mcpTools: [
+        {
+          name: 'Database MCP',
+          purpose: isZh ? '数据库操作和数据管理' : 'Database operations and data management',
+          implementation: isZh ? '支持MySQL, PostgreSQL, Redis等多种数据库的统一操作接口' : 'Unified interface for MySQL, PostgreSQL, Redis and other databases'
+        },
+        {
+          name: 'Web Search MCP',
+          purpose: isZh ? '实时网络信息搜索' : 'Real-time web information search',
+          implementation: isZh ? '集成多个搜索引擎API，提供实时信息检索能力' : 'Integrate multiple search engine APIs for real-time information retrieval'
+        },
+        {
+          name: 'File Processing MCP',
+          purpose: isZh ? '文件处理和格式转换' : 'File processing and format conversion',
+          implementation: isZh ? '支持PDF、Word、Excel等多种格式的读取、编辑和转换' : 'Support reading, editing and converting PDF, Word, Excel and other formats'
+        }
+      ],
+      architecture: [
+        isZh ? '前端应用层 (React + TypeScript + Tailwind)' : 'Frontend Layer (React + TypeScript + Tailwind)',
+        isZh ? '网关和负载均衡 (Nginx + PM2)' : 'Gateway & Load Balancer (Nginx + PM2)',
+        isZh ? 'API服务层 (Node.js + Express)' : 'API Service Layer (Node.js + Express)',
+        isZh ? 'AI模型接入层 (多模型管理)' : 'AI Model Integration Layer (Multi-model Management)',
+        isZh ? '数据存储层 (PostgreSQL + Redis)' : 'Data Storage Layer (PostgreSQL + Redis)',
+        isZh ? '消息队列 (RabbitMQ/Bull)' : 'Message Queue (RabbitMQ/Bull)',
+        isZh ? '监控和日志系统 (Winston + Prometheus)' : 'Monitoring & Logging (Winston + Prometheus)'
+      ]
+    },
+    developmentModules: [
+      {
+        moduleName: isZh ? '前端用户界面模块' : 'Frontend UI Module',
+        functionality: isZh ? '负责用户界面设计、交互逻辑和用户体验优化，包含响应式设计和多设备适配' : 'Responsible for UI design, interaction logic and UX optimization, including responsive design and multi-device adaptation',
+        priority: 'High',
+        estimatedTime: isZh ? '3-4周' : '3-4 weeks',
+        cursorPrompts: [
+          {
+            fileName: 'react-components-development.md',
+            content: isZh ? 
+              `# React组件开发指南\n\n## 项目概述\n创建现代化的React应用，使用TypeScript确保类型安全，Tailwind CSS实现响应式设计。\n\n## 技术栈要求\n- **框架**: React 18+ with TypeScript\n- **样式**: Tailwind CSS + HeadlessUI\n- **状态管理**: React Context + useReducer\n- **路由**: React Router v6\n- **表单**: React Hook Form + Zod验证\n- **HTTP客户端**: Axios with interceptors\n\n## 具体实现要求\n\n### 1. 基础组件库\n\`\`\`typescript\n// components/ui/Button.tsx\ninterface ButtonProps {\n  variant: 'primary' | 'secondary' | 'danger';\n  size: 'sm' | 'md' | 'lg';\n  loading?: boolean;\n  children: React.ReactNode;\n  onClick?: () => void;\n}\n\`\`\`\n\n### 2. 主题系统\n- 支持深色/浅色主题切换\n- 使用CSS变量管理颜色\n- 响应式断点配置\n\n### 3. 性能优化\n- 组件懒加载\n- 图片懒加载\n- 虚拟滚动（长列表）\n- React.memo优化重渲染` :
+              `# React Components Development Guide\n\n## Project Overview\nCreate a modern React application using TypeScript for type safety and Tailwind CSS for responsive design.\n\n## Tech Stack Requirements\n- **Framework**: React 18+ with TypeScript\n- **Styling**: Tailwind CSS + HeadlessUI\n- **State Management**: React Context + useReducer\n- **Routing**: React Router v6\n- **Forms**: React Hook Form + Zod validation\n- **HTTP Client**: Axios with interceptors\n\n## Implementation Requirements\n\n### 1. Base Component Library\n\`\`\`typescript\n// components/ui/Button.tsx\ninterface ButtonProps {\n  variant: 'primary' | 'secondary' | 'danger';\n  size: 'sm' | 'md' | 'lg';\n  loading?: boolean;\n  children: React.ReactNode;\n  onClick?: () => void;\n}\n\`\`\`\n\n### 2. Theme System\n- Support dark/light theme switching\n- Use CSS variables for color management\n- Responsive breakpoint configuration\n\n### 3. Performance Optimization\n- Component lazy loading\n- Image lazy loading\n- Virtual scrolling (long lists)\n- React.memo optimization`
+          }
+        ]
+      },
+      {
+        moduleName: isZh ? 'AI服务集成模块' : 'AI Service Integration Module',
+        functionality: isZh ? '实现与多种AI模型的集成，包括API调用管理、错误处理、结果缓存和智能路由' : 'Implement integration with multiple AI models, including API call management, error handling, result caching and intelligent routing',
+        priority: 'High',
+        estimatedTime: isZh ? '4-5周' : '4-5 weeks',
+        cursorPrompts: [
+          {
+            fileName: 'ai-service-architecture.md',
+            content: isZh ?
+              `# AI服务架构实现\n\n## 服务目标\n构建一个健壮、可扩展的AI服务管理系统，支持多模型接入和智能调度。\n\n## 核心功能\n\n### 1. 多模型管理器\n\`\`\`typescript\ninterface AIModelConfig {\n  name: string;\n  provider: 'openai' | 'anthropic' | 'deepseek';\n  apiKey: string;\n  baseURL: string;\n  maxTokens: number;\n  costPerToken: number;\n}\n\nclass AIModelManager {\n  private models: Map<string, AIModelConfig>;\n  \n  async callModel(modelName: string, prompt: string): Promise<string>;\n  async selectBestModel(task: AITask): Promise<string>;\n  async loadBalance(): Promise<string>;\n}\n\`\`\`\n\n### 2. 智能路由策略\n- **成本优化**: 根据token价格选择模型\n- **性能优化**: 根据响应时间选择\n- **功能匹配**: 根据任务类型选择最适合模型\n- **负载均衡**: 避免单一模型过载` :
+              `# AI Service Architecture Implementation\n\n## Service Goals\nBuild a robust, scalable AI service management system supporting multi-model integration and intelligent scheduling.\n\n## Core Features\n\n### 1. Multi-Model Manager\n\`\`\`typescript\ninterface AIModelConfig {\n  name: string;\n  provider: 'openai' | 'anthropic' | 'deepseek';\n  apiKey: string;\n  baseURL: string;\n  maxTokens: number;\n  costPerToken: number;\n}\n\nclass AIModelManager {\n  private models: Map<string, AIModelConfig>;\n  \n  async callModel(modelName: string, prompt: string): Promise<string>;\n  async selectBestModel(task: AITask): Promise<string>;\n  async loadBalance(): Promise<string>;\n}\n\`\`\`\n\n### 2. Intelligent Routing Strategy\n- **Cost Optimization**: Select model based on token pricing\n- **Performance Optimization**: Select based on response time\n- **Feature Matching**: Select most suitable model for task type\n- **Load Balancing**: Avoid single model overload`
+          }
+        ]
+      },
+      {
+        moduleName: isZh ? '数据管理与存储模块' : 'Data Management & Storage Module',
+        functionality: isZh ? '处理数据存储、查询优化、备份恢复和数据安全，确保系统的数据可靠性' : 'Handle data storage, query optimization, backup recovery and data security to ensure system data reliability',
+        priority: 'Medium',
+        estimatedTime: isZh ? '3-4周' : '3-4 weeks',
+        cursorPrompts: [
+          {
+            fileName: 'database-design-implementation.md',
+            content: isZh ?
+              `# 数据库设计与实现\n\n## 数据库架构设计\n\n### 1. 核心表结构设计\n\`\`\`sql\n-- 用户表\nCREATE TABLE users (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  email VARCHAR(255) UNIQUE NOT NULL,\n  password_hash VARCHAR(255),\n  name VARCHAR(100),\n  created_at TIMESTAMP DEFAULT NOW()\n);\n\n-- 产品分析记录表\nCREATE TABLE product_analyses (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID REFERENCES users(id),\n  requirement TEXT NOT NULL,\n  analysis_result JSONB NOT NULL,\n  language VARCHAR(5) DEFAULT 'zh',\n  created_at TIMESTAMP DEFAULT NOW()\n);\n\`\`\`\n\n### 2. 索引优化策略\n\`\`\`sql\n-- 性能优化索引\nCREATE INDEX idx_users_email ON users(email);\nCREATE INDEX idx_product_analyses_user_id ON product_analyses(user_id);\nCREATE INDEX idx_analysis_result_gin ON product_analyses USING GIN(analysis_result);\n\`\`\`` :
+              `# Database Design & Implementation\n\n## Database Architecture Design\n\n### 1. Core Table Structure Design\n\`\`\`sql\n-- Users table\nCREATE TABLE users (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  email VARCHAR(255) UNIQUE NOT NULL,\n  password_hash VARCHAR(255),\n  name VARCHAR(100),\n  created_at TIMESTAMP DEFAULT NOW()\n);\n\n-- Product analysis records table\nCREATE TABLE product_analyses (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID REFERENCES users(id),\n  requirement TEXT NOT NULL,\n  analysis_result JSONB NOT NULL,\n  language VARCHAR(5) DEFAULT 'zh',\n  created_at TIMESTAMP DEFAULT NOW()\n);\n\`\`\`\n\n### 2. Index Optimization Strategy\n\`\`\`sql\n-- Performance optimization indexes\nCREATE INDEX idx_users_email ON users(email);\nCREATE INDEX idx_product_analyses_user_id ON product_analyses(user_id);\nCREATE INDEX idx_analysis_result_gin ON product_analyses USING GIN(analysis_result);\n\`\`\``
+          }
+        ]
+      }
+    ]
+  };
+}
+
 // 错误处理中间件
 app.use(errorHandler);
 
