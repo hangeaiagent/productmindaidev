@@ -549,12 +549,17 @@ app.post('/api/ai-product-analysis-stream', async (req, res) => {
         message: language === 'zh' ? '分析完成！' : 'Analysis completed!'
       });
 
+      // 发送结束信号
+      res.write('data: [DONE]\n\n');
+
     } catch (error) {
       console.error('❌ 流式分析过程出错:', error);
       sendData({
         type: 'error',
         message: language === 'zh' ? '分析过程中出现错误，请稍后重试' : 'Error occurred during analysis, please try again later'
       });
+      // 即使出错也要发送结束信号
+      res.write('data: [DONE]\n\n');
     }
 
     res.end();

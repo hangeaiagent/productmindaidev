@@ -179,7 +179,7 @@ const HomePage: React.FC = () => {
           
           {/* AI Product Idea Generator - 首屏显示 */}
           <div className="mb-16">
-            <AIProductIdeaGenerator />
+            <AIProductIdeaGenerator key="ai-product-generator" />
           </div>
           
           {/* Main Navigation Buttons */}
