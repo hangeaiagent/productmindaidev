@@ -500,67 +500,67 @@ const AIProductIdeaGenerator: React.FC = () => {
                 {t.techSolutionTitle}
                 {streamingMode && <CheckCircle className="w-5 h-5 text-green-500 ml-2" />}
               </h3>
-            
-            <div className="space-y-6">
-              {/* Recommended Models */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">{t.recommendedModels}</h4>
-                <div className="grid gap-3">
-                  {analysis.technicalSolution.recommendedModels.map((model, index) => (
-                    <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
-                      <div className="flex justify-between items-start mb-2">
-                        <h5 className="font-medium text-gray-800">{model.name}</h5>
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                          {model.provider}
-                        </span>
+              
+              <div className="space-y-6">
+                {/* Recommended Models */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">{t.recommendedModels}</h4>
+                  <div className="grid gap-3">
+                    {analysis.technicalSolution.recommendedModels.map((model, index) => (
+                      <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <h5 className="font-medium text-gray-800">{model.name}</h5>
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                            {model.provider}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{model.reason}</p>
+                        <p className="text-xs text-gray-500">{model.pricing}</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{model.reason}</p>
-                      <p className="text-xs text-gray-500">{model.pricing}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Key Algorithms */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">{t.keyAlgorithms}</h4>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.technicalSolution.keyAlgorithms.map((algorithm, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                      {algorithm}
-                    </span>
-                  ))}
+                {/* Key Algorithms */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">{t.keyAlgorithms}</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.technicalSolution.keyAlgorithms.map((algorithm, index) => (
+                      <span key={index} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                        {algorithm}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* MCP Tools */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">{t.mcpTools}</h4>
-                <div className="grid gap-3">
-                  {analysis.technicalSolution.mcpTools.map((tool, index) => (
-                    <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
-                      <h5 className="font-medium text-gray-800 mb-1">{tool.name}</h5>
-                      <p className="text-sm text-gray-600 mb-2">{tool.purpose}</p>
-                      <p className="text-xs text-gray-500">{tool.implementation}</p>
-                    </div>
-                  ))}
+                {/* MCP Tools */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">{t.mcpTools}</h4>
+                  <div className="grid gap-3">
+                    {analysis.technicalSolution.mcpTools.map((tool, index) => (
+                      <div key={index} className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h5 className="font-medium text-gray-800 mb-1">{tool.name}</h5>
+                        <p className="text-sm text-gray-600 mb-2">{tool.purpose}</p>
+                        <p className="text-xs text-gray-500">{tool.implementation}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Architecture */}
-              <div>
-                <h4 className="font-semibold text-gray-800 mb-3">{t.architecture}</h4>
-                <div className="space-y-2">
-                  {analysis.technicalSolution.architecture.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Settings className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-600">{item}</span>
-                    </div>
-                  ))}
+                {/* Architecture */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3">{t.architecture}</h4>
+                  <div className="space-y-2">
+                    {analysis.technicalSolution.architecture.map((item, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Settings className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
           )}
 
           {/* Development Modules Section */}
