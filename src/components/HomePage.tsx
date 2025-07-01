@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Database, Globe, BarChart3, Github, LogIn, UserPlus, Languages } from 'lucide-react';
 import AIProductIdeaGenerator from './AIProductIdeaGenerator';
+import { useAppContext } from '../context/AppContext';
 
 interface Content {
   [key: string]: {
@@ -11,7 +12,7 @@ interface Content {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const [language, setLanguage] = useState<'en' | 'zh'>('en'); // 默认英文
+  const { language, setLanguage } = useAppContext();
 
   // 多语言内容
   const content: Content = {

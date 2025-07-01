@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lightbulb, Cpu, Code, Download, Loader2, Sparkles, Settings, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAppContext } from '../context/AppContext';
 
 interface AIProductAnalysis {
   minimumViableProduct: {
@@ -47,7 +48,9 @@ const AIProductIdeaGenerator: React.FC = () => {
   const [requirement, setRequirement] = useState('');
   const [analysis, setAnalysis] = useState<AIProductAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'zh'>('zh');
+  
+  // 使用全局语言状态
+  const { language } = useAppContext();
 
   // 多语言内容
   const content: Content = {
