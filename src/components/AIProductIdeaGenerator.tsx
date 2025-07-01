@@ -114,7 +114,7 @@ const AIProductIdeaGenerator: React.FC = () => {
       const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isDevelopment 
         ? 'http://localhost:3000/api/ai-product-analysis'
-        : 'http://3.93.149.236:3000/api/ai-product-analysis';
+        : '/api/ai-product-analysis';
       
       const response = await fetch(apiUrl, {
         method: 'POST',

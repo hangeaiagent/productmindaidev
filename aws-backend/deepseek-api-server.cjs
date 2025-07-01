@@ -22,7 +22,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// DeepSeek API调用函数
+// DeepSeek API调用函数（优化版本，带超时控制）
 async function callDeepSeekAPI(prompt, language = 'zh') {
   const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
   
@@ -33,6 +33,11 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
 
   try {
     console.log('🤖 调用DeepSeek R1 API...');
+    
+    // 创建超时控制器
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5分钟超时
+    
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -45,8 +50,8 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
           {
             role: 'system',
             content: language === 'zh' ? 
-              '你是一个专业的AI产品分析师和技术架构师。请根据用户提供的产品需求，生成详细的产品分析报告，包括最小可行产品(MVP)建议、AI技术解决方案和开发模块分解。请严格按照JSON格式返回结果，确保结果可以直接解析。' :
-              'You are a professional AI product analyst and technical architect. Generate detailed product analysis reports based on user requirements, including MVP recommendations, AI technical solutions, and development module breakdown. Return results in strict JSON format.'
+              '你是一个专业的AI产品分析师和技术架构师。请根据用户提供的产品需求，生成详细的产品分析报告，包括最小可行产品(MVP)建议、AI技术解决方案和开发模块分解。请严格按照JSON格式返回结果，确保结果可以直接解析。回复要简洁但完整。' :
+              'You are a professional AI product analyst and technical architect. Generate detailed product analysis reports based on user requirements, including MVP recommendations, AI technical solutions, and development module breakdown. Return results in strict JSON format. Keep responses concise but complete.'
           },
           {
             role: 'user',
@@ -54,10 +59,13 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
           }
         ],
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 3000, // 减少token数量以提高响应速度
         response_format: { type: "json_object" }
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -68,7 +76,11 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
     console.log('✅ DeepSeek API响应成功');
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('❌ DeepSeek API调用失败:', error.message);
+    if (error.name === 'AbortError') {
+      console.error('❌ DeepSeek API调用超时（5分钟）');
+    } else {
+      console.error('❌ DeepSeek API调用失败:', error.message);
+    }
     return null;
   }
 }
