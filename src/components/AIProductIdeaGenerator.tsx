@@ -207,9 +207,9 @@ const AIProductIdeaGenerator: React.FC = () => {
   };
 
   const handleProgressUpdate = (progressData: any, partialAnalysis: Partial<AIProductAnalysis>) => {
-    const { step, data, progress } = progressData;
+    const { type, step, message, progress, data } = progressData;
     
-    setCurrentProgress(progress);
+    setCurrentProgress(progress || 0);
 
     // 更新进度步骤
     setProgressSteps(prev => {
@@ -220,15 +220,15 @@ const AIProductIdeaGenerator: React.FC = () => {
         newSteps[existingIndex] = {
           ...newSteps[existingIndex],
           completed: step.includes('_complete'),
-          progress,
+          progress: progress || 0,
           data
         };
       } else {
         newSteps.push({
           step,
-          message: data.message || '',
+          message: message || (data && typeof data === 'object' && data.message) || '',
           completed: step.includes('_complete'),
-          progress,
+          progress: progress || 0,
           data
         });
       }
@@ -237,16 +237,16 @@ const AIProductIdeaGenerator: React.FC = () => {
     });
 
     // 根据步骤更新分析结果
-    if (step === 'mvp_complete') {
-      partialAnalysis.minimumViableProduct = data;
-      setAnalysis(prev => ({ ...prev, minimumViableProduct: data } as AIProductAnalysis));
-    } else if (step === 'tech_complete') {
-      partialAnalysis.technicalSolution = data;
-      setAnalysis(prev => ({ ...prev, technicalSolution: data } as AIProductAnalysis));
-    } else if (step === 'modules_complete') {
-      partialAnalysis.developmentModules = data;
-      setAnalysis(prev => ({ ...prev, developmentModules: data } as AIProductAnalysis));
-    } else if (step === 'complete') {
+    if (step === 'mvp_complete' && data) {
+      partialAnalysis.minimumViableProduct = data.minimumViableProduct || data;
+      setAnalysis(prev => ({ ...prev, minimumViableProduct: data.minimumViableProduct || data } as AIProductAnalysis));
+    } else if (step === 'tech_complete' && data) {
+      partialAnalysis.technicalSolution = data.technicalSolution || data;
+      setAnalysis(prev => ({ ...prev, technicalSolution: data.technicalSolution || data } as AIProductAnalysis));
+    } else if (step === 'modules_complete' && data) {
+      partialAnalysis.developmentModules = data.developmentModules || data;
+      setAnalysis(prev => ({ ...prev, developmentModules: data.developmentModules || data } as AIProductAnalysis));
+    } else if (step === 'complete' && data) {
       setAnalysis(data);
     }
   };

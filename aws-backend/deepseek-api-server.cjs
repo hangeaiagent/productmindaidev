@@ -32,11 +32,11 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
   }
 
   try {
-    console.log('🤖 调用DeepSeek R1 API...');
+    console.log('🤖 调用DeepSeek Chat API...');
     
     // 创建超时控制器
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5分钟超时
+    const timeoutId = setTimeout(() => controller.abort(), 120000); // 2分钟超时
     
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
@@ -45,21 +45,21 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
         'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'deepseek-reasoner',
+        model: 'deepseek-chat', // 改为更稳定的deepseek-chat
         messages: [
           {
             role: 'system',
             content: language === 'zh' ? 
-              '你是一个专业的AI产品分析师和技术架构师。请根据用户提供的产品需求，生成详细的产品分析报告，包括最小可行产品(MVP)建议、AI技术解决方案和开发模块分解。请严格按照JSON格式返回结果，确保结果可以直接解析。回复要简洁但完整。' :
-              'You are a professional AI product analyst and technical architect. Generate detailed product analysis reports based on user requirements, including MVP recommendations, AI technical solutions, and development module breakdown. Return results in strict JSON format. Keep responses concise but complete.'
+              '你是一个专业的AI产品分析师和技术架构师。请根据用户提供的产品需求，生成详细的产品分析报告。请严格按照JSON格式返回结果，确保结果可以直接解析。回复要简洁但完整。' :
+              'You are a professional AI product analyst and technical architect. Generate detailed product analysis reports based on user requirements. Return results in strict JSON format. Keep responses concise but complete.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 3000, // 减少token数量以提高响应速度
+        temperature: 0.3, // 降低随机性提高JSON格式稳定性
+        max_tokens: 1500, // 减少token数量以提高响应速度和稳定性
         response_format: { type: "json_object" }
       }),
       signal: controller.signal
@@ -73,11 +73,11 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
     }
 
     const data = await response.json();
-    console.log('✅ DeepSeek API响应成功');
+    console.log('✅ DeepSeek Chat API响应成功');
     return data.choices[0].message.content;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.error('❌ DeepSeek API调用超时（5分钟）');
+      console.error('❌ DeepSeek API调用超时（2分钟）');
     } else {
       console.error('❌ DeepSeek API调用失败:', error.message);
     }
@@ -85,540 +85,182 @@ async function callDeepSeekAPI(prompt, language = 'zh') {
   }
 }
 
-// 生成DeepSeek提示词
-function generateDeepSeekPrompt(inputText, language = 'zh') {
+// 生成分步骤DeepSeek提示词
+function generateMVPPrompt(inputText, language = 'zh') {
   if (language === 'zh') {
     return `
-请分析以下AI产品需求，并生成详细的产品分析报告：
+请分析以下AI产品需求，并生成最小可行产品(MVP)建议：
 
 【产品需求】：
 ${inputText}
 
-请按照以下JSON格式返回分析结果（必须是有效的JSON格式）：
+请按照以下JSON格式返回MVP分析结果：
 
 {
-  "minimumViableProduct": {
-    "title": "产品标题",
-    "description": "产品详细描述（100-200字）",
-    "coreFeatures": ["核心功能1", "核心功能2", "核心功能3", "核心功能4", "核心功能5"],
-    "targetUsers": ["目标用户群体1", "目标用户群体2", "目标用户群体3"],
-    "businessModel": "商业模式描述"
-  },
-  "technicalSolution": {
-    "recommendedModels": [
-      {
-        "name": "推荐的AI模型名称",
-        "provider": "提供商",
-        "reason": "推荐理由",
-        "pricing": "定价信息"
-      }
-    ],
-    "keyAlgorithms": ["关键算法1", "关键算法2", "关键算法3"],
-    "mcpTools": [
-      {
-        "name": "MCP工具名称",
-        "purpose": "用途说明",
-        "implementation": "实现方式"
-      }
-    ],
-    "architecture": ["架构组件1", "架构组件2", "架构组件3"]
-  },
-  "developmentModules": [
-    {
-      "moduleName": "模块名称",
-      "functionality": "功能描述",
-      "priority": "High",
-      "estimatedTime": "预估开发时间",
-      "cursorPrompts": [
-        {
-          "fileName": "文件名.md",
-          "content": "详细的Cursor开发提示词内容"
-        }
-      ]
-    }
-  ]
+  "title": "产品标题",
+  "description": "产品详细描述（100-200字）",
+  "coreFeatures": ["核心功能1", "核心功能2", "核心功能3", "核心功能4", "核心功能5"],
+  "targetUsers": ["目标用户群体1", "目标用户群体2", "目标用户群体3"],
+  "businessModel": "商业模式描述"
 }
 
 要求：
 1. 根据产品需求的具体内容进行个性化分析
-2. 推荐最适合的AI模型和技术栈
-3. 提供实用的开发指导和Cursor提示词
-4. 结果必须是有效的JSON格式，不要包含任何其他文本
+2. 结果必须是有效的JSON格式，不要包含任何其他文本
 `;
   } else {
     return `
-Please analyze the following AI product requirements and generate a detailed product analysis report:
+Please analyze the following AI product requirements and generate Minimum Viable Product (MVP) recommendations:
 
 【Product Requirements】：
 ${inputText}
 
-Please return the analysis results in the following JSON format (must be valid JSON):
+Please return the MVP analysis results in the following JSON format:
 
 {
-  "minimumViableProduct": {
-    "title": "Product Title",
-    "description": "Detailed product description (100-200 words)",
-    "coreFeatures": ["Core Feature 1", "Core Feature 2", "Core Feature 3", "Core Feature 4", "Core Feature 5"],
-    "targetUsers": ["Target User Group 1", "Target User Group 2", "Target User Group 3"],
-    "businessModel": "Business model description"
-  },
-  "technicalSolution": {
-    "recommendedModels": [
-      {
-        "name": "Recommended AI Model Name",
-        "provider": "Provider",
-        "reason": "Recommendation reason",
-        "pricing": "Pricing information"
-      }
-    ],
-    "keyAlgorithms": ["Key Algorithm 1", "Key Algorithm 2", "Key Algorithm 3"],
-    "mcpTools": [
-      {
-        "name": "MCP Tool Name",
-        "purpose": "Purpose description",
-        "implementation": "Implementation approach"
-      }
-    ],
-    "architecture": ["Architecture Component 1", "Architecture Component 2", "Architecture Component 3"]
-  },
-  "developmentModules": [
-    {
-      "moduleName": "Module Name",
-      "functionality": "Functionality description",
-      "priority": "High",
-      "estimatedTime": "Estimated development time",
-      "cursorPrompts": [
-        {
-          "fileName": "filename.md",
-          "content": "Detailed Cursor development prompt content"
-        }
-      ]
-    }
-  ]
+  "title": "Product Title",
+  "description": "Detailed product description (100-200 words)",
+  "coreFeatures": ["Core Feature 1", "Core Feature 2", "Core Feature 3", "Core Feature 4", "Core Feature 5"],
+  "targetUsers": ["Target User Group 1", "Target User Group 2", "Target User Group 3"],
+  "businessModel": "Business model description"
 }
 
 Requirements:
 1. Personalized analysis based on specific product requirements
-2. Recommend the most suitable AI models and tech stack
-3. Provide practical development guidance and Cursor prompts
-4. Results must be in valid JSON format only
+2. Results must be in valid JSON format only
 `;
   }
 }
 
-// AI产品分析API
-app.post('/api/ai-product-analysis', async (req, res) => {
-  try {
-    const { requirement, description, language = 'zh' } = req.body;
-    
-    // 兼容两种参数名称
-    const inputText = requirement || description;
+function generateTechPrompt(inputText, language = 'zh') {
+  if (language === 'zh') {
+    return `
+请为以下AI产品需求分析技术解决方案：
 
-    console.log('🔍 收到AI产品分析请求:', { 
-      requirement: inputText?.substring(0, 100) + '...', 
-      language,
-      timestamp: new Date().toISOString()
-    });
+【产品需求】：
+${inputText}
 
-    if (!inputText || inputText.trim().length < 10) {
-      return res.status(400).json({
-        error: language === 'zh' ? '请输入至少10个字符的产品需求' : 'Please enter at least 10 characters for product requirement'
-      });
+请按照以下JSON格式返回技术方案分析结果：
+
+{
+  "recommendedModels": [
+    {
+      "name": "推荐的AI模型名称",
+      "provider": "提供商",
+      "reason": "推荐理由",
+      "pricing": "定价信息"
     }
-
-    // 生成DeepSeek提示词
-    const prompt = generateDeepSeekPrompt(inputText, language);
-    
-    // 调用DeepSeek API
-    const deepseekResponse = await callDeepSeekAPI(prompt, language);
-    
-    let analysis;
-    if (deepseekResponse) {
-      try {
-        console.log('📝 解析DeepSeek响应...');
-        analysis = JSON.parse(deepseekResponse);
-        console.log('✅ DeepSeek分析完成:', { title: analysis.minimumViableProduct?.title });
-      } catch (parseError) {
-        console.error('❌ JSON解析失败:', parseError.message);
-        console.log('🔄 使用备用分析逻辑...');
-        analysis = generateFallbackAnalysis(inputText, language);
-      }
-    } else {
-      console.log('🔄 DeepSeek API不可用，使用备用分析逻辑...');
-      analysis = generateFallbackAnalysis(inputText, language);
+  ],
+  "keyAlgorithms": ["关键算法1", "关键算法2", "关键算法3"],
+  "mcpTools": [
+    {
+      "name": "MCP工具名称",
+      "purpose": "用途说明",
+      "implementation": "实现方式"
     }
+  ],
+  "architecture": ["架构组件1", "架构组件2", "架构组件3"]
+}
 
-    res.json(analysis);
-  } catch (error) {
-    console.error('💥 AI产品分析错误:', error);
-    res.status(500).json({
-      error: language === 'zh' ? '分析过程中发生错误，请重试' : 'Error occurred during analysis, please try again'
-    });
-  }
-});
-
-// 新增：流式AI产品分析API
-app.post('/api/ai-product-analysis-stream', async (req, res) => {
-  try {
-    const { requirement, description, language = 'zh' } = req.body;
-    
-    // 兼容两种参数名称
-    const inputText = requirement || description;
-
-    console.log('🔍 收到流式AI产品分析请求:', { 
-      requirement: inputText?.substring(0, 100) + '...', 
-      language,
-      timestamp: new Date().toISOString()
-    });
-
-    if (!inputText || inputText.trim().length < 10) {
-      return res.status(400).json({
-        error: language === 'zh' ? '请输入至少10个字符的产品需求' : 'Please enter at least 10 characters for product requirement'
-      });
-    }
-
-    // 设置SSE响应头
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
-    });
-
-    // 发送进度更新的辅助函数
-    const sendProgress = (step, data, progress = 0) => {
-      const message = JSON.stringify({
-        step,
-        data,
-        progress,
-        timestamp: new Date().toISOString()
-      });
-      res.write(`data: ${message}\n\n`);
-    };
-
-    try {
-      // 步骤1：开始分析
-      sendProgress('start', {
-        message: language === 'zh' ? '开始分析您的产品需求...' : 'Starting analysis of your product requirements...'
-      }, 10);
-
-      // 步骤2：生成MVP分析
-      sendProgress('mvp_start', {
-        message: language === 'zh' ? '正在生成最小可行产品(MVP)建议...' : 'Generating Minimum Viable Product (MVP) recommendations...'
-      }, 25);
-
-      // 模拟MVP分析过程
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mvpAnalysis = generateMVPAnalysis(inputText, language);
-      sendProgress('mvp_complete', mvpAnalysis, 40);
-
-      // 步骤3：技术方案分析
-      sendProgress('tech_start', {
-        message: language === 'zh' ? '正在分析AI技术解决方案...' : 'Analyzing AI technical solutions...'
-      }, 50);
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const techSolution = generateTechSolution(inputText, language);
-      sendProgress('tech_complete', techSolution, 70);
-
-      // 步骤4：开发模块分解
-      sendProgress('modules_start', {
-        message: language === 'zh' ? '正在生成开发模块和Cursor提示词...' : 'Generating development modules and Cursor prompts...'
-      }, 80);
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const developmentModules = generateDevelopmentModules(inputText, language);
-      sendProgress('modules_complete', developmentModules, 95);
-
-      // 步骤5：完成
-      const completeAnalysis = {
-        minimumViableProduct: mvpAnalysis,
-        technicalSolution: techSolution,
-        developmentModules: developmentModules
-      };
-
-      sendProgress('complete', completeAnalysis, 100);
-
-      // 关闭连接
-      res.write('data: [DONE]\n\n');
-      res.end();
-
-    } catch (error) {
-      console.error('💥 流式分析错误:', error);
-      sendProgress('error', {
-        message: language === 'zh' ? '分析过程中发生错误，请重试' : 'Error occurred during analysis, please try again',
-        error: error.message
-      }, 0);
-      res.end();
-    }
-
-  } catch (error) {
-    console.error('💥 流式AI产品分析错误:', error);
-    res.status(500).json({
-      error: language === 'zh' ? '分析过程中发生错误，请重试' : 'Error occurred during analysis, please try again'
-    });
-  }
-});
-
-// 新增：流式AI产品分析API
-app.post('/api/ai-product-analysis-stream', async (req, res) => {
-  try {
-    const { requirement, description, language = 'zh' } = req.body;
-    
-    // 兼容两种参数名称
-    const inputText = requirement || description;
-
-    console.log('🔍 收到流式AI产品分析请求:', { 
-      requirement: inputText?.substring(0, 100) + '...', 
-      language,
-      timestamp: new Date().toISOString()
-    });
-
-    if (!inputText || inputText.trim().length < 10) {
-      return res.status(400).json({
-        error: language === 'zh' ? '请输入至少10个字符的产品需求' : 'Please enter at least 10 characters for product requirement'
-      });
-    }
-
-    // 设置SSE响应头
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control'
-    });
-
-    // 发送进度更新的辅助函数
-    const sendProgress = (step, data, progress = 0) => {
-      const message = JSON.stringify({
-        step,
-        data,
-        progress,
-        timestamp: new Date().toISOString()
-      });
-      res.write(`data: ${message}\n\n`);
-    };
-
-    try {
-      // 步骤1：开始分析
-      sendProgress('start', {
-        message: language === 'zh' ? '开始分析您的产品需求...' : 'Starting analysis of your product requirements...'
-      }, 10);
-
-      // 步骤2：生成MVP分析
-      sendProgress('mvp_start', {
-        message: language === 'zh' ? '正在生成最小可行产品(MVP)建议...' : 'Generating Minimum Viable Product (MVP) recommendations...'
-      }, 25);
-
-      // 模拟MVP分析过程
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mvpAnalysis = generateMVPAnalysis(inputText, language);
-      sendProgress('mvp_complete', mvpAnalysis, 40);
-
-      // 步骤3：技术方案分析
-      sendProgress('tech_start', {
-        message: language === 'zh' ? '正在分析AI技术解决方案...' : 'Analyzing AI technical solutions...'
-      }, 50);
-
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const techSolution = generateTechSolution(inputText, language);
-      sendProgress('tech_complete', techSolution, 70);
-
-      // 步骤4：开发模块分解
-      sendProgress('modules_start', {
-        message: language === 'zh' ? '正在生成开发模块和Cursor提示词...' : 'Generating development modules and Cursor prompts...'
-      }, 80);
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const developmentModules = generateDevelopmentModules(inputText, language);
-      sendProgress('modules_complete', developmentModules, 95);
-
-      // 步骤5：完成
-      const completeAnalysis = {
-        minimumViableProduct: mvpAnalysis,
-        technicalSolution: techSolution,
-        developmentModules: developmentModules
-      };
-
-      sendProgress('complete', completeAnalysis, 100);
-
-      // 关闭连接
-      res.write('data: [DONE]\n\n');
-      res.end();
-
-    } catch (error) {
-      console.error('💥 流式分析错误:', error);
-      sendProgress('error', {
-        message: language === 'zh' ? '分析过程中发生错误，请重试' : 'Error occurred during analysis, please try again',
-        error: error.message
-      }, 0);
-      res.end();
-    }
-
-  } catch (error) {
-    console.error('💥 流式AI产品分析错误:', error);
-    res.status(500).json({
-      error: language === 'zh' ? '分析过程中发生错误，请重试' : 'Error occurred during analysis, please try again'
-    });
-  }
-});
-
-// 生成MVP分析的辅助函数
-function generateMVPAnalysis(inputText, language = 'zh') {
-  const inputLower = inputText.toLowerCase();
-  const isMeditation = inputLower.includes('冥想') || inputLower.includes('显化') || inputLower.includes('meditation') || inputLower.includes('manifesta');
-  const isHealthFitness = inputLower.includes('健身') || inputLower.includes('运动') || inputLower.includes('fitness');
-
-  if (isMeditation) {
-    return {
-      title: language === 'zh' ? '冥想显化AI助手' : 'AI Meditation & Manifestation Coach',
-      description: language === 'zh' ? 
-        '基于人工智能的个性化冥想引导平台，通过AI语音生成技术提供定制化冥想体验，帮助用户实现内心平静与目标显化。支持多种显化类型选择、个性化时长设置、不同冥想姿势指导，配合AI生成的引导语音、背景音乐和可视化场景，为用户打造沉浸式的冥想体验。' :
-        'AI-powered personalized meditation guidance platform with dynamic voice generation for customized mindfulness experiences and manifestation practices.',
-      coreFeatures: language === 'zh' ? 
-        ['AI语音引导生成', '显化类型选择（工作、学业、财富、健康）', '个性化时长设置（10-30分钟）', '多种冥想姿势指导', '呼吸节奏同步', '背景音乐库', 'AI绘图场景生成', '冥想进度跟踪'] :
-        ['AI Voice Guidance Generation', 'Manifestation Type Selection', 'Personalized Duration Settings', 'Multiple Meditation Postures', 'Breathing Rhythm Sync', 'Background Music Library', 'AI-Generated Scenes', 'Progress Tracking'],
-      targetUsers: language === 'zh' ? 
-        ['压力管理需求者', '目标显化实践者', '冥想初学者', '心理健康关注者', '灵性成长爱好者'] :
-        ['Stress Management Seekers', 'Manifestation Practitioners', 'Meditation Beginners', 'Mental Health Enthusiasts', 'Spiritual Growth Seekers'],
-      businessModel: language === 'zh' ? 
-        '免费基础冥想内容 + 高级显化课程订阅（月费/年费）+ 个人定制引导服务 + 企业冥想培训' :
-        'Free Basic Meditation + Premium Manifestation Subscription + Personal Customized Guidance + Corporate Training'
-    };
-  } else if (isHealthFitness) {
-    return {
-      title: language === 'zh' ? '智能健身AI教练' : 'Smart AI Fitness Coach',
-      description: language === 'zh' ?
-        '基于人工智能的个性化健身指导平台，通过分析用户身体状况、健身目标和运动偏好，提供定制化的训练计划和实时指导。' :
-        'AI-powered personalized fitness guidance platform that analyzes user fitness levels, goals, and preferences to provide customized workout plans.',
-      coreFeatures: language === 'zh' ?
-        ['个性化训练计划', 'AI动作识别与纠正', '实时健身指导', '进度跟踪分析', '营养建议推荐'] :
-        ['Personalized Workout Plans', 'AI Motion Recognition', 'Real-time Guidance', 'Progress Tracking', 'Nutrition Recommendations'],
-      targetUsers: language === 'zh' ?
-        ['健身初学者', '居家健身爱好者', '专业运动员', '康复训练人群'] :
-        ['Fitness Beginners', 'Home Workout Enthusiasts', 'Professional Athletes', 'Rehabilitation Users'],
-      businessModel: language === 'zh' ?
-        '免费基础训练 + 高级功能订阅 + 私人教练服务 + 企业健身方案' :
-        'Free Basic Training + Premium Subscription + Personal Training + Corporate Fitness'
-    };
+要求：
+1. 推荐最适合的AI模型和技术栈
+2. 结果必须是有效的JSON格式，不要包含任何其他文本
+`;
   } else {
-    return {
-      title: language === 'zh' ? '智能AI应用平台' : 'Smart AI Application Platform',
-      description: language === 'zh' ? 
-        '基于人工智能技术的创新应用平台，通过智能算法为用户提供个性化服务体验。' :
-        'Innovative AI-powered application platform providing personalized service experiences.',
-      coreFeatures: language === 'zh' ? 
-        ['AI核心功能', '用户个性化服务', '数据智能分析', '多平台支持', '实时交互体验'] :
-        ['AI Core Features', 'Personalized Services', 'Data Analytics', 'Multi-platform Support', 'Real-time Interaction'],
-      targetUsers: language === 'zh' ? 
-        ['普通用户', '专业用户', '企业客户'] :
-        ['General Users', 'Professional Users', 'Enterprise Clients'],
-      businessModel: language === 'zh' ? 
-        '免费基础功能 + 高级功能订阅 + 企业定制服务' :
-        'Free Basic Features + Premium Subscription + Enterprise Services'
-    };
+    return `
+Please analyze the technical solution for the following AI product requirements:
+
+【Product Requirements】：
+${inputText}
+
+Please return the technical solution analysis results in the following JSON format:
+
+{
+  "recommendedModels": [
+    {
+      "name": "Recommended AI Model Name",
+      "provider": "Provider",
+      "reason": "Recommendation reason",
+      "pricing": "Pricing information"
+    }
+  ],
+  "keyAlgorithms": ["Key Algorithm 1", "Key Algorithm 2", "Key Algorithm 3"],
+  "mcpTools": [
+    {
+      "name": "MCP Tool Name",
+      "purpose": "Purpose description",
+      "implementation": "Implementation approach"
+    }
+  ],
+  "architecture": ["Architecture Component 1", "Architecture Component 2", "Architecture Component 3"]
+}
+
+Requirements:
+1. Recommend the most suitable AI models and tech stack
+2. Results must be in valid JSON format only
+`;
   }
 }
 
-// 生成技术方案的辅助函数
-function generateTechSolution(inputText, language = 'zh') {
-  return {
-    recommendedModels: [
-      {
-        name: 'DeepSeek-V2.5',
-        provider: 'DeepSeek',
-        reason: language === 'zh' ? '成本效益最优，中文支持优秀，推理能力突出' : 'Most cost-effective with excellent Chinese support and reasoning capabilities',
-        pricing: '¥0.0014/1K tokens'
-      },
-      {
-        name: 'GPT-4o',
-        provider: 'OpenAI',
-        reason: language === 'zh' ? '多模态支持，可处理音频生成和图像创作需求' : 'Multimodal support for audio generation and image creation',
-        pricing: '$0.0025/1K input tokens'
-      }
-    ],
-    keyAlgorithms: language === 'zh' ? 
-      ['大语言模型文本生成', '机器学习算法', '数据分析处理', '个性化推荐算法', '自然语言处理', '深度学习模型'] :
-      ['Large Language Model Generation', 'Machine Learning Algorithms', 'Data Analytics Processing', 'Personalized Recommendation', 'Natural Language Processing', 'Deep Learning Models'],
-    mcpTools: [
-      {
-        name: 'Database MCP',
-        purpose: language === 'zh' ? '数据管理和存储操作' : 'Data management and storage operations',
-        implementation: language === 'zh' ? '统一数据库操作接口，支持多种数据库类型' : 'Unified database operation interface supporting multiple database types'
-      },
-      {
-        name: 'API Integration MCP',
-        purpose: language === 'zh' ? '第三方服务集成' : 'Third-party service integration',
-        implementation: language === 'zh' ? '标准化API调用接口，支持多种外部服务' : 'Standardized API calling interface for various external services'
-      }
-    ],
-    architecture: language === 'zh' ? 
-      ['前端应用层 (React/Vue.js)', 'API网关层 (Express/FastAPI)', 'AI服务层 (模型推理)', '数据存储层 (PostgreSQL/MongoDB)', '缓存层 (Redis)', '部署层 (Docker/K8s)'] :
-      ['Frontend Layer (React/Vue.js)', 'API Gateway (Express/FastAPI)', 'AI Service Layer (Model Inference)', 'Data Storage (PostgreSQL/MongoDB)', 'Cache Layer (Redis)', 'Deployment (Docker/K8s)']
-  };
-}
+function generateModulesPrompt(inputText, language = 'zh') {
+  if (language === 'zh') {
+    return `
+请为以下AI产品需求生成开发模块分解：
 
-// 生成开发模块的辅助函数
-function generateDevelopmentModules(inputText, language = 'zh') {
-  const inputLower = inputText.toLowerCase();
-  const isMeditation = inputLower.includes('冥想') || inputLower.includes('显化') || inputLower.includes('meditation') || inputLower.includes('manifesta');
-  
-  if (isMeditation) {
-    return [
+【产品需求】：
+${inputText}
+
+请按照以下JSON格式返回开发模块分析结果：
+
+[
+  {
+    "moduleName": "模块名称",
+    "functionality": "功能描述",
+    "priority": "High",
+    "estimatedTime": "预估开发时间",
+    "cursorPrompts": [
       {
-        moduleName: language === 'zh' ? '冥想引导语音生成模块' : 'Meditation Voice Guidance Module',
-        functionality: language === 'zh' ? '核心AI语音生成功能，根据用户选择的显化类型、时长和个人偏好，实时生成个性化的冥想引导词，并转换为自然流畅的语音' : 'Core AI voice generation feature that creates personalized meditation guidance based on user preferences',
-        priority: 'High',
-        estimatedTime: language === 'zh' ? '4-5周' : '4-5 weeks',
-        cursorPrompts: [
-          {
-            fileName: 'meditation-voice-generator.md',
-            content: language === 'zh' ? 
-              `# 冥想语音生成模块开发指南\n\n## 功能概述\n开发AI驱动的冥想引导语音生成系统，支持实时生成个性化冥想内容并转换为自然语音。\n\n## 技术要求\n- DeepSeek API集成用于内容生成\n- Azure Speech Services或Google Cloud TTS\n- 支持多种音色选择和语速调节\n- 实时音频流处理\n\n## 核心功能\n1. 个性化冥想脚本生成\n2. 语音合成和音频处理\n3. 背景音乐混合\n4. 实时流式传输\n\n## 开发步骤\n1. 设计冥想脚本模板系统\n2. 集成DeepSeek API进行内容生成\n3. 实现TTS语音合成功能\n4. 开发音频混合和处理\n5. 优化生成速度和质量` :
-              `# Meditation Voice Generation Module Development Guide\n\n## Overview\nDevelop AI-driven meditation guidance voice generation system with real-time personalized content creation and natural speech conversion.\n\n## Technical Requirements\n- DeepSeek API integration for content generation\n- Azure Speech Services or Google Cloud TTS\n- Multiple voice options and speed control\n- Real-time audio streaming\n\n## Core Features\n1. Personalized meditation script generation\n2. Speech synthesis and audio processing\n3. Background music mixing\n4. Real-time streaming\n\n## Development Steps\n1. Design meditation script template system\n2. Integrate DeepSeek API for content generation\n3. Implement TTS speech synthesis\n4. Develop audio mixing and processing\n5. Optimize generation speed and quality`
-          }
-        ]
-      },
-      {
-        moduleName: language === 'zh' ? '用户偏好学习模块' : 'User Preference Learning Module',
-        functionality: language === 'zh' ? '通过机器学习算法分析用户的冥想习惯、偏好和反馈，不断优化个性化推荐' : 'Analyze user meditation habits, preferences and feedback through ML algorithms for optimized personalization',
-        priority: 'Medium',
-        estimatedTime: language === 'zh' ? '3-4周' : '3-4 weeks',
-        cursorPrompts: [
-          {
-            fileName: 'user-preference-learning.md',
-            content: language === 'zh' ?
-              `# 用户偏好学习模块\n\n## 功能说明\n实现基于用户行为数据的个性化推荐系统\n\n## 技术栈\n- Python/TensorFlow用于机器学习\n- 用户行为数据收集和分析\n- 推荐算法实现\n\n## 实现要点\n1. 数据收集：冥想时长、类型偏好、完成率\n2. 特征工程：用户画像构建\n3. 模型训练：协同过滤+内容推荐\n4. 实时更新：在线学习算法` :
-              `# User Preference Learning Module\n\n## Description\nImplement personalized recommendation system based on user behavior data\n\n## Tech Stack\n- Python/TensorFlow for machine learning\n- User behavior data collection and analysis\n- Recommendation algorithm implementation\n\n## Key Points\n1. Data Collection: meditation duration, type preferences, completion rates\n2. Feature Engineering: user profile construction\n3. Model Training: collaborative filtering + content recommendation\n4. Real-time Updates: online learning algorithms`
-          }
-        ]
+        "fileName": "文件名.md",
+        "content": "详细的Cursor开发提示词内容"
       }
-    ];
+    ]
+  }
+]
+
+要求：
+1. 提供实用的开发指导和Cursor提示词
+2. priority必须是"High"、"Medium"或"Low"之一
+3. 结果必须是有效的JSON格式，不要包含任何其他文本
+`;
   } else {
-    return [
+    return `
+Please generate development module breakdown for the following AI product requirements:
+
+【Product Requirements】：
+${inputText}
+
+Please return the development modules analysis results in the following JSON format:
+
+[
+  {
+    "moduleName": "Module Name",
+    "functionality": "Functionality description",
+    "priority": "High",
+    "estimatedTime": "Estimated development time",
+    "cursorPrompts": [
       {
-        moduleName: language === 'zh' ? '核心AI功能模块' : 'Core AI Feature Module',
-        functionality: language === 'zh' ? '实现主要的AI功能和用户交互' : 'Implement main AI features and user interaction',
-        priority: 'High',
-        estimatedTime: language === 'zh' ? '4-6周' : '4-6 weeks',
-        cursorPrompts: [
-          {
-            fileName: 'ai-core-development.md',
-            content: language === 'zh' ?
-              `# AI核心功能开发指南\n\n## 项目概述\n开发基于AI的核心功能模块，提供智能化的用户服务。\n\n## 技术要求\n- 集成DeepSeek API\n- 实现用户交互界面\n- 数据处理和分析\n- 性能优化\n\n## 开发步骤\n1. 设计系统架构\n2. 实现AI接口集成\n3. 开发用户界面\n4. 测试和优化` :
-              `# AI Core Feature Development Guide\n\n## Project Overview\nDevelop AI-based core feature modules providing intelligent user services.\n\n## Technical Requirements\n- DeepSeek API integration\n- User interaction interface implementation\n- Data processing and analysis\n- Performance optimization\n\n## Development Steps\n1. Design system architecture\n2. Implement AI interface integration\n3. Develop user interface\n4. Testing and optimization`
-          }
-        ]
+        "fileName": "filename.md",
+        "content": "Detailed Cursor development prompt content"
       }
-    ];
+    ]
+  }
+]
+
+Requirements:
+1. Provide practical development guidance and Cursor prompts
+2. priority must be one of "High", "Medium", or "Low"
+3. Results must be in valid JSON format only
+`;
   }
 }
 
@@ -733,22 +375,8 @@ function generateDevelopmentModules(inputText, language = 'zh') {
           {
             fileName: 'meditation-voice-generator.md',
             content: language === 'zh' ? 
-              `# 冥想语音生成模块开发指南\n\n## 功能概述\n开发AI驱动的冥想引导语音生成系统，支持实时生成个性化冥想内容并转换为自然语音。\n\n## 技术要求\n- DeepSeek API集成用于内容生成\n- Azure Speech Services或Google Cloud TTS\n- 支持多种音色选择和语速调节\n- 实时音频流处理\n\n## 核心功能\n1. 个性化冥想脚本生成\n2. 语音合成和音频处理\n3. 背景音乐混合\n4. 实时流式传输\n\n## 开发步骤\n1. 设计冥想脚本模板系统\n2. 集成DeepSeek API进行内容生成\n3. 实现TTS语音合成功能\n4. 开发音频混合和处理\n5. 优化生成速度和质量` :
-              `# Meditation Voice Generation Module Development Guide\n\n## Overview\nDevelop AI-driven meditation guidance voice generation system with real-time personalized content creation and natural speech conversion.\n\n## Technical Requirements\n- DeepSeek API integration for content generation\n- Azure Speech Services or Google Cloud TTS\n- Multiple voice options and speed control\n- Real-time audio streaming\n\n## Core Features\n1. Personalized meditation script generation\n2. Speech synthesis and audio processing\n3. Background music mixing\n4. Real-time streaming\n\n## Development Steps\n1. Design meditation script template system\n2. Integrate DeepSeek API for content generation\n3. Implement TTS speech synthesis\n4. Develop audio mixing and processing\n5. Optimize generation speed and quality`
-          }
-        ]
-      },
-      {
-        moduleName: language === 'zh' ? '用户偏好学习模块' : 'User Preference Learning Module',
-        functionality: language === 'zh' ? '通过机器学习算法分析用户的冥想习惯、偏好和反馈，不断优化个性化推荐' : 'Analyze user meditation habits, preferences and feedback through ML algorithms for optimized personalization',
-        priority: 'Medium',
-        estimatedTime: language === 'zh' ? '3-4周' : '3-4 weeks',
-        cursorPrompts: [
-          {
-            fileName: 'user-preference-learning.md',
-            content: language === 'zh' ?
-              `# 用户偏好学习模块\n\n## 功能说明\n实现基于用户行为数据的个性化推荐系统\n\n## 技术栈\n- Python/TensorFlow用于机器学习\n- 用户行为数据收集和分析\n- 推荐算法实现\n\n## 实现要点\n1. 数据收集：冥想时长、类型偏好、完成率\n2. 特征工程：用户画像构建\n3. 模型训练：协同过滤+内容推荐\n4. 实时更新：在线学习算法` :
-              `# User Preference Learning Module\n\n## Description\nImplement personalized recommendation system based on user behavior data\n\n## Tech Stack\n- Python/TensorFlow for machine learning\n- User behavior data collection and analysis\n- Recommendation algorithm implementation\n\n## Key Points\n1. Data Collection: meditation duration, type preferences, completion rates\n2. Feature Engineering: user profile construction\n3. Model Training: collaborative filtering + content recommendation\n4. Real-time Updates: online learning algorithms`
+              '# 冥想语音生成模块开发指南\n\n## 功能概述\n开发AI驱动的冥想引导语音生成系统，支持实时生成个性化冥想内容并转换为自然语音。\n\n## 技术要求\n- DeepSeek API集成用于内容生成\n- Azure Speech Services或Google Cloud TTS\n- 支持多种音色选择和语速调节\n- 实时音频流处理\n\n## 核心功能\n1. 个性化冥想脚本生成\n2. 语音合成和音频处理\n3. 背景音乐混合\n4. 实时流式传输\n\n## 开发步骤\n1. 设计冥想脚本模板系统\n2. 集成DeepSeek API进行内容生成\n3. 实现TTS语音合成功能\n4. 开发音频混合和处理\n5. 优化生成速度和质量' :
+              '# Meditation Voice Generation Module Development Guide\n\n## Overview\nDevelop AI-driven meditation guidance voice generation system with real-time personalized content creation and natural speech conversion.\n\n## Technical Requirements\n- DeepSeek API integration for content generation\n- Azure Speech Services or Google Cloud TTS\n- Multiple voice options and speed control\n- Real-time audio streaming\n\n## Core Features\n1. Personalized meditation script generation\n2. Speech synthesis and audio processing\n3. Background music mixing\n4. Real-time streaming\n\n## Development Steps\n1. Design meditation script template system\n2. Integrate DeepSeek API for content generation\n3. Implement TTS speech synthesis\n4. Develop audio mixing and processing\n5. Optimize generation speed and quality'
           }
         ]
       }
@@ -764,8 +392,8 @@ function generateDevelopmentModules(inputText, language = 'zh') {
           {
             fileName: 'ai-core-development.md',
             content: language === 'zh' ?
-              `# AI核心功能开发指南\n\n## 项目概述\n开发基于AI的核心功能模块，提供智能化的用户服务。\n\n## 技术要求\n- 集成DeepSeek API\n- 实现用户交互界面\n- 数据处理和分析\n- 性能优化\n\n## 开发步骤\n1. 设计系统架构\n2. 实现AI接口集成\n3. 开发用户界面\n4. 测试和优化` :
-              `# AI Core Feature Development Guide\n\n## Project Overview\nDevelop AI-based core feature modules providing intelligent user services.\n\n## Technical Requirements\n- DeepSeek API integration\n- User interaction interface implementation\n- Data processing and analysis\n- Performance optimization\n\n## Development Steps\n1. Design system architecture\n2. Implement AI interface integration\n3. Develop user interface\n4. Testing and optimization`
+              '# AI核心功能开发指南\n\n## 项目概述\n开发基于AI的核心功能模块，提供智能化的用户服务。\n\n## 技术要求\n- 集成DeepSeek API\n- 实现用户交互界面\n- 数据处理和分析\n- 性能优化\n\n## 开发步骤\n1. 设计系统架构\n2. 实现AI接口集成\n3. 开发用户界面\n4. 测试和优化' :
+              '# AI Core Feature Development Guide\n\n## Project Overview\nDevelop AI-based core feature modules providing intelligent user services.\n\n## Technical Requirements\n- DeepSeek API integration\n- User interaction interface implementation\n- Data processing and analysis\n- Performance optimization\n\n## Development Steps\n1. Design system architecture\n2. Implement AI interface integration\n3. Develop user interface\n4. Testing and optimization'
           }
         ]
       }
@@ -773,184 +401,180 @@ function generateDevelopmentModules(inputText, language = 'zh') {
   }
 }
 
-// 生成备用分析结果
-function generateFallbackAnalysis(inputText, language = 'zh') {
-  const inputLower = inputText.toLowerCase();
-  const isMeditation = inputLower.includes('冥想') || inputLower.includes('显化') || inputLower.includes('meditation');
-  const isHealthFitness = inputLower.includes('健身') || inputLower.includes('运动') || inputLower.includes('fitness');
-  const isEducation = inputLower.includes('教育') || inputLower.includes('学习') || inputLower.includes('education');
+// 流式AI产品分析API
+app.post('/api/ai-product-analysis-stream', async (req, res) => {
+  try {
+    const { requirement, language = 'zh' } = req.body;
+    
+    if (!requirement || requirement.trim().length === 0) {
+      return res.status(400).json({ 
+        error: language === 'zh' ? '请提供产品需求描述' : 'Please provide product requirement description' 
+      });
+    }
 
-  if (isMeditation) {
-    return {
-      minimumViableProduct: {
-        title: language === 'zh' ? '冥想显化AI助手' : 'AI Meditation & Manifestation Coach',
-        description: language === 'zh' ? 
-          '基于人工智能的个性化冥想引导平台，通过AI语音生成技术提供定制化冥想体验，帮助用户实现内心平静与目标显化。支持多种显化类型选择、个性化时长设置、不同冥想姿势指导，配合AI生成的引导语音、背景音乐和可视化场景，为用户打造沉浸式的冥想体验。' :
-          'AI-powered personalized meditation guidance platform with dynamic voice generation for customized mindfulness experiences and manifestation practices.',
-        coreFeatures: language === 'zh' ? 
-          ['AI语音引导生成', '显化类型选择（工作、学业、财富、健康）', '个性化时长设置（10-30分钟）', '多种冥想姿势指导', '呼吸节奏同步', '背景音乐库', 'AI绘图场景生成', '冥想进度跟踪'] :
-          ['AI Voice Guidance Generation', 'Manifestation Type Selection', 'Personalized Duration Settings', 'Multiple Meditation Postures', 'Breathing Rhythm Sync', 'Background Music Library', 'AI-Generated Scenes', 'Progress Tracking'],
-        targetUsers: language === 'zh' ? 
-          ['压力管理需求者', '目标显化实践者', '冥想初学者', '心理健康关注者', '灵性成长爱好者'] :
-          ['Stress Management Seekers', 'Manifestation Practitioners', 'Meditation Beginners', 'Mental Health Enthusiasts', 'Spiritual Growth Seekers'],
-        businessModel: language === 'zh' ? 
-          '免费基础冥想内容 + 高级显化课程订阅（月费/年费）+ 个人定制引导服务 + 企业冥想培训' :
-          'Free Basic Meditation + Premium Manifestation Subscription + Personal Customized Guidance + Corporate Training'
-      },
-      technicalSolution: {
-        recommendedModels: [
-          {
-            name: 'DeepSeek-V2.5',
-            provider: 'DeepSeek',
-            reason: language === 'zh' ? '成本效益最优，中文支持优秀，适合生成冥想引导词和个性化内容' : 'Most cost-effective with excellent Chinese support for meditation guidance generation',
-            pricing: '¥0.0014/1K tokens'
-          },
-          {
-            name: 'GPT-4o',
-            provider: 'OpenAI',
-            reason: language === 'zh' ? '多模态支持，可处理音频生成和图像创作需求' : 'Multimodal support for audio generation and image creation',
-            pricing: '$0.0025/1K input tokens'
-          }
-        ],
-        keyAlgorithms: language === 'zh' ? 
-          ['大语言模型文本生成', '语音合成技术(TTS)', 'AI绘图算法(Stable Diffusion)', '个性化推荐算法', '情感分析算法', '音频处理算法'] :
-          ['Large Language Model Text Generation', 'Text-to-Speech (TTS)', 'AI Image Generation (Stable Diffusion)', 'Personalized Recommendation', 'Sentiment Analysis', 'Audio Processing'],
-        mcpTools: [
-          {
-            name: 'Audio Processing MCP',
-            purpose: language === 'zh' ? '音频生成、处理和格式转换' : 'Audio generation, processing and format conversion',
-            implementation: language === 'zh' ? '集成TTS服务，支持多种音色和语速调节，实现实时语音生成' : 'Integrate TTS services with multiple voice options and speed control'
-          },
-          {
-            name: 'Image Generation MCP',
-            purpose: language === 'zh' ? 'AI绘图和场景生成' : 'AI image and scene generation',
-            implementation: language === 'zh' ? '集成Stable Diffusion或DALL-E，为不同显化类型生成对应的背景场景' : 'Integrate Stable Diffusion or DALL-E for manifestation scene generation'
-          }
-        ],
-        architecture: language === 'zh' ? 
-          ['前端应用层 (React Native + Expo)', '语音服务层 (TTS + 音频处理)', 'AI内容生成层 (LLM + 图像生成)', 'API网关层 (Express + 路由管理)', '数据存储层 (PostgreSQL + Redis)', '媒体存储 (AWS S3 + CDN)'] :
-          ['Frontend App Layer (React Native + Expo)', 'Voice Service Layer (TTS + Audio Processing)', 'AI Content Generation Layer (LLM + Image Generation)', 'API Gateway (Express + Routing)', 'Data Storage (PostgreSQL + Redis)', 'Media Storage (AWS S3 + CDN)']
-      },
-      developmentModules: [
-        {
-          moduleName: language === 'zh' ? '冥想引导语音生成模块' : 'Meditation Voice Guidance Module',
-          functionality: language === 'zh' ? '核心AI语音生成功能，根据用户选择的显化类型、时长和个人偏好，实时生成个性化的冥想引导词，并转换为自然流畅的语音' : 'Core AI voice generation feature that creates personalized meditation guidance based on user preferences',
-          priority: 'High',
-          estimatedTime: language === 'zh' ? '4-5周' : '4-5 weeks',
-          cursorPrompts: [
-            {
-              fileName: 'meditation-voice-generator.md',
-              content: `# 冥想语音生成模块开发指南
+    const inputText = requirement.trim();
+    console.log('🔍 收到流式AI产品分析请求:', {
+      requirement: inputText.substring(0, 100) + '...',
+      language,
+      timestamp: new Date().toISOString()
+    });
 
-## 功能概述
-开发AI驱动的冥想引导语音生成系统，支持实时生成个性化冥想内容并转换为自然语音。
+    // 设置SSE响应头
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Cache-Control'
+    });
 
-## 技术要求
-- DeepSeek API集成用于内容生成
-- Azure Speech Services或Google Cloud TTS
-- 支持多种音色选择和语速调节
-- 实时音频流处理
-
-## 核心功能
-1. 个性化冥想脚本生成
-2. 语音合成和音频处理
-3. 背景音乐混合
-4. 实时流式传输
-
-## 开发步骤
-1. 设计冥想脚本模板系统
-2. 集成DeepSeek API进行内容生成
-3. 实现TTS语音合成功能
-4. 开发音频混合和处理
-5. 优化生成速度和质量`
-            }
-          ]
-        }
-      ]
+    // 发送数据的辅助函数
+    const sendData = (data) => {
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
-  } else {
-    // 通用分析
-    return {
-      minimumViableProduct: {
-        title: language === 'zh' ? '智能AI应用平台' : 'Smart AI Application Platform',
-        description: language === 'zh' ? 
-          '基于人工智能技术的创新应用平台，通过智能算法为用户提供个性化服务体验。' :
-          'Innovative AI-powered application platform providing personalized service experiences.',
-        coreFeatures: language === 'zh' ? 
-          ['AI核心功能', '用户个性化服务', '数据智能分析', '多平台支持', '实时交互体验'] :
-          ['AI Core Features', 'Personalized Services', 'Data Analytics', 'Multi-platform Support', 'Real-time Interaction'],
-        targetUsers: language === 'zh' ? 
-          ['普通用户', '专业用户', '企业客户'] :
-          ['General Users', 'Professional Users', 'Enterprise Clients'],
-        businessModel: language === 'zh' ? 
-          '免费基础功能 + 高级功能订阅 + 企业定制服务' :
-          'Free Basic Features + Premium Subscription + Enterprise Services'
-      },
-      technicalSolution: {
-        recommendedModels: [
-          {
-            name: 'DeepSeek-V2.5',
-            provider: 'DeepSeek',
-            reason: language === 'zh' ? '成本效益最优，中文支持优秀，推理能力突出' : 'Most cost-effective with excellent Chinese support and reasoning capabilities',
-            pricing: '¥0.0014/1K tokens'
-          }
-        ],
-        keyAlgorithms: language === 'zh' ? 
-          ['大语言模型', '机器学习', '数据分析', '个性化推荐'] :
-          ['Large Language Models', 'Machine Learning', 'Data Analytics', 'Personalized Recommendation'],
-        mcpTools: [
-          {
-            name: 'Database MCP',
-            purpose: language === 'zh' ? '数据管理和存储' : 'Data management and storage',
-            implementation: language === 'zh' ? '统一数据库操作接口' : 'Unified database operation interface'
-          }
-        ],
-        architecture: language === 'zh' ? 
-          ['前端应用层', 'API服务层', '数据存储层', 'AI模型层'] :
-          ['Frontend Layer', 'API Service Layer', 'Data Storage Layer', 'AI Model Layer']
-      },
-      developmentModules: [
-        {
-          moduleName: language === 'zh' ? '核心AI功能模块' : 'Core AI Feature Module',
-          functionality: language === 'zh' ? '实现主要的AI功能和用户交互' : 'Implement main AI features and user interaction',
-          priority: 'High',
-          estimatedTime: language === 'zh' ? '4-6周' : '4-6 weeks',
-          cursorPrompts: [
-            {
-              fileName: 'ai-core-development.md',
-              content: `# AI核心功能开发指南
 
-## 项目概述
-开发基于AI的核心功能模块，提供智能化的用户服务。
+    try {
+      // 步骤1: 开始分析 (10%)
+      sendData({
+        type: 'progress',
+        step: 'start',
+        progress: 10,
+        message: language === 'zh' ? '开始AI产品分析...' : 'Starting AI product analysis...'
+      });
 
-## 技术要求
-- 集成DeepSeek API
-- 实现用户交互界面
-- 数据处理和分析
-- 性能优化
+      // 步骤2: MVP分析 (25% -> 40%)
+      sendData({
+        type: 'progress',
+        step: 'mvp_start',
+        progress: 25,
+        message: language === 'zh' ? '正在分析最小可行产品...' : 'Analyzing Minimum Viable Product...'
+      });
 
-## 开发步骤
-1. 设计系统架构
-2. 实现AI接口集成
-3. 开发用户界面
-4. 测试和优化`
-            }
-          ]
+      // 调用DeepSeek API生成MVP分析
+      const mvpPrompt = generateMVPPrompt(inputText, language);
+      const mvpResult = await callDeepSeekAPI(mvpPrompt, language);
+      
+      let mvpData;
+      if (mvpResult) {
+        try {
+          mvpData = JSON.parse(mvpResult);
+          console.log('✅ MVP分析：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ MVP分析：JSON解析失败，使用备用逻辑');
+          mvpData = generateMVPAnalysis(inputText, language);
         }
-      ]
-    };
+      } else {
+        console.log('❌ MVP分析：API调用失败，使用备用逻辑');
+        mvpData = generateMVPAnalysis(inputText, language);
+      }
+
+      sendData({
+        type: 'result',
+        step: 'mvp_complete',
+        progress: 40,
+        data: { minimumViableProduct: mvpData }
+      });
+
+      // 步骤3: 技术方案分析 (50% -> 70%)
+      sendData({
+        type: 'progress',
+        step: 'tech_start',
+        progress: 50,
+        message: language === 'zh' ? '正在分析技术解决方案...' : 'Analyzing technical solutions...'
+      });
+
+      // 调用DeepSeek API生成技术方案
+      const techPrompt = generateTechPrompt(inputText, language);
+      const techResult = await callDeepSeekAPI(techPrompt, language);
+      
+      let techData;
+      if (techResult) {
+        try {
+          techData = JSON.parse(techResult);
+          console.log('✅ 技术方案：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ 技术方案：JSON解析失败，使用备用逻辑');
+          techData = generateTechSolution(inputText, language);
+        }
+      } else {
+        console.log('❌ 技术方案：API调用失败，使用备用逻辑');
+        techData = generateTechSolution(inputText, language);
+      }
+
+      sendData({
+        type: 'result',
+        step: 'tech_complete',
+        progress: 70,
+        data: { technicalSolution: techData }
+      });
+
+      // 步骤4: 开发模块分析 (80% -> 95%)
+      sendData({
+        type: 'progress',
+        step: 'modules_start',
+        progress: 80,
+        message: language === 'zh' ? '正在生成开发模块...' : 'Generating development modules...'
+      });
+
+      // 调用DeepSeek API生成开发模块
+      const modulesPrompt = generateModulesPrompt(inputText, language);
+      const modulesResult = await callDeepSeekAPI(modulesPrompt, language);
+      
+      let modulesData;
+      if (modulesResult) {
+        try {
+          modulesData = JSON.parse(modulesResult);
+          console.log('✅ 开发模块：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ 开发模块：JSON解析失败，使用备用逻辑');
+          modulesData = generateDevelopmentModules(inputText, language);
+        }
+      } else {
+        console.log('❌ 开发模块：API调用失败，使用备用逻辑');
+        modulesData = generateDevelopmentModules(inputText, language);
+      }
+
+      sendData({
+        type: 'result',
+        step: 'modules_complete',
+        progress: 95,
+        data: { developmentModules: modulesData }
+      });
+
+      // 步骤5: 完成 (100%)
+      sendData({
+        type: 'complete',
+        step: 'complete',
+        progress: 100,
+        message: language === 'zh' ? '分析完成！' : 'Analysis completed!'
+      });
+
+    } catch (error) {
+      console.error('❌ 流式分析过程出错:', error);
+      sendData({
+        type: 'error',
+        message: language === 'zh' ? '分析过程中出现错误，请稍后重试' : 'Error occurred during analysis, please try again later'
+      });
+    }
+
+    res.end();
+  } catch (error) {
+    console.error('❌ 流式API错误:', error);
+    res.status(500).json({ 
+      error: language === 'zh' ? '服务器内部错误' : 'Internal server error' 
+    });
   }
-}
+});
 
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 DeepSeek AI Analysis Server 运行在 http://localhost:${PORT}`);
   console.log(`📋 健康检查: http://localhost:${PORT}/health`);
-  console.log(`🤖 AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis`);
+  console.log(`🤖 流式AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis-stream`);
   console.log(`🔑 DeepSeek API: ${process.env.DEEPSEEK_API_KEY ? '✅ 已配置' : '❌ 未配置'}`);
   
   if (process.env.DEEPSEEK_API_KEY) {
-    console.log('🎯 将使用DeepSeek R1大模型进行真实AI分析');
+    console.log('🎯 将使用DeepSeek Chat大模型进行真实AI分析');
   } else {
     console.log('⚠️ 未配置DeepSeek API密钥，将使用备用分析逻辑');
   }
@@ -965,4 +589,4 @@ process.on('SIGINT', () => {
 process.on('SIGTERM', () => {
   console.log('\n收到SIGTERM信号，正在关闭服务器...');
   process.exit(0);
-}); 
+});
