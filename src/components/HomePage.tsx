@@ -121,6 +121,24 @@ const HomePage: React.FC = () => {
 
             {/* Navigation Actions */}
             <div className="flex items-center space-x-4">
+              {/* My Products Button */}
+              <button
+                onClick={handleDashboardClick}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <Database className="w-4 h-4" />
+                <span className="text-sm font-medium">{t.myProducts}</span>
+              </button>
+
+              {/* AI Products Reference Button */}
+              <button
+                onClick={handleAIProductsClick}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-medium">{t.aiProducts}</span>
+              </button>
+
               {/* Language Toggle */}
               <button
                 onClick={toggleLanguage}
@@ -185,7 +203,7 @@ const HomePage: React.FC = () => {
           {/* Main Navigation Buttons */}
           <div className="flex flex-col md:flex-row gap-6 justify-center items-center max-w-4xl mx-auto">
             
-            {/* 我的产品 按钮 */}
+            {/* My Products Button */}
             <div 
               onClick={handleDashboardClick}
               className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 w-full md:w-96"
@@ -198,38 +216,26 @@ const HomePage: React.FC = () => {
                 </div>
                 
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{t.myProducts}</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  {t.myProductsDesc}
-                </p>
-                
-                <div className="flex items-center justify-center text-blue-600 font-semibold group-hover:text-blue-700 transition-colors duration-300">
-                  <span>{t.myProductsAction}</span>
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
+                <p className="text-gray-600 mb-4">{t.myProductsDesc}</p>
+                <button className="text-blue-600 hover:text-blue-800 font-medium">{t.myProductsAction}</button>
               </div>
             </div>
 
-            {/* AI产品参考 按钮 */}
+            {/* AI Product Reference Button */}
             <div 
               onClick={handleAIProductsClick}
-              className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-purple-200 w-full md:w-96"
+              className="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-100 hover:border-blue-200 w-full md:w-96"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
               
               <div className="relative z-10">
                 <div className="flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-6 mx-auto group-hover:bg-purple-200 transition-colors duration-300">
-                  <Sparkles className="w-8 h-8 text-purple-600" />
+                  <Globe className="w-8 h-8 text-purple-600" />
                 </div>
                 
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{t.aiProducts}</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  {t.aiProductsDesc}
-                </p>
-                
-                <div className="flex items-center justify-center text-purple-600 font-semibold group-hover:text-purple-700 transition-colors duration-300">
-                  <span>{t.aiProductsAction}</span>
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
+                <p className="text-gray-600 mb-4">{t.aiProductsDesc}</p>
+                <button className="text-purple-600 hover:text-purple-800 font-medium">{t.aiProductsAction}</button>
               </div>
             </div>
           </div>
