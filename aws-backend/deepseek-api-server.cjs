@@ -401,6 +401,114 @@ function generateDevelopmentModules(inputText, language = 'zh') {
   }
 }
 
+// 非流式AI产品分析API
+app.post('/api/ai-product-analysis', async (req, res) => {
+  try {
+    const { requirement, language = 'zh' } = req.body;
+    
+    if (!requirement || requirement.trim().length === 0) {
+      return res.status(400).json({ 
+        error: language === 'zh' ? '请提供产品需求描述' : 'Please provide product requirement description' 
+      });
+    }
+
+    const inputText = requirement.trim();
+    console.log('🔍 收到AI产品分析请求:', {
+      requirement: inputText.substring(0, 100) + '...',
+      language,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // 并行调用三个分析步骤
+      const [mvpResult, techResult, modulesResult] = await Promise.all([
+        callDeepSeekAPI(generateMVPPrompt(inputText, language), language),
+        callDeepSeekAPI(generateTechPrompt(inputText, language), language),
+        callDeepSeekAPI(generateModulesPrompt(inputText, language), language)
+      ]);
+
+      // 处理MVP分析结果
+      let mvpData;
+      if (mvpResult) {
+        try {
+          mvpData = JSON.parse(mvpResult);
+          console.log('✅ MVP分析：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ MVP分析：JSON解析失败，使用备用逻辑');
+          mvpData = generateMVPAnalysis(inputText, language);
+        }
+      } else {
+        console.log('❌ MVP分析：API调用失败，使用备用逻辑');
+        mvpData = generateMVPAnalysis(inputText, language);
+      }
+
+      // 处理技术方案结果
+      let techData;
+      if (techResult) {
+        try {
+          techData = JSON.parse(techResult);
+          console.log('✅ 技术方案：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ 技术方案：JSON解析失败，使用备用逻辑');
+          techData = generateTechSolution(inputText, language);
+        }
+      } else {
+        console.log('❌ 技术方案：API调用失败，使用备用逻辑');
+        techData = generateTechSolution(inputText, language);
+      }
+
+      // 处理开发模块结果
+      let modulesData;
+      if (modulesResult) {
+        try {
+          modulesData = JSON.parse(modulesResult);
+          console.log('✅ 开发模块：DeepSeek API成功');
+        } catch (parseError) {
+          console.log('❌ 开发模块：JSON解析失败，使用备用逻辑');
+          modulesData = generateDevelopmentModules(inputText, language);
+        }
+      } else {
+        console.log('❌ 开发模块：API调用失败，使用备用逻辑');
+        modulesData = generateDevelopmentModules(inputText, language);
+      }
+
+      // 返回完整分析结果
+      const analysisResult = {
+        minimumViableProduct: mvpData,
+        technicalSolution: techData,
+        developmentModules: modulesData,
+        generatedAt: new Date().toISOString(),
+        language: language
+      };
+
+      console.log('✅ AI产品分析完成');
+      res.json(analysisResult);
+
+    } catch (error) {
+      console.error('❌ 分析过程出错:', error);
+      
+      // 如果大模型调用失败，使用备用分析逻辑
+      const fallbackResult = {
+        minimumViableProduct: generateMVPAnalysis(inputText, language),
+        technicalSolution: generateTechSolution(inputText, language),
+        developmentModules: generateDevelopmentModules(inputText, language),
+        generatedAt: new Date().toISOString(),
+        language: language,
+        fallback: true
+      };
+
+      console.log('⚠️ 使用备用分析逻辑');
+      res.json(fallbackResult);
+    }
+
+  } catch (error) {
+    console.error('❌ API错误:', error);
+    res.status(500).json({ 
+      error: language === 'zh' ? '服务器内部错误' : 'Internal server error' 
+    });
+  }
+});
+
 // 流式AI产品分析API
 app.post('/api/ai-product-analysis-stream', async (req, res) => {
   try {
@@ -575,7 +683,8 @@ app.post('/api/ai-product-analysis-stream', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 DeepSeek AI Analysis Server 运行在 http://localhost:${PORT}`);
   console.log(`📋 健康检查: http://localhost:${PORT}/health`);
-  console.log(`🤖 流式AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis-stream`);
+  console.log(`🤖 AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis`);
+  console.log(`🌊 流式AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis-stream`);
   console.log(`🔑 DeepSeek API: ${process.env.DEEPSEEK_API_KEY ? '✅ 已配置' : '❌ 未配置'}`);
   
   if (process.env.DEEPSEEK_API_KEY) {
