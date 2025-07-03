@@ -1,0 +1,55 @@
+# 应用配置
+NODE_ENV=development
+PORT=3000
+API_VERSION=v1
+
+# AWS配置
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=AKIASKL3C3VBCGPP22XO
+
+AWS_SECRET_ACCESS_KEY=nsyV+W3IitgxFuAKPC0qQDFVIVSQ6D+AexV4e49
+
+################
+ 
+
+
+ 
+##############
+# Supabase配置
+
+SUPABASE_URL=https://uobwbhvwrciaxloqdizc.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcwNzEyNjYsImV4cCI6MjA2MjY0NzI2Nn0.x9Tti06ZF90B2YPg-AeVvT_tf4qOcOYcHWle6L3OVtc
+
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvYndiaHZ3cmNpYXhsb3FkaXpjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzA3MTI2NiwiZXhwIjoyMDYyNjQ3MjY2fQ.ryRmf_i-EYRweVLL4fj4acwifoknqgTbIomL-S22Zmo
+
+# AI API配置
+DEEPSEEK_API_KEY=sk-567abb67b99d4a65acaa2d9ed06c3782
+OPENAI_API_KEY=your_openai_api_key
+PERPLEXITY_API_KEY=ypplx-t4FAB1uQevyGAAso21ABeZokY2JKbWK7e8VM9Yq2mVtNOCKu
+
+# Redis配置（用于队列和缓存）
+REDIS_URL=redis://redis-14891.c74.us-east-1-4.ec2.redns.redis-cloud.com:14891 
+REDIS_PASSWORD=your_redis_password
+
+# JWT配置
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+
+# 日志配置
+LOG_LEVEL=info
+LOG_FILE=logs/app.log
+
+# 速率限制配置
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# 批量处理配置
+BATCH_SIZE=10
+MAX_CONCURRENT_JOBS=5
+JOB_TIMEOUT_MS=300000
+
+# 健康检查配置
+HEALTH_CHECK_TIMEOUT=5000
+
+# CORS配置
+CORS_ORIGIN=http://localhost:5173,https://productmindai.com 

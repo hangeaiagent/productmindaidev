@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Lightbulb, Cpu, Code, Download, Loader2, Sparkles, Settings, FileText, CheckCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Lightbulb, Cpu, Code, Download, Loader2, Sparkles, Settings, FileText, CheckCircle, Image, FileDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppContext } from '../context/AppContext';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface AIProductAnalysis {
   minimumViableProduct: {
@@ -60,6 +62,9 @@ const AIProductIdeaGenerator: React.FC = () => {
   const [currentProgress, setCurrentProgress] = useState(0);
   const [streamingMode, setStreamingMode] = useState(true);
   
+  // 添加ref用于导出
+  const exportRef = useRef<HTMLDivElement>(null);
+  
   // 使用全局语言状态
   const { language } = useAppContext();
 
@@ -80,6 +85,8 @@ const AIProductIdeaGenerator: React.FC = () => {
       techSolutionTitle: 'AI Technical Solution',
       devModulesTitle: 'Development Modules',
       downloadPrompts: 'Download Cursor Prompts',
+      exportMarkdown: 'Export Markdown',
+      exportPNG: 'Export PNG',
       coreFeatures: 'Core Features',
       targetUsers: 'Target Users',
       businessModel: 'Business Model',
@@ -92,7 +99,11 @@ const AIProductIdeaGenerator: React.FC = () => {
       functionality: 'Functionality',
       progressTitle: 'Analysis Progress',
       streamingMode: 'Streaming Mode',
-      normalMode: 'Normal Mode'
+      normalMode: 'Normal Mode',
+      exportSuccess: 'Export successful!',
+      exportError: 'Export failed, please try again',
+      technicalTitle: 'AI Technical Solution',
+      developmentTitle: 'Development Modules'
     },
     zh: {
       title: 'AI产品创意生成器',
@@ -109,6 +120,8 @@ const AIProductIdeaGenerator: React.FC = () => {
       techSolutionTitle: 'AI技术方案',
       devModulesTitle: '开发模块',
       downloadPrompts: '下载Cursor提示词',
+      exportMarkdown: '导出Markdown',
+      exportPNG: '导出PNG图片',
       coreFeatures: '核心功能',
       targetUsers: '目标用户',
       businessModel: '商业模式',
@@ -121,7 +134,11 @@ const AIProductIdeaGenerator: React.FC = () => {
       functionality: '功能描述',
       progressTitle: '分析进度',
       streamingMode: '流式模式',
-      normalMode: '普通模式'
+      normalMode: '普通模式',
+      exportSuccess: '导出成功！',
+      exportError: '导出失败，请重试',
+      technicalTitle: 'AI技术方案',
+      developmentTitle: '开发模块'
     }
   };
 
@@ -312,6 +329,261 @@ const AIProductIdeaGenerator: React.FC = () => {
     }
   };
 
+  // 导出Markdown格式
+  // 这个函数已被exportToMarkdown替代，保留以防其他地方使用
+  const exportMarkdownLegacy = async () => {
+    if (!analysis) return;
+
+    try {
+      let markdown = `# ${t.title}\n\n`;
+      markdown += `**${t.inputLabel}:** ${requirement}\n\n`;
+
+      // MVP部分
+      if (analysis.minimumViableProduct) {
+        markdown += `## ${t.mvpTitle}\n\n`;
+        markdown += `### ${analysis.minimumViableProduct.title}\n\n`;
+        markdown += `${analysis.minimumViableProduct.description}\n\n`;
+        
+        markdown += `### ${t.coreFeatures}\n\n`;
+        analysis.minimumViableProduct.coreFeatures?.forEach(feature => {
+          markdown += `- ${feature}\n`;
+        });
+        markdown += '\n';
+
+        markdown += `### ${t.targetUsers}\n\n`;
+        analysis.minimumViableProduct.targetUsers?.forEach(user => {
+          markdown += `- ${user}\n`;
+        });
+        markdown += '\n';
+
+        markdown += `### ${t.businessModel}\n\n`;
+        markdown += `${analysis.minimumViableProduct.businessModel}\n\n`;
+      }
+
+      // 技术方案部分
+      if (analysis.technicalSolution) {
+        markdown += `## ${t.techSolutionTitle}\n\n`;
+        
+        markdown += `### ${t.recommendedModels}\n\n`;
+        analysis.technicalSolution.recommendedModels?.forEach(model => {
+          markdown += `#### ${model.name} (${model.provider})\n\n`;
+          markdown += `${model.reason}\n\n`;
+          markdown += `**定价:** ${model.pricing}\n\n`;
+        });
+
+        markdown += `### ${t.keyAlgorithms}\n\n`;
+        analysis.technicalSolution.keyAlgorithms?.forEach(algorithm => {
+          markdown += `- ${algorithm}\n`;
+        });
+        markdown += '\n';
+
+        markdown += `### ${t.mcpTools}\n\n`;
+        analysis.technicalSolution.mcpTools?.forEach(tool => {
+          markdown += `#### ${tool.name}\n\n`;
+          markdown += `**用途:** ${tool.purpose}\n\n`;
+          markdown += `**实现:** ${tool.implementation}\n\n`;
+        });
+
+        markdown += `### ${t.architecture}\n\n`;
+        analysis.technicalSolution.architecture?.forEach(item => {
+          markdown += `- ${item}\n`;
+        });
+        markdown += '\n';
+      }
+
+      // 开发模块部分
+      if (analysis.developmentModules) {
+        markdown += `## ${t.devModulesTitle}\n\n`;
+        
+        analysis.developmentModules.forEach((module, index) => {
+          markdown += `### ${index + 1}. ${module.moduleName}\n\n`;
+          markdown += `**${t.priority}:** ${module.priority}\n\n`;
+          markdown += `**${t.estimatedTime}:** ${module.estimatedTime}\n\n`;
+          markdown += `**${t.functionality}:** ${module.functionality}\n\n`;
+          
+          if (module.cursorPrompts && module.cursorPrompts.length > 0) {
+            markdown += `**Cursor Prompt Files:**\n\n`;
+            module.cursorPrompts.forEach(prompt => {
+              markdown += `- ${prompt.fileName}\n`;
+            });
+            markdown += '\n';
+          }
+        });
+      }
+
+      // 创建并下载文件
+      const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ai-product-analysis-${Date.now()}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success(t.exportSuccess);
+    } catch (error) {
+      console.error('Export markdown error:', error);
+      toast.error(t.exportError);
+    }
+  };
+
+  // 导出PNG图片
+  const exportPNG = async () => {
+    if (!exportRef.current || !analysis) return;
+
+    try {
+      // 临时隐藏导出按钮
+      const exportButtons = exportRef.current.querySelectorAll('.export-buttons');
+      exportButtons.forEach(btn => {
+        (btn as HTMLElement).style.display = 'none';
+      });
+
+      const canvas = await html2canvas(exportRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: exportRef.current.scrollWidth,
+        height: exportRef.current.scrollHeight
+      });
+
+      // 恢复导出按钮显示
+      exportButtons.forEach(btn => {
+        (btn as HTMLElement).style.display = '';
+      });
+
+      // 创建并下载图片
+      const link = document.createElement('a');
+      link.download = `ai-product-analysis-${Date.now()}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+
+      toast.success(t.exportSuccess);
+    } catch (error) {
+      console.error('Export PNG error:', error);
+      toast.error(t.exportError);
+      
+      // 确保恢复按钮显示
+      const exportButtons = exportRef.current?.querySelectorAll('.export-buttons');
+      exportButtons?.forEach(btn => {
+        (btn as HTMLElement).style.display = '';
+      });
+    }
+  };
+
+  const exportToMarkdown = async () => {
+    if (!analysis) {
+      toast.error(t.exportError);
+      return;
+    }
+
+    try {
+      let markdownContent = `# ${t.title}\n\n`;
+      markdownContent += `**生成时间:** ${new Date().toLocaleString()}\n\n`;
+      markdownContent += `**需求描述:** ${requirement}\n\n`;
+
+      // MVP部分
+      if (analysis.minimumViableProduct) {
+        markdownContent += `## ${t.mvpTitle}\n\n`;
+        markdownContent += `### ${analysis.minimumViableProduct.title}\n\n`;
+        markdownContent += `${analysis.minimumViableProduct.description}\n\n`;
+        
+        markdownContent += `**核心功能:**\n`;
+        if (analysis.minimumViableProduct.coreFeatures && Array.isArray(analysis.minimumViableProduct.coreFeatures)) {
+          analysis.minimumViableProduct.coreFeatures.forEach(feature => {
+            markdownContent += `- ${feature}\n`;
+          });
+        }
+        markdownContent += `\n`;
+        
+        markdownContent += `**目标用户:**\n`;
+        if (analysis.minimumViableProduct.targetUsers && Array.isArray(analysis.minimumViableProduct.targetUsers)) {
+          analysis.minimumViableProduct.targetUsers.forEach(user => {
+            markdownContent += `- ${user}\n`;
+          });
+        }
+        markdownContent += `\n`;
+        
+        markdownContent += `**商业模式:** ${analysis.minimumViableProduct.businessModel}\n\n`;
+      }
+
+      // 技术方案部分
+      if (analysis.technicalSolution) {
+        markdownContent += `## ${t.technicalTitle}\n\n`;
+        
+        markdownContent += `### 推荐模型\n\n`;
+        if (analysis.technicalSolution.recommendedModels && Array.isArray(analysis.technicalSolution.recommendedModels)) {
+          analysis.technicalSolution.recommendedModels.forEach(model => {
+            markdownContent += `#### ${model.name} (${model.provider})\n`;
+            markdownContent += `- **推荐理由:** ${model.reason}\n`;
+            markdownContent += `- **价格:** ${model.pricing}\n\n`;
+          });
+        }
+        
+        markdownContent += `### 关键算法\n\n`;
+        if (analysis.technicalSolution.keyAlgorithms && Array.isArray(analysis.technicalSolution.keyAlgorithms)) {
+          analysis.technicalSolution.keyAlgorithms.forEach(algorithm => {
+            markdownContent += `- ${algorithm}\n`;
+          });
+        }
+        markdownContent += `\n`;
+        
+        markdownContent += `### MCP工具\n\n`;
+        if (analysis.technicalSolution.mcpTools && Array.isArray(analysis.technicalSolution.mcpTools)) {
+          analysis.technicalSolution.mcpTools.forEach(tool => {
+            markdownContent += `#### ${tool.name}\n`;
+            markdownContent += `- **用途:** ${tool.purpose}\n`;
+            markdownContent += `- **实现:** ${tool.implementation}\n\n`;
+          });
+        }
+        
+        markdownContent += `### 架构组件\n\n`;
+        if (analysis.technicalSolution.architecture && Array.isArray(analysis.technicalSolution.architecture)) {
+          analysis.technicalSolution.architecture.forEach(component => {
+            markdownContent += `- ${component}\n`;
+          });
+        }
+        markdownContent += `\n`;
+      }
+
+      // 开发模块部分
+      if (analysis.developmentModules && Array.isArray(analysis.developmentModules)) {
+        markdownContent += `## ${t.developmentTitle}\n\n`;
+        
+        analysis.developmentModules.forEach((module, index) => {
+          markdownContent += `### ${index + 1}. ${module.moduleName}\n\n`;
+          markdownContent += `- **功能:** ${module.functionality}\n`;
+          markdownContent += `- **优先级:** ${module.priority}\n`;
+          markdownContent += `- **预估时间:** ${module.estimatedTime}\n\n`;
+          
+          if (module.cursorPrompts && Array.isArray(module.cursorPrompts) && module.cursorPrompts.length > 0) {
+            markdownContent += `**Cursor提示词:**\n\n`;
+            module.cursorPrompts.forEach(prompt => {
+              markdownContent += `#### ${prompt.fileName}\n`;
+              markdownContent += `\`\`\`\n${prompt.content}\n\`\`\`\n\n`;
+            });
+          }
+        });
+      }
+
+      // 创建并下载文件
+      const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `AI产品创意分析_${new Date().toISOString().split('T')[0]}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success(t.exportSuccess);
+    } catch (error) {
+      console.error('导出Markdown失败:', error);
+      toast.error(t.exportError);
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
       {/* Header */}
@@ -445,7 +717,25 @@ const AIProductIdeaGenerator: React.FC = () => {
 
       {/* Analysis Results */}
       {analysis && (
-        <div className="space-y-8">
+        <div ref={exportRef} className="space-y-8">
+          {/* Export Buttons */}
+          <div className="export-buttons flex justify-end space-x-3 mb-6">
+            <button
+              onClick={exportToMarkdown}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>{t.exportMarkdown}</span>
+            </button>
+            <button
+              onClick={exportPNG}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200"
+            >
+              <Image className="w-4 h-4" />
+              <span>{t.exportPNG}</span>
+            </button>
+          </div>
+
           {/* MVP Section */}
           {analysis.minimumViableProduct && (
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 animate-fadeIn">
