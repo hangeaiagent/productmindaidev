@@ -1,0 +1,7 @@
+🚀 DeepSeek AI Analysis Server 运行在 http://localhost:3000
+📋 健康检查: http://localhost:3000/health
+🤖 流式AI产品分析: POST http://localhost:3000/api/ai-product-analysis-stream
+🔑 DeepSeek API: ✅ 已配置
+🎯 将使用DeepSeek Chat大模型进行真实AI分析
+
+收到SIGTERM信号，正在关闭服务器...

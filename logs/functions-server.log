@@ -1,0 +1,8 @@
+🚀 Functions服务器运行在端口 8888
+📊 可用端点:
+   - GET /.netlify/functions/get-categories
+   - GET /.netlify/functions/get-projects-by-category
+   - GET /.netlify/functions/check-category-codes
+   - GET /api/projects/:projectId/templates/download-all
+   - GET /api/projects/:projectId/mdc/download-all
+   - GET /health

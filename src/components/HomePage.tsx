@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Database, Globe, BarChart3, Github, LogIn, UserPlus, Languages } from 'lucide-react';
 import AIProductIdeaGenerator from './AIProductIdeaGenerator';
+import ProductMindLogo from './ProductMindLogo';
 import { useAppContext } from '../context/AppContext';
 
 interface Content {
@@ -103,19 +104,16 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-[#4F8CFF] via-[#A259FF] to-[#6A82FB]">
       {/* Navigation Bar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+      <nav className="bg-gradient-to-r from-[#4F8CFF] to-[#A259FF] shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
-                <path d="M17 14h.01"></path>
-              </svg>
-              <h1 className="text-3xl font-bold text-gray-900">
-                ProductMind AI
+              <ProductMindLogo size={36} className="drop-shadow-lg" />
+              <h1 className="text-3xl font-bold text-white tracking-wide">
+                ProductMind <span className="text-yellow-200">AI</span>
               </h1>
             </div>
 
@@ -124,47 +122,45 @@ const HomePage: React.FC = () => {
               {/* My Products Button */}
               <button
                 onClick={handleDashboardClick}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 px-4 py-2 text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-md hover:from-blue-600 hover:to-purple-600 transition"
               >
                 <Database className="w-4 h-4" />
-                <span className="text-sm font-medium">{t.myProducts}</span>
+                <span className="text-sm">{t.myProducts}</span>
               </button>
 
               {/* AI Products Reference Button */}
               <button
                 onClick={handleAIProductsClick}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 px-4 py-2 text-white font-medium bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg shadow-md hover:from-purple-600 hover:to-blue-600 transition"
               >
                 <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">{t.aiProducts}</span>
+                <span className="text-sm">{t.aiProducts}</span>
               </button>
 
               {/* Language Toggle */}
               <button
                 onClick={toggleLanguage}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 px-3 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
                 title={language === 'en' ? 'Switch to Chinese' : '切换到英文'}
               >
                 <Languages className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  {language === 'en' ? '中文' : 'EN'}
-                </span>
+                <span className="text-sm">{language === 'en' ? '中文' : 'EN'}</span>
               </button>
 
               {/* GitHub Link */}
               <button
                 onClick={handleGithub}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 px-3 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
                 title={t.github as string}
               >
                 <Github className="w-4 h-4" />
-                <span className="text-sm font-medium hidden md:block">{t.github}</span>
+                <span className="text-sm hidden md:block">{t.github}</span>
               </button>
 
               {/* Login Button */}
               <button
                 onClick={handleLogin}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="flex items-center space-x-2 px-4 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
               >
                 <LogIn className="w-4 h-4" />
                 <span className="text-sm font-medium">{t.login}</span>
@@ -173,7 +169,7 @@ const HomePage: React.FC = () => {
               {/* Register Button */}
               <button
                 onClick={handleRegister}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors duration-200"
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition shadow-lg"
               >
                 <UserPlus className="w-4 h-4" />
                 <span className="text-sm font-medium">{t.register}</span>
@@ -186,12 +182,15 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <div className="flex justify-center mb-6">
+            <ProductMindLogo size={64} className="drop-shadow-2xl animate-pulse" />
+          </div>
+          <h1 className="text-5xl font-extrabold text-white mb-6 drop-shadow-lg">
+            <span className="bg-gradient-to-r from-yellow-200 via-white to-purple-200 bg-clip-text text-transparent">
               {t.title}
             </span>
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-white/80 mb-8 max-w-3xl mx-auto leading-relaxed drop-shadow">
             {t.subtitle}
           </p>
           

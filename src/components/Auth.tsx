@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Bot } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, Shield, Languages } from 'lucide-react';
 import { logger } from '../utils/logger';
 import { useNavigate, useLocation } from 'react-router-dom';
+import ProductMindLogo from './ProductMindLogo';
 
 interface AuthFormData {
   email: string;
@@ -14,7 +15,7 @@ interface AuthFormData {
 
 const Auth: React.FC = () => {
   logger.log('渲染认证组件');
-  const { language } = useAppContext();
+  const { language, setLanguage } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -51,7 +52,10 @@ const Auth: React.FC = () => {
       registerFailed: '注册失败，请稍后重试',
       codeResent: '验证码已重新发送',
       sendCodeFailed: '发送验证码失败，请稍后重试',
-      invalidCode: '验证码无效或已过期'
+      invalidCode: '验证码无效或已过期',
+      backToHome: '返回首页',
+      welcomeBack: '欢迎回来',
+      joinUs: '加入我们'
     },
     en: {
       loginTitle: 'Sign In',
@@ -80,7 +84,10 @@ const Auth: React.FC = () => {
       registerFailed: 'Registration failed, please try again',
       codeResent: 'Verification code resent',
       sendCodeFailed: 'Failed to send verification code, please try again',
-      invalidCode: 'Invalid or expired verification code'
+      invalidCode: 'Invalid or expired verification code',
+      backToHome: 'Back to Home',
+      welcomeBack: 'Welcome Back',
+      joinUs: 'Join Us'
     }
   };
   
@@ -100,6 +107,11 @@ const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+
+  // 语言切换功能
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'zh' : 'en');
+  };
 
   // 添加倒计时效果
   React.useEffect(() => {
@@ -244,77 +256,78 @@ const Auth: React.FC = () => {
     }
   };
 
+  const handleBackToHome = () => {
+    navigate('/');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-[#4F8CFF] via-[#A259FF] to-[#6A82FB] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        {/* Header */}
+        <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
-            <Bot className="h-12 w-12 text-indigo-600" />
+            <ProductMindLogo size={64} className="drop-shadow-2xl animate-pulse" />
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            {showVerification ? t.verifyTitle : 
-              authMode === 'login' ? t.loginTitle : t.registerTitle}
+          <h2 className="text-4xl font-extrabold text-white mb-2 drop-shadow-lg">
+            <span className="bg-gradient-to-r from-yellow-200 via-white to-purple-200 bg-clip-text text-transparent">
+              {showVerification ? t.verifyTitle : 
+                authMode === 'login' ? t.welcomeBack : t.joinUs}
+            </span>
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="text-lg text-white/80 mb-6 drop-shadow">
             {showVerification ? t.verifyDesc :
-              authMode === 'login' ? (
-                <>
-                  {t.noAccount}
-                  <button
-                    onClick={() => setAuthMode('register')}
-                    className="ml-1 font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    {t.registerNow}
-                  </button>
-                </>
-              ) : (
-                <>
-                  {t.hasAccount}
-                  <button
-                    onClick={() => setAuthMode('login')}
-                    className="ml-1 font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    {t.loginNow}
-                  </button>
-                </>
-              )
-            }
+              authMode === 'login' ? t.loginTitle : t.registerTitle}
           </p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+        {/* Language Toggle */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center space-x-2 px-4 py-2 text-white bg-white/10 hover:bg-white/20 rounded-lg transition backdrop-blur-sm"
+          >
+            <Languages className="w-4 h-4" />
+            <span className="text-sm">{language === 'en' ? '中文' : 'EN'}</span>
+          </button>
+        </div>
 
-        <form onSubmit={showVerification ? handleVerifyEmail : 
-          authMode === 'login' ? handleEmailLogin : handleRegister}>
-          <div className="rounded-md shadow-sm -space-y-px">
+        {/* Main Form Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20">
+          {error && (
+            <div className="bg-red-500/20 border border-red-400/30 text-red-100 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={showVerification ? handleVerifyEmail : 
+            authMode === 'login' ? handleEmailLogin : handleRegister} className="space-y-6">
+            
             {showVerification ? (
-              <div>
-                <label htmlFor="verification-code" className="sr-only">
-                  {t.verificationCodePlaceholder}
-                </label>
-                <input
-                  id="verification-code"
-                  name="verificationCode"
-                  type="text"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder={t.verificationCodePlaceholder}
-                  value={formData.verificationCode}
-                  onChange={handleInputChange}
-                />
-                <div className="mt-2 flex justify-between items-center text-sm">
-                  <span className="text-gray-500">
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Shield className="h-5 w-5 text-white/60" />
+                  </div>
+                  <input
+                    id="verification-code"
+                    name="verificationCode"
+                    type="text"
+                    required
+                    className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                    placeholder={t.verificationCodePlaceholder}
+                    value={formData.verificationCode}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-white/70">
                     {t.codeSentTo} {formData.email}
                   </span>
                   <button
                     type="button"
                     onClick={handleResendCode}
                     disabled={countdown > 0 || isResending}
-                    className={`text-indigo-600 hover:text-indigo-500 ${
+                    className={`text-yellow-200 hover:text-yellow-100 font-medium ${
                       (countdown > 0 || isResending) ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                   >
@@ -325,80 +338,104 @@ const Auth: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <>
-                <div>
-                  <label htmlFor="email" className="sr-only">
-                    {t.emailPlaceholder}
-                  </label>
+              <div className="space-y-4">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-white/60" />
+                  </div>
                   <input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="email"
                     required
-                    className="appearance-none rounded-t-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                     placeholder={t.emailPlaceholder}
                     value={formData.email}
                     onChange={handleInputChange}
                   />
                 </div>
-                <div>
-                  <label htmlFor="password" className="sr-only">
-                    {t.passwordPlaceholder}
-                  </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-white/60" />
+                  </div>
                   <input
                     id="password"
                     name="password"
                     type="password"
                     autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
                     required
-                    className={`appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm ${
-                      authMode === 'register' ? '' : 'rounded-b-md'
-                    }`}
+                    className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                     placeholder={t.passwordPlaceholder}
                     value={formData.password}
                     onChange={handleInputChange}
                   />
                 </div>
                 {authMode === 'register' && (
-                  <div>
-                    <label htmlFor="confirm-password" className="sr-only">
-                      {t.confirmPasswordPlaceholder}
-                    </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-white/60" />
+                    </div>
                     <input
                       id="confirm-password"
                       name="confirmPassword"
                       type="password"
                       autoComplete="new-password"
                       required
-                      className="appearance-none rounded-b-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
                       placeholder={t.confirmPasswordPlaceholder}
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
                     />
                   </div>
                 )}
-              </>
+              </div>
             )}
-          </div>
 
-          <div className="mt-6">
             <button
               type="submit"
               disabled={isLoading}
-              className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              className={`group relative w-full flex justify-center items-center space-x-2 py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400 transition shadow-lg ${
                 isLoading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
             >
-              {isLoading ? t.processing : 
-                showVerification ? t.verify :
-                authMode === 'login' ? t.login : t.register}
+              {authMode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+              <span>
+                {isLoading ? t.processing : 
+                  showVerification ? t.verify :
+                  authMode === 'login' ? t.login : t.register}
+              </span>
+            </button>
+          </form>
+
+          {/* Mode Switch */}
+          {!showVerification && (
+            <div className="mt-6 text-center">
+              <p className="text-white/70">
+                {authMode === 'login' ? t.noAccount : t.hasAccount}
+                <button
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="ml-2 font-medium text-yellow-200 hover:text-yellow-100 transition"
+                >
+                  {authMode === 'login' ? t.registerNow : t.loginNow}
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* Back to Home */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleBackToHome}
+              className="text-white/70 hover:text-white transition text-sm"
+            >
+              ← {t.backToHome}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Auth
+export default Auth;

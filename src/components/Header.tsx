@@ -5,6 +5,7 @@ import LanguageSwitch from './LanguageSwitch';
 import ModelSettings from './ModelSettings';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import ProductMindLogo from './ProductMindLogo';
 
 const Header: React.FC = () => {
   const { searchTemplates, setSelectedTemplate, t, language, handleAIFundingSearch } = useAppContext();
@@ -53,14 +54,13 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-indigo-600 text-white sticky top-0 z-10 shadow-md">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
-            <path d="M17 14h.01"></path>
-          </svg>
-          <h1 className="text-xl font-bold">ProductMind AI</h1>
+    <header className="bg-gradient-to-r from-[#4F8CFF] to-[#A259FF] text-white sticky top-0 z-10 shadow-lg">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <ProductMindLogo size={32} className="drop-shadow-lg" />
+          <h1 className="text-2xl font-bold text-white tracking-wide">
+            ProductMind <span className="text-yellow-200">AI</span>
+          </h1>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -68,7 +68,7 @@ const Header: React.FC = () => {
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-700 rounded-md hover:bg-indigo-800"
+              className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
             >
               {language === 'zh' ? '退出' : 'Logout'}
             </button>
@@ -76,13 +76,13 @@ const Header: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Link
                 to="/login"
-                className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200"
+                className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
               >
                 {language === 'zh' ? '登录' : 'Login'}
               </Link>
               <Link
                 to="/register"
-                className="px-4 py-2 text-sm font-medium text-white bg-indigo-700 rounded-md hover:bg-indigo-800"
+                className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:from-yellow-500 hover:to-orange-600 transition shadow-lg"
               >
                 {language === 'zh' ? '注册' : 'Register'}
               </Link>
@@ -90,13 +90,13 @@ const Header: React.FC = () => {
           )}
           <Link
             to="/dashboard"
-            className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200"
+            className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
           >
             {language === 'zh' ? '我的产品' : 'My Products'}
           </Link>
           <Link
             to="/ai-products"
-            className="px-4 py-2 text-sm font-medium text-white hover:text-indigo-200"
+            className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition"
           >
             {language === 'zh' ? 'AI产品参考' : 'AI Products'}
           </Link>
@@ -104,13 +104,13 @@ const Header: React.FC = () => {
             href="https://github.com/hangeaiagent/productmindaidev"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-indigo-100 hover:text-white"
+            className="text-white bg-white/10 hover:bg-white/20 p-2 rounded-lg transition"
           >
             <span className="sr-only">GitHub</span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
