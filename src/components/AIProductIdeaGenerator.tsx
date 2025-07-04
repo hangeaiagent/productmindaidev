@@ -20,6 +20,64 @@ interface AIProductAnalysis {
       reason: string;
       pricing: string;
     }>;
+    modelRecommendations: {
+      performanceBest: {
+        title: string;
+        description: string;
+        models: Array<{
+          name: string;
+          provider: string;
+          capabilities: string[];
+          pricing: string;
+          useCase: string;
+        }>;
+      };
+      costEffective: {
+        title: string;
+        description: string;
+        models: Array<{
+          name: string;
+          provider: string;
+          capabilities: string[];
+          pricing: string;
+          useCase: string;
+        }>;
+      };
+      chinaRegion: {
+        title: string;
+        description: string;
+        models: Array<{
+          name: string;
+          provider: string;
+          capabilities: string[];
+          pricing: string;
+          useCase: string;
+        }>;
+      };
+      usRegion: {
+        title: string;
+        description: string;
+        models: Array<{
+          name: string;
+          provider: string;
+          capabilities: string[];
+          pricing: string;
+          useCase: string;
+        }>;
+      };
+      privateDeployment: {
+        title: string;
+        description: string;
+        models: Array<{
+          name: string;
+          provider: string;
+          capabilities: string[];
+          pricing: string;
+          useCase: string;
+          requirements: string;
+        }>;
+      };
+    };
     keyAlgorithms: string[];
     mcpTools: Array<{
       name: string;
@@ -103,7 +161,18 @@ const AIProductIdeaGenerator: React.FC = () => {
       exportSuccess: 'Export successful!',
       exportError: 'Export failed, please try again',
       technicalTitle: 'AI Technical Solution',
-      developmentTitle: 'Development Modules'
+      developmentTitle: 'Development Modules',
+      modelRecommendationsTitle: 'Model Recommendations',
+      performanceBest: 'Performance Best',
+      costEffective: 'Cost Effective',
+      chinaRegion: 'China Region',
+      usRegion: 'US Region',
+      privateDeployment: 'Private Deployment',
+      capabilities: 'Capabilities',
+      pricing: 'Pricing',
+      useCase: 'Use Case',
+      requirements: 'Requirements',
+      provider: 'Provider'
     },
     zh: {
       title: 'AI产品创意生成器',
@@ -138,7 +207,18 @@ const AIProductIdeaGenerator: React.FC = () => {
       exportSuccess: '导出成功！',
       exportError: '导出失败，请重试',
       technicalTitle: 'AI技术方案',
-      developmentTitle: '开发模块'
+      developmentTitle: '开发模块',
+      modelRecommendationsTitle: '大模型分类建议',
+      performanceBest: '🚀 性能最佳大模型',
+      costEffective: '💰 性价比最佳大模型',
+      chinaRegion: '🇨🇳 中国地区大模型建议',
+      usRegion: '🇺🇸 美国硅谷大模型建议',
+      privateDeployment: '🏢 私有部署大模型建议',
+      capabilities: '模型能力',
+      pricing: '定价信息',
+      useCase: '适用场景',
+      requirements: '部署要求',
+      provider: '提供商'
     }
   };
 
@@ -168,9 +248,11 @@ const AIProductIdeaGenerator: React.FC = () => {
 
   const handleStreamingGenerate = async () => {
     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const apiUrl = isDevelopment 
-      ? 'http://localhost:3000/api/ai-product-analysis-stream'
-      : '/api/ai-product-analysis-stream';
+    // 使用环境变量或默认值，开发环境统一使用localhost:3000
+    const apiBaseUrl = isDevelopment 
+      ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
+      : (import.meta.env.VITE_PROD_API_URL || 'http://3.93.149.236:3000');
+    const apiUrl = `${apiBaseUrl}/api/ai-product-analysis-stream`;
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -268,11 +350,13 @@ const AIProductIdeaGenerator: React.FC = () => {
     }
   };
 
-  const handleNormalGenerate = async () => {
-      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiUrl = isDevelopment 
-        ? 'http://localhost:3000/api/ai-product-analysis'
-        : '/api/ai-product-analysis';
+    const handleNormalGenerate = async () => {
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // 使用环境变量或默认值，开发环境统一使用localhost:3000
+    const apiBaseUrl = isDevelopment 
+      ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
+      : (import.meta.env.VITE_PROD_API_URL || 'http://3.93.149.236:3000');
+    const apiUrl = `${apiBaseUrl}/api/ai-product-analysis`;
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -518,6 +602,90 @@ const AIProductIdeaGenerator: React.FC = () => {
             markdownContent += `- **推荐理由:** ${model.reason}\n`;
             markdownContent += `- **价格:** ${model.pricing}\n\n`;
           });
+        }
+
+        // 分类大模型建议
+        if (analysis.technicalSolution.modelRecommendations) {
+          markdownContent += `### 大模型分类建议\n\n`;
+          
+          // 性能最佳大模型
+          if (analysis.technicalSolution.modelRecommendations.performanceBest) {
+            markdownContent += `#### 🚀 性能最佳大模型\n\n`;
+            markdownContent += `${analysis.technicalSolution.modelRecommendations.performanceBest.description}\n\n`;
+            
+            if (analysis.technicalSolution.modelRecommendations.performanceBest.models) {
+              analysis.technicalSolution.modelRecommendations.performanceBest.models.forEach(model => {
+                markdownContent += `##### ${model.name} (${model.provider})\n`;
+                markdownContent += `- **模型能力:** ${model.capabilities.join(', ')}\n`;
+                markdownContent += `- **定价信息:** ${model.pricing}\n`;
+                markdownContent += `- **适用场景:** ${model.useCase}\n\n`;
+              });
+            }
+          }
+          
+          // 性价比最佳大模型
+          if (analysis.technicalSolution.modelRecommendations.costEffective) {
+            markdownContent += `#### 💰 性价比最佳大模型\n\n`;
+            markdownContent += `${analysis.technicalSolution.modelRecommendations.costEffective.description}\n\n`;
+            
+            if (analysis.technicalSolution.modelRecommendations.costEffective.models) {
+              analysis.technicalSolution.modelRecommendations.costEffective.models.forEach(model => {
+                markdownContent += `##### ${model.name} (${model.provider})\n`;
+                markdownContent += `- **模型能力:** ${model.capabilities.join(', ')}\n`;
+                markdownContent += `- **定价信息:** ${model.pricing}\n`;
+                markdownContent += `- **适用场景:** ${model.useCase}\n\n`;
+              });
+            }
+          }
+          
+          // 中国地区大模型建议
+          if (analysis.technicalSolution.modelRecommendations.chinaRegion) {
+            markdownContent += `#### 🇨🇳 中国地区大模型建议\n\n`;
+            markdownContent += `${analysis.technicalSolution.modelRecommendations.chinaRegion.description}\n\n`;
+            
+            if (analysis.technicalSolution.modelRecommendations.chinaRegion.models) {
+              analysis.technicalSolution.modelRecommendations.chinaRegion.models.forEach(model => {
+                markdownContent += `##### ${model.name} (${model.provider})\n`;
+                markdownContent += `- **模型能力:** ${model.capabilities.join(', ')}\n`;
+                markdownContent += `- **定价信息:** ${model.pricing}\n`;
+                markdownContent += `- **适用场景:** ${model.useCase}\n\n`;
+              });
+            }
+          }
+          
+          // 美国硅谷大模型建议
+          if (analysis.technicalSolution.modelRecommendations.usRegion) {
+            markdownContent += `#### 🇺🇸 美国硅谷大模型建议\n\n`;
+            markdownContent += `${analysis.technicalSolution.modelRecommendations.usRegion.description}\n\n`;
+            
+            if (analysis.technicalSolution.modelRecommendations.usRegion.models) {
+              analysis.technicalSolution.modelRecommendations.usRegion.models.forEach(model => {
+                markdownContent += `##### ${model.name} (${model.provider})\n`;
+                markdownContent += `- **模型能力:** ${model.capabilities.join(', ')}\n`;
+                markdownContent += `- **定价信息:** ${model.pricing}\n`;
+                markdownContent += `- **适用场景:** ${model.useCase}\n\n`;
+              });
+            }
+          }
+          
+          // 私有部署大模型建议
+          if (analysis.technicalSolution.modelRecommendations.privateDeployment) {
+            markdownContent += `#### 🏢 私有部署大模型建议\n\n`;
+            markdownContent += `${analysis.technicalSolution.modelRecommendations.privateDeployment.description}\n\n`;
+            
+            if (analysis.technicalSolution.modelRecommendations.privateDeployment.models) {
+              analysis.technicalSolution.modelRecommendations.privateDeployment.models.forEach(model => {
+                markdownContent += `##### ${model.name} (${model.provider})\n`;
+                markdownContent += `- **模型能力:** ${model.capabilities.join(', ')}\n`;
+                markdownContent += `- **定价信息:** ${model.pricing}\n`;
+                markdownContent += `- **适用场景:** ${model.useCase}\n`;
+                if (model.requirements) {
+                  markdownContent += `- **部署要求:** ${model.requirements}\n`;
+                }
+                markdownContent += `\n`;
+              });
+            }
+          }
         }
         
         markdownContent += `### 关键算法\n\n`;
@@ -812,6 +980,235 @@ const AIProductIdeaGenerator: React.FC = () => {
                   ))}
                 </div>
               </div>
+
+              {/* Model Recommendations by Category */}
+              {analysis.technicalSolution.modelRecommendations && (
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-4">{t.modelRecommendationsTitle}</h4>
+                  <div className="space-y-6">
+                    {/* Performance Best */}
+                    {analysis.technicalSolution.modelRecommendations.performanceBest && (
+                      <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-5 border border-red-200">
+                        <h5 className="font-semibold text-red-800 mb-2 flex items-center">
+                          <span className="mr-2">🚀</span>
+                          {t.performanceBest}
+                        </h5>
+                        <p className="text-sm text-red-700 mb-3">{analysis.technicalSolution.modelRecommendations.performanceBest.description}</p>
+                        <div className="grid gap-3">
+                          {analysis.technicalSolution.modelRecommendations.performanceBest.models && analysis.technicalSolution.modelRecommendations.performanceBest.models.map((model, index) => (
+                            <div key={index} className="bg-white rounded-lg p-4 border border-red-100">
+                              <div className="flex justify-between items-start mb-2">
+                                <h6 className="font-medium text-gray-800">{model.name}</h6>
+                                <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                                  {model.provider}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.capabilities}:</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {model.capabilities && model.capabilities.map((capability, capIndex) => (
+                                      <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {capability}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.pricing}:</span>
+                                  <span className="text-xs text-gray-600 ml-2">{model.pricing}</span>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.useCase}:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{model.useCase}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cost Effective */}
+                    {analysis.technicalSolution.modelRecommendations.costEffective && (
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-5 border border-green-200">
+                        <h5 className="font-semibold text-green-800 mb-2 flex items-center">
+                          <span className="mr-2">💰</span>
+                          {t.costEffective}
+                        </h5>
+                        <p className="text-sm text-green-700 mb-3">{analysis.technicalSolution.modelRecommendations.costEffective.description}</p>
+                        <div className="grid gap-3">
+                          {analysis.technicalSolution.modelRecommendations.costEffective.models && analysis.technicalSolution.modelRecommendations.costEffective.models.map((model, index) => (
+                            <div key={index} className="bg-white rounded-lg p-4 border border-green-100">
+                              <div className="flex justify-between items-start mb-2">
+                                <h6 className="font-medium text-gray-800">{model.name}</h6>
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                  {model.provider}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.capabilities}:</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {model.capabilities && model.capabilities.map((capability, capIndex) => (
+                                      <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {capability}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.pricing}:</span>
+                                  <span className="text-xs text-gray-600 ml-2">{model.pricing}</span>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.useCase}:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{model.useCase}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* China Region */}
+                    {analysis.technicalSolution.modelRecommendations.chinaRegion && (
+                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-5 border border-yellow-200">
+                        <h5 className="font-semibold text-yellow-800 mb-2 flex items-center">
+                          <span className="mr-2">🇨🇳</span>
+                          {t.chinaRegion}
+                        </h5>
+                        <p className="text-sm text-yellow-700 mb-3">{analysis.technicalSolution.modelRecommendations.chinaRegion.description}</p>
+                        <div className="grid gap-3">
+                          {analysis.technicalSolution.modelRecommendations.chinaRegion.models && analysis.technicalSolution.modelRecommendations.chinaRegion.models.map((model, index) => (
+                            <div key={index} className="bg-white rounded-lg p-4 border border-yellow-100">
+                              <div className="flex justify-between items-start mb-2">
+                                <h6 className="font-medium text-gray-800">{model.name}</h6>
+                                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                                  {model.provider}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.capabilities}:</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {model.capabilities && model.capabilities.map((capability, capIndex) => (
+                                      <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {capability}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.pricing}:</span>
+                                  <span className="text-xs text-gray-600 ml-2">{model.pricing}</span>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.useCase}:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{model.useCase}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* US Region */}
+                    {analysis.technicalSolution.modelRecommendations.usRegion && (
+                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
+                        <h5 className="font-semibold text-blue-800 mb-2 flex items-center">
+                          <span className="mr-2">🇺🇸</span>
+                          {t.usRegion}
+                        </h5>
+                        <p className="text-sm text-blue-700 mb-3">{analysis.technicalSolution.modelRecommendations.usRegion.description}</p>
+                        <div className="grid gap-3">
+                          {analysis.technicalSolution.modelRecommendations.usRegion.models && analysis.technicalSolution.modelRecommendations.usRegion.models.map((model, index) => (
+                            <div key={index} className="bg-white rounded-lg p-4 border border-blue-100">
+                              <div className="flex justify-between items-start mb-2">
+                                <h6 className="font-medium text-gray-800">{model.name}</h6>
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                  {model.provider}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.capabilities}:</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {model.capabilities && model.capabilities.map((capability, capIndex) => (
+                                      <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {capability}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.pricing}:</span>
+                                  <span className="text-xs text-gray-600 ml-2">{model.pricing}</span>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.useCase}:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{model.useCase}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Private Deployment */}
+                    {analysis.technicalSolution.modelRecommendations.privateDeployment && (
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200">
+                        <h5 className="font-semibold text-purple-800 mb-2 flex items-center">
+                          <span className="mr-2">🏢</span>
+                          {t.privateDeployment}
+                        </h5>
+                        <p className="text-sm text-purple-700 mb-3">{analysis.technicalSolution.modelRecommendations.privateDeployment.description}</p>
+                        <div className="grid gap-3">
+                          {analysis.technicalSolution.modelRecommendations.privateDeployment.models && analysis.technicalSolution.modelRecommendations.privateDeployment.models.map((model, index) => (
+                            <div key={index} className="bg-white rounded-lg p-4 border border-purple-100">
+                              <div className="flex justify-between items-start mb-2">
+                                <h6 className="font-medium text-gray-800">{model.name}</h6>
+                                <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                  {model.provider}
+                                </span>
+                              </div>
+                              <div className="space-y-2">
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.capabilities}:</span>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {model.capabilities && model.capabilities.map((capability, capIndex) => (
+                                      <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
+                                        {capability}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.pricing}:</span>
+                                  <span className="text-xs text-gray-600 ml-2">{model.pricing}</span>
+                                </div>
+                                <div>
+                                  <span className="text-xs font-medium text-gray-600">{t.useCase}:</span>
+                                  <p className="text-xs text-gray-600 mt-1">{model.useCase}</p>
+                                </div>
+                                {'requirements' in model && model.requirements && (
+                                  <div>
+                                    <span className="text-xs font-medium text-gray-600">{t.requirements}:</span>
+                                    <p className="text-xs text-gray-600 mt-1">{model.requirements}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Key Algorithms */}
               <div>

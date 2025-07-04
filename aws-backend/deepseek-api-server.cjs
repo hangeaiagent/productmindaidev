@@ -135,10 +135,12 @@ Requirements:
 function generateTechPrompt(inputText, language = 'zh') {
   if (language === 'zh') {
     return `
-请为以下AI产品需求分析技术解决方案：
+请为以下AI产品需求分析技术解决方案，特别是大模型选择建议：
 
 【产品需求】：
 ${inputText}
+
+请根据产品的具体需求、目标用户、功能特点、成本预算等因素，智能分析并推荐最适合的大模型方案。
 
 请按照以下JSON格式返回技术方案分析结果：
 
@@ -151,6 +153,73 @@ ${inputText}
       "pricing": "定价信息"
     }
   ],
+  "modelRecommendations": {
+    "performanceBest": {
+      "title": "🚀 性能最佳大模型",
+      "description": "针对该产品推荐在准确性、推理能力和综合性能方面表现最优的大模型",
+      "models": [
+        {
+          "name": "模型名称",
+          "provider": "提供商",
+          "capabilities": ["能力1", "能力2", "能力3"],
+          "pricing": "价格信息",
+          "useCase": "为什么适合此产品的具体说明"
+        }
+      ]
+    },
+    "costEffective": {
+      "title": "💰 性价比最佳大模型",
+      "description": "针对该产品推荐在成本和性能之间达到最佳平衡的大模型",
+      "models": [
+        {
+          "name": "模型名称",
+          "provider": "提供商",
+          "capabilities": ["能力1", "能力2", "能力3"],
+          "pricing": "价格信息",
+          "useCase": "为什么适合此产品的具体说明"
+        }
+      ]
+    },
+    "chinaRegion": {
+      "title": "🇨🇳 中国地区大模型建议",
+      "description": "针对该产品推荐适合中国大陆地区使用的大模型",
+      "models": [
+        {
+          "name": "模型名称",
+          "provider": "提供商",
+          "capabilities": ["能力1", "能力2", "能力3"],
+          "pricing": "价格信息",
+          "useCase": "为什么适合此产品的具体说明"
+        }
+      ]
+    },
+    "usRegion": {
+      "title": "🇺🇸 美国硅谷大模型建议",
+      "description": "针对该产品推荐美国硅谷地区主流的大模型",
+      "models": [
+        {
+          "name": "模型名称",
+          "provider": "提供商",
+          "capabilities": ["能力1", "能力2", "能力3"],
+          "pricing": "价格信息",
+          "useCase": "为什么适合此产品的具体说明"
+        }
+      ]
+    },
+    "privateDeployment": {
+      "title": "🏢 私有部署大模型建议",
+      "description": "针对该产品推荐适合私有化部署的大模型",
+      "models": [
+        {
+          "name": "模型名称",
+          "provider": "提供商",
+          "capabilities": ["能力1", "能力2", "能力3"],
+          "requirements": "硬件需求说明",
+          "useCase": "为什么适合此产品的具体说明"
+        }
+      ]
+    }
+  },
   "keyAlgorithms": ["关键算法1", "关键算法2", "关键算法3"],
   "mcpTools": [
     {
@@ -163,15 +232,19 @@ ${inputText}
 }
 
 要求：
-1. 推荐最适合的AI模型和技术栈
-2. 结果必须是有效的JSON格式，不要包含任何其他文本
+1. 根据产品的具体需求智能分析并推荐最适合的大模型
+2. 每个分类至少推荐2-3个模型，并详细说明为什么适合该产品
+3. 价格信息要准确，能力描述要具体
+4. 结果必须是有效的JSON格式，不要包含任何其他文本
 `;
   } else {
     return `
-Please analyze the technical solution for the following AI product requirements:
+Please analyze the technical solution for the following AI product requirements, especially focusing on large model selection recommendations:
 
 【Product Requirements】：
 ${inputText}
+
+Please intelligently analyze and recommend the most suitable large model solutions based on the product's specific requirements, target users, functional features, cost budget, and other factors.
 
 Please return the technical solution analysis results in the following JSON format:
 
@@ -184,6 +257,73 @@ Please return the technical solution analysis results in the following JSON form
       "pricing": "Pricing information"
     }
   ],
+  "modelRecommendations": {
+    "performanceBest": {
+      "title": "🚀 Performance Best Models",
+      "description": "Recommended models with best accuracy, reasoning capabilities and overall performance for this product",
+      "models": [
+        {
+          "name": "Model Name",
+          "provider": "Provider",
+          "capabilities": ["Capability 1", "Capability 2", "Capability 3"],
+          "pricing": "Price information",
+          "useCase": "Specific explanation of why it's suitable for this product"
+        }
+      ]
+    },
+    "costEffective": {
+      "title": "💰 Cost-Effective Models",
+      "description": "Recommended models with optimal balance between cost and performance for this product",
+      "models": [
+        {
+          "name": "Model Name",
+          "provider": "Provider",
+          "capabilities": ["Capability 1", "Capability 2", "Capability 3"],
+          "pricing": "Price information",
+          "useCase": "Specific explanation of why it's suitable for this product"
+        }
+      ]
+    },
+    "chinaRegion": {
+      "title": "🇨🇳 China Region Model Recommendations",
+      "description": "Recommended models suitable for mainland China for this product",
+      "models": [
+        {
+          "name": "Model Name",
+          "provider": "Provider",
+          "capabilities": ["Capability 1", "Capability 2", "Capability 3"],
+          "pricing": "Price information",
+          "useCase": "Specific explanation of why it's suitable for this product"
+        }
+      ]
+    },
+    "usRegion": {
+      "title": "🇺🇸 US Silicon Valley Model Recommendations",
+      "description": "Recommended mainstream models from US Silicon Valley for this product",
+      "models": [
+        {
+          "name": "Model Name",
+          "provider": "Provider",
+          "capabilities": ["Capability 1", "Capability 2", "Capability 3"],
+          "pricing": "Price information",
+          "useCase": "Specific explanation of why it's suitable for this product"
+        }
+      ]
+    },
+    "privateDeployment": {
+      "title": "🏢 Private Deployment Model Recommendations",
+      "description": "Recommended models suitable for private deployment for this product",
+      "models": [
+        {
+          "name": "Model Name",
+          "provider": "Provider",
+          "capabilities": ["Capability 1", "Capability 2", "Capability 3"],
+          "requirements": "Hardware requirements description",
+          "useCase": "Specific explanation of why it's suitable for this product"
+        }
+      ]
+    }
+  },
   "keyAlgorithms": ["Key Algorithm 1", "Key Algorithm 2", "Key Algorithm 3"],
   "mcpTools": [
     {
@@ -196,8 +336,10 @@ Please return the technical solution analysis results in the following JSON form
 }
 
 Requirements:
-1. Recommend the most suitable AI models and tech stack
-2. Results must be in valid JSON format only
+1. Intelligently analyze and recommend the most suitable large models based on the product's specific requirements
+2. Recommend at least 2-3 models for each category with detailed explanations of why they're suitable for this product
+3. Price information should be accurate, capability descriptions should be specific
+4. Results must be in valid JSON format only
 `;
   }
 }
@@ -321,8 +463,8 @@ function generateMVPAnalysis(inputText, language = 'zh') {
   }
 }
 
-// 生成技术方案的辅助函数
-function generateTechSolution(inputText, language = 'zh') {
+// 生成简化技术方案的辅助函数（仅在AI分析失败时使用）
+function generateFallbackTechSolution(inputText, language = 'zh') {
   return {
     recommendedModels: [
       {
@@ -338,6 +480,73 @@ function generateTechSolution(inputText, language = 'zh') {
         pricing: '$0.0025/1K input tokens'
       }
     ],
+    modelRecommendations: {
+      performanceBest: {
+        title: language === 'zh' ? '🚀 性能最佳大模型' : '🚀 Performance Best Models',
+        description: language === 'zh' ? '推荐在准确性、推理能力和综合性能方面表现最优的大模型' : 'Recommended models with best accuracy, reasoning capabilities and overall performance',
+        models: [
+          {
+            name: 'GPT-4o',
+            provider: 'OpenAI',
+            capabilities: language === 'zh' ? ['多模态理解', '复杂推理', '代码生成', '创意写作'] : ['Multimodal understanding', 'Complex reasoning', 'Code generation', 'Creative writing'],
+            pricing: '$0.0025/1K input tokens, $0.01/1K output tokens',
+            useCase: language === 'zh' ? '适用于需要最高质量输出的AI产品和企业级应用' : 'Suitable for AI products and enterprise applications requiring highest quality output'
+          }
+        ]
+      },
+      costEffective: {
+        title: language === 'zh' ? '💰 性价比最佳大模型' : '💰 Cost-Effective Models',
+        description: language === 'zh' ? '推荐在成本和性能之间达到最佳平衡的大模型' : 'Recommended models with optimal balance between cost and performance',
+        models: [
+          {
+            name: 'DeepSeek-V2.5',
+            provider: 'DeepSeek',
+            capabilities: language === 'zh' ? ['中英双语', '数学推理', '代码生成', '逻辑分析'] : ['Chinese-English bilingual', 'Mathematical reasoning', 'Code generation', 'Logical analysis'],
+            pricing: '¥0.0014/1K tokens (约$0.0002)',
+            useCase: language === 'zh' ? '适用于大部分AI应用场景，成本极低，性能优异' : 'Suitable for most AI application scenarios with extremely low cost and excellent performance'
+          }
+        ]
+      },
+      chinaRegion: {
+        title: language === 'zh' ? '🇨🇳 中国地区大模型建议' : '🇨🇳 China Region Model Recommendations',
+        description: language === 'zh' ? '推荐适合中国大陆地区使用的大模型' : 'Recommended models suitable for mainland China',
+        models: [
+          {
+            name: 'DeepSeek-V2.5',
+            provider: 'DeepSeek',
+            capabilities: language === 'zh' ? ['中文理解优秀', '数学推理强', '代码生成'] : ['Excellent Chinese understanding', 'Strong mathematical reasoning', 'Code generation'],
+            pricing: '¥0.0014/1K tokens',
+            useCase: language === 'zh' ? '国产大模型，网络稳定，性价比极高' : 'Domestic large model, stable network, extremely cost-effective'
+          }
+        ]
+      },
+      usRegion: {
+        title: language === 'zh' ? '🇺🇸 美国硅谷大模型建议' : '🇺🇸 US Silicon Valley Model Recommendations',
+        description: language === 'zh' ? '推荐美国硅谷地区主流的大模型' : 'Recommended mainstream models from US Silicon Valley',
+        models: [
+          {
+            name: 'GPT-4o',
+            provider: 'OpenAI',
+            capabilities: language === 'zh' ? ['多模态理解', '复杂推理', '创意生成'] : ['Multimodal understanding', 'Complex reasoning', 'Creative generation'],
+            pricing: '$0.0025/1K input tokens, $0.01/1K output tokens',
+            useCase: language === 'zh' ? '硅谷标杆产品，技术领先，生态完善' : 'Silicon Valley benchmark product, leading technology, complete ecosystem'
+          }
+        ]
+      },
+      privateDeployment: {
+        title: language === 'zh' ? '🏢 私有部署大模型建议' : '🏢 Private Deployment Model Recommendations',
+        description: language === 'zh' ? '推荐适合私有化部署的大模型' : 'Recommended models suitable for private deployment',
+        models: [
+          {
+            name: 'Llama-3.1-70B',
+            provider: 'Meta',
+            capabilities: language === 'zh' ? ['开源免费', '性能优异', '多语言支持'] : ['Open source free', 'Excellent performance', 'Multilingual support'],
+            requirements: language === 'zh' ? '推荐配置：4×A100 80GB GPU，256GB RAM' : 'Recommended: 4×A100 80GB GPU, 256GB RAM',
+            useCase: language === 'zh' ? '适合大型企业私有部署，性能接近商业模型' : 'Suitable for large enterprise private deployment, performance close to commercial models'
+          }
+        ]
+      }
+    },
     keyAlgorithms: language === 'zh' ? 
       ['大语言模型文本生成', '机器学习算法', '数据分析处理', '个性化推荐算法', '自然语言处理', '深度学习模型'] :
       ['Large Language Model Generation', 'Machine Learning Algorithms', 'Data Analytics Processing', 'Personalized Recommendation', 'Natural Language Processing', 'Deep Learning Models'],
@@ -450,11 +659,11 @@ app.post('/api/ai-product-analysis', async (req, res) => {
           console.log('✅ 技术方案：DeepSeek API成功');
         } catch (parseError) {
           console.log('❌ 技术方案：JSON解析失败，使用备用逻辑');
-          techData = generateTechSolution(inputText, language);
+          techData = generateFallbackTechSolution(inputText, language);
         }
       } else {
         console.log('❌ 技术方案：API调用失败，使用备用逻辑');
-        techData = generateTechSolution(inputText, language);
+        techData = generateFallbackTechSolution(inputText, language);
       }
 
       // 处理开发模块结果
@@ -490,7 +699,7 @@ app.post('/api/ai-product-analysis', async (req, res) => {
       // 如果大模型调用失败，使用备用分析逻辑
       const fallbackResult = {
         minimumViableProduct: generateMVPAnalysis(inputText, language),
-        technicalSolution: generateTechSolution(inputText, language),
+        technicalSolution: generateFallbackTechSolution(inputText, language),
         developmentModules: generateDevelopmentModules(inputText, language),
         generatedAt: new Date().toISOString(),
         language: language,
@@ -602,11 +811,11 @@ app.post('/api/ai-product-analysis-stream', async (req, res) => {
           console.log('✅ 技术方案：DeepSeek API成功');
         } catch (parseError) {
           console.log('❌ 技术方案：JSON解析失败，使用备用逻辑');
-          techData = generateTechSolution(inputText, language);
+          techData = generateFallbackTechSolution(inputText, language);
         }
       } else {
         console.log('❌ 技术方案：API调用失败，使用备用逻辑');
-        techData = generateTechSolution(inputText, language);
+        techData = generateFallbackTechSolution(inputText, language);
       }
 
       sendData({
