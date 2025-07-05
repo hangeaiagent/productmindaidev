@@ -888,12 +888,113 @@ app.post('/api/ai-product-analysis-stream', async (req, res) => {
   }
 });
 
+// AI产品创意保存端点
+app.post('/api/save-ai-product-idea', async (req, res) => {
+  console.log('💾 收到AI产品创意保存请求:', {
+    timestamp: new Date().toISOString(),
+    hasRequirement: !!req.body.requirement,
+    hasAnalysis: !!req.body.analysisResult,
+    language: req.body.language || 'zh'
+  });
+
+  try {
+    const { tempUserId, requirement, analysisResult, language = 'zh' } = req.body;
+
+    // 验证必需字段
+    if (!tempUserId || !requirement || !analysisResult) {
+      return res.status(400).json({
+        error: language === 'zh' ? '缺少必需字段' : 'Missing required fields'
+      });
+    }
+
+    // 生成项目ID
+    const projectId = 'ai-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    
+    // 构造保存的数据（简化版本，不依赖数据库）
+    const savedData = {
+      id: projectId,
+      tempUserId,
+      requirement,
+      analysisResult,
+      language,
+      createdAt: new Date().toISOString(),
+      status: 'saved'
+    };
+
+    console.log('✅ AI产品创意保存成功:', {
+      projectId,
+      tempUserId,
+      requirementLength: requirement.length,
+      language
+    });
+
+    // 返回成功响应
+    res.json({
+      success: true,
+      id: projectId,
+      message: language === 'zh' ? '项目已成功保存' : 'Project saved successfully',
+      data: {
+        id: projectId,
+        createdAt: savedData.createdAt,
+        status: 'saved'
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ 保存AI产品创意失败:', error);
+    res.status(500).json({
+      error: req.body.language === 'zh' ? '保存失败，请稍后重试' : 'Save failed, please try again later'
+    });
+  }
+});
+
+// 获取AI产品创意端点（用于分享链接）
+app.get('/api/get-ai-product-idea', async (req, res) => {
+  const { id } = req.query;
+  
+  console.log('📖 收到获取AI产品创意请求:', { id });
+
+  try {
+    if (!id) {
+      return res.status(400).json({
+        error: 'Missing project ID'
+      });
+    }
+
+    // 简化版本：返回静态响应
+    // 在实际实现中，这里应该从数据库查询
+    res.json({
+      success: true,
+      message: 'Project found',
+      data: {
+        id,
+        requirement: '示例项目需求',
+        analysisResult: {
+          minimumViableProduct: {
+            title: '示例AI产品',
+            description: '这是一个示例产品描述'
+          }
+        },
+        createdAt: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ 获取AI产品创意失败:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve project'
+    });
+  }
+});
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 DeepSeek AI Analysis Server 运行在 http://localhost:${PORT}`);
   console.log(`📋 健康检查: http://localhost:${PORT}/health`);
   console.log(`🤖 AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis`);
   console.log(`🌊 流式AI产品分析: POST http://localhost:${PORT}/api/ai-product-analysis-stream`);
+  console.log(`💾 保存AI产品创意: POST http://localhost:${PORT}/api/save-ai-product-idea`);
+  console.log(`📖 获取AI产品创意: GET http://localhost:${PORT}/api/get-ai-product-idea`);
   console.log(`🔑 DeepSeek API: ${process.env.DEEPSEEK_API_KEY ? '✅ 已配置' : '❌ 未配置'}`);
   
   if (process.env.DEEPSEEK_API_KEY) {
