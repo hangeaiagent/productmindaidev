@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Lightbulb, Cpu, Code, Download, Loader2, Sparkles, Settings, FileText, CheckCircle, Image, FileDown } from 'lucide-react';
+import { Lightbulb, Cpu, Code, Download, Loader2, Sparkles, Settings, FileText, CheckCircle, Image, FileDown, Save, Share2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAppContext } from '../context/AppContext';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import ProductMindLogo from './ProductMindLogo';
+import { TempUserManager } from '../utils/tempUserManager';
 
 interface AIProductAnalysis {
   minimumViableProduct: {
@@ -119,6 +121,9 @@ const AIProductIdeaGenerator: React.FC = () => {
   const [progressSteps, setProgressSteps] = useState<ProgressStep[]>([]);
   const [currentProgress, setCurrentProgress] = useState(0);
   const [streamingMode, setStreamingMode] = useState(true);
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   
   // 添加ref用于导出
   const exportRef = useRef<HTMLDivElement>(null);
@@ -172,7 +177,14 @@ const AIProductIdeaGenerator: React.FC = () => {
       pricing: 'Pricing',
       useCase: 'Use Case',
       requirements: 'Requirements',
-      provider: 'Provider'
+      provider: 'Provider',
+      autoSaving: 'Auto-saving...',
+      autoSaveSuccess: 'Project auto-saved successfully!',
+      autoSaveError: 'Auto-save failed',
+      shareProject: 'Share Project',
+      projectSaved: 'Project Auto-Saved',
+      viewProject: 'View Project',
+      shareSuccess: 'Your analysis has been saved and can be shared via the link below.'
     },
     zh: {
       title: 'AI产品创意生成器',
@@ -218,7 +230,14 @@ const AIProductIdeaGenerator: React.FC = () => {
       pricing: '定价信息',
       useCase: '适用场景',
       requirements: '部署要求',
-      provider: '提供商'
+      provider: '提供商',
+      autoSaving: '自动保存中...',
+      autoSaveSuccess: '方案已自动保存！',
+      autoSaveError: '自动保存失败',
+      shareProject: '分享方案',
+      projectSaved: '方案已自动保存',
+      viewProject: '查看方案',
+      shareSuccess: '您的分析结果已保存，可通过以下链接分享：'
     }
   };
 
@@ -248,11 +267,11 @@ const AIProductIdeaGenerator: React.FC = () => {
 
   const handleStreamingGenerate = async () => {
     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    // 使用环境变量或默认值，开发环境统一使用localhost:3000
-    const apiBaseUrl = isDevelopment 
-      ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
-      : (import.meta.env.VITE_PROD_API_URL || 'https://productmindai.com');
-    const apiUrl = `${apiBaseUrl}/api/ai-product-analysis-stream`;
+    
+    // 现在AWS后端支持流式API，在生产环境中也可以使用
+    const apiUrl = isDevelopment 
+      ? 'http://localhost:3000/api/ai-product-analysis-stream'
+      : '/api/ai-product-analysis-stream';
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -291,6 +310,10 @@ const AIProductIdeaGenerator: React.FC = () => {
           if (data === '[DONE]') {
             setIsLoading(false);
             toast.success(language === 'zh' ? '分析完成！' : 'Analysis completed!');
+            // 获取当前完整的分析数据并自动保存
+            if (partialAnalysis && Object.keys(partialAnalysis).length > 0) {
+              setTimeout(() => autoSaveProject(partialAnalysis as AIProductAnalysis), 1000);
+            }
             return;
           }
 
@@ -347,16 +370,17 @@ const AIProductIdeaGenerator: React.FC = () => {
       setAnalysis(prev => ({ ...prev, developmentModules: data.developmentModules || data } as AIProductAnalysis));
     } else if (step === 'complete' && data) {
       setAnalysis(data);
+      // 流式生成完成时自动保存
+      setTimeout(() => autoSaveProject(data), 1000);
     }
   };
 
     const handleNormalGenerate = async () => {
     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    // 使用环境变量或默认值，开发环境统一使用localhost:3000
-    const apiBaseUrl = isDevelopment 
-      ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
-      : (import.meta.env.VITE_PROD_API_URL || 'https://productmindai.com');
-    const apiUrl = `${apiBaseUrl}/api/ai-product-analysis`;
+    // 简化API URL配置：开发环境使用本地服务器，生产环境使用相对路径
+    const apiUrl = isDevelopment 
+      ? 'http://localhost:3000/api/ai-product-analysis'
+      : '/api/ai-product-analysis';
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -376,6 +400,9 @@ const AIProductIdeaGenerator: React.FC = () => {
       const result = await response.json();
       setAnalysis(result);
       toast.success(language === 'zh' ? '分析完成！' : 'Analysis completed!');
+      
+      // 普通生成完成时自动保存
+      setTimeout(() => autoSaveProject(result), 1000);
   };
 
   const downloadCursorPrompts = () => {
@@ -511,7 +538,7 @@ const AIProductIdeaGenerator: React.FC = () => {
     }
   };
 
-  // 导出PNG图片
+  // 导出PNG图片 - 高质量带水印
   const exportPNG = async () => {
     if (!exportRef.current || !analysis) return;
 
@@ -522,13 +549,17 @@ const AIProductIdeaGenerator: React.FC = () => {
         (btn as HTMLElement).style.display = 'none';
       });
 
+      // 使用原始元素尺寸，保持高质量
+      const elementWidth = exportRef.current.scrollWidth;
+      const elementHeight = exportRef.current.scrollHeight;
+
       const canvas = await html2canvas(exportRef.current, {
-        scale: 2,
+        scale: 2, // 高质量渲染
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: exportRef.current.scrollWidth,
-        height: exportRef.current.scrollHeight
+        width: elementWidth,
+        height: elementHeight
       });
 
       // 恢复导出按钮显示
@@ -536,10 +567,97 @@ const AIProductIdeaGenerator: React.FC = () => {
         (btn as HTMLElement).style.display = '';
       });
 
+      // 创建新的canvas来添加水印
+      const finalCanvas = document.createElement('canvas');
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      finalCanvas.width = canvasWidth;
+      finalCanvas.height = canvasHeight;
+      const ctx = finalCanvas.getContext('2d');
+
+      if (ctx) {
+        // 绘制原图片
+        ctx.drawImage(canvas, 0, 0);
+
+        // 计算水印尺寸（根据图片大小自适应）
+        const watermarkHeight = Math.max(80, canvasHeight * 0.08); // 至少80px，或图片高度的8%
+        const watermarkY = canvasHeight - watermarkHeight;
+        
+        // 半透明白色背景
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillRect(0, watermarkY, canvasWidth, watermarkHeight);
+        
+        // 添加边框线
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, watermarkY);
+        ctx.lineTo(canvasWidth, watermarkY);
+        ctx.stroke();
+
+        // 根据图片大小调整logo尺寸
+        const logoSize = Math.max(40, watermarkHeight * 0.5);
+        const logoX = 20;
+        const logoY = watermarkY + (watermarkHeight - logoSize) / 2;
+        
+        // 创建渐变背景
+        const gradient = ctx.createLinearGradient(logoX, logoY, logoX + logoSize, logoY + logoSize);
+        gradient.addColorStop(0, '#4F8CFF');
+        gradient.addColorStop(1, '#A259FF');
+        
+        // 绘制logo背景 (使用圆角矩形)
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        const radius = logoSize * 0.15;
+        ctx.moveTo(logoX + radius, logoY);
+        ctx.lineTo(logoX + logoSize - radius, logoY);
+        ctx.quadraticCurveTo(logoX + logoSize, logoY, logoX + logoSize, logoY + radius);
+        ctx.lineTo(logoX + logoSize, logoY + logoSize - radius);
+        ctx.quadraticCurveTo(logoX + logoSize, logoY + logoSize, logoX + logoSize - radius, logoY + logoSize);
+        ctx.lineTo(logoX + radius, logoY + logoSize);
+        ctx.quadraticCurveTo(logoX, logoY + logoSize, logoX, logoY + logoSize - radius);
+        ctx.lineTo(logoX, logoY + radius);
+        ctx.quadraticCurveTo(logoX, logoY, logoX + radius, logoY);
+        ctx.closePath();
+        ctx.fill();
+        
+        // 绘制Brain图标 (简化版本)
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = Math.max(2, logoSize * 0.05);
+        ctx.beginPath();
+        // 简化的brain形状
+        const centerX = logoX + logoSize / 2;
+        const centerY = logoY + logoSize / 2;
+        ctx.ellipse(centerX, centerY, logoSize * 0.3, logoSize * 0.25, 0, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // 计算字体大小（根据图片大小自适应）
+        const titleFontSize = Math.max(18, watermarkHeight * 0.25);
+        const domainFontSize = Math.max(14, watermarkHeight * 0.2);
+        const timeFontSize = Math.max(12, watermarkHeight * 0.15);
+        
+        // 添加域名文字
+        ctx.fillStyle = '#374151';
+        ctx.font = `bold ${titleFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.fillText('ProductMind AI', logoX + logoSize + 16, logoY + titleFontSize);
+        
+        ctx.fillStyle = '#6B7280';
+        ctx.font = `${domainFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.fillText('productmindai.com', logoX + logoSize + 16, logoY + titleFontSize + domainFontSize + 4);
+        
+        // 添加生成时间 (右对齐)
+        ctx.fillStyle = '#9CA3AF';
+        ctx.font = `${timeFontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.textAlign = 'right';
+        const timeText = new Date().toLocaleString();
+        ctx.fillText(timeText, canvasWidth - 20, watermarkY + watermarkHeight - timeFontSize);
+      }
+
       // 创建并下载图片
       const link = document.createElement('a');
       link.download = `ai-product-analysis-${Date.now()}.png`;
-      link.href = canvas.toDataURL();
+      link.href = finalCanvas.toDataURL('image/png', 1.0); // 最高质量
       link.click();
 
       toast.success(t.exportSuccess);
@@ -552,6 +670,84 @@ const AIProductIdeaGenerator: React.FC = () => {
       exportButtons?.forEach(btn => {
         (btn as HTMLElement).style.display = '';
       });
+    }
+  };
+
+  // 自动保存项目功能
+  const autoSaveProject = async (analysisData: AIProductAnalysis) => {
+    if (!analysisData || !requirement.trim()) {
+      console.log('[AUTO SAVE] Skipping save - missing data:', {
+        hasAnalysis: !!analysisData,
+        hasRequirement: !!requirement.trim()
+      });
+      return;
+    }
+
+    console.log('[AUTO SAVE] Starting auto save process...');
+    setIsAutoSaving(true);
+    
+    try {
+      // 获取临时用户ID
+      const tempUserId = TempUserManager.getTempUserId();
+      console.log('[AUTO SAVE] Temp user ID:', tempUserId);
+      
+      // 调用后端API保存
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isDevelopment 
+        ? 'http://localhost:3000/api/save-ai-product-idea'
+        : '/api/save-ai-product-idea';
+      
+      console.log('[AUTO SAVE] API URL:', apiUrl);
+      console.log('[AUTO SAVE] Request data:', {
+        tempUserId,
+        requirementLength: requirement.trim().length,
+        language,
+        analysisKeys: Object.keys(analysisData)
+      });
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tempUserId,
+          requirement: requirement.trim(),
+          analysisResult: analysisData,
+          language
+        }),
+      });
+
+      console.log('[AUTO SAVE] Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[AUTO SAVE] Response error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`自动保存失败: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('[AUTO SAVE] Save successful:', result);
+      
+      setSavedProjectId(result.id);
+      setShareUrl(`${window.location.origin}/shortproject/${result.id}`);
+      
+      // 成功提示
+      toast.success(t.autoSaveSuccess);
+      console.log('[AUTO SAVE] ✅ 项目已自动保存:', result.id);
+    } catch (error) {
+      console.error('[AUTO SAVE] ❌ Error:', {
+        message: error.message,
+        stack: error.stack
+      });
+      // 显示错误提示
+      toast.error(t.autoSaveError + ': ' + error.message);
+    } finally {
+      setIsAutoSaving(false);
     }
   };
 
@@ -734,6 +930,17 @@ const AIProductIdeaGenerator: React.FC = () => {
         });
       }
 
+      // 添加ProductMind AI来源说明
+      const copyrightText = language === 'zh' ? 
+        '本文件由 [ProductMind AI](https://productmindai.com) 生成' : 
+        'Generated by [ProductMind AI](https://productmindai.com)';
+      
+      markdownContent += `
+
+---
+${copyrightText}
+`;
+
       // 创建并下载文件
       const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -903,6 +1110,55 @@ const AIProductIdeaGenerator: React.FC = () => {
               <span>{t.exportPNG}</span>
             </button>
           </div>
+          
+          {/* Auto-saving indicator */}
+          {isAutoSaving && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                <span className="text-sm text-blue-800">{t.autoSaving}</span>
+              </div>
+            </div>
+          )}
+          
+          {/* Save Success Message */}
+          {savedProjectId && shareUrl && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800">{t.projectSaved}</span>
+              </div>
+              <p className="text-sm text-green-700 mb-3">
+                {t.shareSuccess}
+              </p>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  value={shareUrl}
+                  readOnly
+                  className="flex-1 px-3 py-2 text-sm border border-green-300 rounded bg-white"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl);
+                    toast.success(language === 'zh' ? '链接已复制' : 'Link copied');
+                  }}
+                  className="flex items-center space-x-1 px-3 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>{language === 'zh' ? '复制链接' : 'Copy Link'}</span>
+                </button>
+                <a
+                  href={shareUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                >
+                  <span>{t.viewProject}</span>
+                </a>
+              </div>
+            </div>
+          )}
 
           {/* MVP Section */}
           {analysis.minimumViableProduct && (

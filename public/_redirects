@@ -25,6 +25,15 @@
 /api/projects /.netlify/functions/get-projects-by-category 200
 /api/batch-generate /.netlify/functions/batch-generate-templates 200
 /api/demo/batch-generate /.netlify/functions/batch-generate-templates-demo 200
+/api/test-database /.netlify/functions/test-database 200
+
+# AI产品分析API重定向到AWS后端 (端口3000)
+/api/ai-product-analysis https://productmindai.com:3000/api/ai-product-analysis 200
+/api/ai-product-analysis-stream https://productmindai.com:3000/api/ai-product-analysis-stream 200
+/api/save-ai-product-idea https://productmindai.com:3000/api/save-ai-product-idea 200
+
+# AI产品创意静态页面路由
+/shortproject/:id https://productmindai.com:3000/api/get-ai-product-idea?id=:id 200
 
 # SPA路由支持 - 必须放在最后
 /dashboard /index.html 200
