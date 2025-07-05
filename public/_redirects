@@ -27,10 +27,10 @@
 /api/demo/batch-generate /.netlify/functions/batch-generate-templates-demo 200
 /api/test-database /.netlify/functions/test-database 200
 
-# AI产品分析API使用AWS后端DeepSeek服务器 (端口3000)
-/api/ai-product-analysis http://3.93.149.236:3000/api/ai-product-analysis 200
-/api/ai-product-analysis-stream http://3.93.149.236:3000/api/ai-product-analysis-stream 200
-/api/save-ai-product-idea http://3.93.149.236:3000/api/save-ai-product-idea 200
+# AI产品分析API临时使用Netlify Functions (AWS端口3000在生产环境不可访问)
+/api/ai-product-analysis /.netlify/functions/ai-product-analysis 200
+/api/ai-product-analysis-stream /.netlify/functions/ai-product-analysis-stream 200
+/api/save-ai-product-idea /.netlify/functions/save-ai-product-idea 200
 
 # AI产品创意静态页面路由
 /shortproject/:id https://productmindai.com:3000/api/get-ai-product-idea?id=:id 200
