@@ -251,7 +251,7 @@ const AIProductIdeaGenerator: React.FC = () => {
     // 使用环境变量或默认值，开发环境统一使用localhost:3000
     const apiBaseUrl = isDevelopment 
       ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
-      : (import.meta.env.VITE_PROD_API_URL || 'http://3.93.149.236:3000');
+      : (import.meta.env.VITE_PROD_API_URL || 'https://productmindai.com');
     const apiUrl = `${apiBaseUrl}/api/ai-product-analysis-stream`;
     
     const response = await fetch(apiUrl, {
@@ -355,7 +355,7 @@ const AIProductIdeaGenerator: React.FC = () => {
     // 使用环境变量或默认值，开发环境统一使用localhost:3000
     const apiBaseUrl = isDevelopment 
       ? (import.meta.env.VITE_DEV_API_URL || 'http://localhost:3000')
-      : (import.meta.env.VITE_PROD_API_URL || 'http://3.93.149.236:3000');
+      : (import.meta.env.VITE_PROD_API_URL || 'https://productmindai.com');
     const apiUrl = `${apiBaseUrl}/api/ai-product-analysis`;
       
       const response = await fetch(apiUrl, {
