@@ -15,7 +15,7 @@ import JSZip from 'jszip';
 import templateRoutes from './routes/templateRoutes.js';
 import healthRoutes from './routes/healthRoutes.js';
 import queueRoutes from './routes/queueRoutes.js';
-import * as supabaseService from './services/supabaseService';
+import * as supabaseService from './services/supabaseService.js';
 
 // 导入中间件
 import { errorHandler } from './middleware/errorHandler.js';
@@ -36,6 +36,10 @@ interface Template {
   prompt_content: string;
   category_id?: string;
 }
+
+// CommonJS 不需要 __dirname 替代方案
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
 // 加载环境变量 - 明确指定.env文件路径
 const envPath = path.resolve(__dirname, '../.env');
@@ -78,7 +82,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // CORS配置
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+  origin: process.env.CORS_ORIGIN?.split(',') || [
+    'http://localhost:5173',
+    'https://productmindai.com',
+    'https://www.productmindai.com'
+  ],
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -138,6 +146,225 @@ app.post('/api/ai-product-analysis', async (req, res) => {
     logger.error('AI产品分析失败:', error);
     res.status(500).json({
       error: req.body.language === 'zh' ? '分析失败，请重试' : 'Analysis failed, please try again'
+    });
+  }
+});
+
+// AI产品分析流式路由（不需要认证）
+app.post('/api/ai-product-analysis-stream', async (req, res) => {
+  try {
+    const { requirement, language = 'zh' } = req.body;
+
+    logger.info('收到AI产品分析流式请求', { 
+      requirement: requirement?.substring(0, 50) + '...', 
+      language 
+    });
+
+    if (!requirement || requirement.trim().length < 10) {
+      return res.status(400).json({
+        error: language === 'zh' ? '请输入至少10个字符的产品需求' : 'Please enter at least 10 characters for product requirement'
+      });
+    }
+
+    // 设置流式响应头
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // 发送流式数据的辅助函数
+    const sendStreamData = (step: string, message: string, progress: number, data?: any) => {
+      const streamData = {
+        type: 'progress',
+        step,
+        message,
+        progress,
+        data,
+        timestamp: new Date().toISOString()
+      };
+      res.write(`data: ${JSON.stringify(streamData)}\n\n`);
+    };
+
+    try {
+      // 开始分析
+      sendStreamData('start', language === 'zh' ? '开始分析您的产品需求...' : 'Starting analysis of your product requirements...', 0);
+
+      // MVP分析阶段
+      sendStreamData('mvp_start', language === 'zh' ? '正在生成最小可行产品方案...' : 'Generating minimum viable product solution...', 20);
+      
+      // 生成完整分析
+      const analysis = await generateProductAnalysis(requirement, language);
+      
+      // 发送MVP结果
+      sendStreamData('mvp_complete', language === 'zh' ? 'MVP方案生成完成' : 'MVP solution completed', 40, {
+        minimumViableProduct: analysis.minimumViableProduct
+      });
+
+      // 技术方案分析阶段
+      sendStreamData('tech_start', language === 'zh' ? '正在分析技术方案...' : 'Analyzing technical solution...', 50);
+      
+      // 发送技术方案结果
+      sendStreamData('tech_complete', language === 'zh' ? '技术方案分析完成' : 'Technical solution analysis completed', 70, {
+        technicalSolution: analysis.technicalSolution
+      });
+
+      // 开发模块分析阶段
+      sendStreamData('modules_start', language === 'zh' ? '正在生成开发模块...' : 'Generating development modules...', 80);
+      
+      // 发送开发模块结果
+      sendStreamData('modules_complete', language === 'zh' ? '开发模块生成完成' : 'Development modules completed', 95, {
+        developmentModules: analysis.developmentModules
+      });
+
+      // 完成
+      sendStreamData('complete', language === 'zh' ? '分析完成！' : 'Analysis completed!', 100, analysis);
+
+      // 发送结束标记
+      res.write('data: [DONE]\n\n');
+      res.end();
+
+      logger.info('AI产品分析流式完成', { 
+        title: analysis.minimumViableProduct.title,
+        modulesCount: analysis.developmentModules.length
+      });
+
+    } catch (analysisError: any) {
+      logger.error('流式分析过程中出错:', analysisError);
+      sendStreamData('error', language === 'zh' ? '分析过程中出错' : 'Error during analysis', 0, {
+        error: analysisError.message
+      });
+      res.write('data: [DONE]\n\n');
+      res.end();
+    }
+
+  } catch (error: any) {
+    logger.error('AI产品分析流式失败:', error);
+    res.status(500).json({
+      error: req.body.language === 'zh' ? '分析失败，请重试' : 'Analysis failed, please try again'
+    });
+  }
+});
+
+// AI产品创意保存路由（不需要认证）
+app.post('/api/save-ai-product-idea', async (req, res) => {
+  try {
+    logger.info('[AWS API] 收到AI产品创意保存请求', {
+      method: req.method,
+      path: req.path,
+      timestamp: new Date().toISOString()
+    });
+
+    const { tempUserId, requirement, analysisResult, language } = req.body;
+    
+    logger.info('[AWS API] 请求参数解析:', {
+      tempUserId,
+      requirementLength: requirement?.length,
+      hasAnalysisResult: !!analysisResult,
+      language,
+      analysisKeys: analysisResult ? Object.keys(analysisResult) : []
+    });
+
+    if (!tempUserId || !requirement || !analysisResult) {
+      logger.info('[AWS API] 缺少必要字段:', {
+        hasTempUserId: !!tempUserId,
+        hasRequirement: !!requirement,
+        hasAnalysisResult: !!analysisResult
+      });
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: tempUserId, requirement, or analysisResult'
+      });
+    }
+
+    logger.info('[AWS API] 开始保存AI产品创意...');
+    
+    // 保存到数据库
+    const savedIdea = await supabaseService.saveAIProductIdea({
+      tempUserId,
+      requirement,
+      analysisResult,
+      language: language || 'zh'
+    });
+
+    logger.info('[AWS API] 数据库保存成功，开始生成SEO页面...');
+    
+    // 生成静态SEO页面
+    try {
+      const staticFilePath = await supabaseService.generateAndSaveSEOPage(savedIdea);
+      logger.info('[AWS API] ✅ SEO页面生成成功:', staticFilePath);
+    } catch (seoError) {
+      logger.error('[AWS API] ❌ SEO页面生成失败，但不影响数据保存:', seoError);
+    }
+
+    logger.info('[AWS API] ✅ AI产品创意保存完成:', {
+      id: savedIdea.id,
+      tempUserId: savedIdea.temp_user_id
+    });
+
+    res.json({
+      success: true,
+      id: savedIdea.id,
+      message: 'AI product idea saved successfully',
+      operation: 'saved'
+    });
+
+  } catch (error: any) {
+    logger.error('[AWS API] ❌ AI产品创意保存失败:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save AI product idea',
+      details: error.message
+    });
+  }
+});
+
+// AI产品创意获取路由（不需要认证）
+app.get('/api/get-ai-product-idea', async (req, res) => {
+  try {
+    const { id } = req.query;
+    
+    logger.info('[AWS API] 收到AI产品创意获取请求:', { id });
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required parameter: id'
+      });
+    }
+
+    // 从数据库获取
+    const productIdea = await supabaseService.getAIProductIdeaById(id as string);
+    
+    if (!productIdea) {
+      logger.info('[AWS API] AI产品创意不存在:', { id });
+      return res.status(404).json({
+        success: false,
+        error: 'AI product idea not found'
+      });
+    }
+
+    logger.info('[AWS API] ✅ AI产品创意获取成功:', { 
+      id: productIdea.id,
+      language: productIdea.language 
+    });
+
+    // 生成SEO页面内容用于显示
+    const htmlContent = supabaseService.generateSEOPage(productIdea);
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(htmlContent);
+
+  } catch (error: any) {
+    logger.error('[AWS API] ❌ AI产品创意获取失败:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get AI product idea',
+      details: error.message
     });
   }
 });
