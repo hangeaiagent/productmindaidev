@@ -1562,4 +1562,5 @@ ${copyrightText}
   );
 };
 
+
 export default AIProductIdeaGenerator; 
