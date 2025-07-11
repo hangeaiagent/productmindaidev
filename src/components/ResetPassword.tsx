@@ -17,6 +17,7 @@ const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hasValidSession, setHasValidSession] = useState(false);
+  const [resetCode, setResetCode] = useState<string | null>(null);
 
   // 调试日志：打印所有URL信息
   console.log('🔧 [ResetPassword] URL信息:', {
@@ -97,8 +98,21 @@ const ResetPassword: React.FC = () => {
         });
 
         if (code) {
-          console.log('🔧 [ResetPassword] 检测到code参数，设置为有效会话');
-          logger.log('检测到code参数，认为是有效的重置请求', { code: code.substring(0, 8) + '...' });
+          console.log('🔧 [ResetPassword] 检测到code参数，清理URL避免Supabase自动处理');
+          
+          // 清理URL，避免Supabase继续尝试自动处理code参数
+          // 保存code到组件状态，然后清理URL
+          const currentCode = code;
+          
+          // 清理URL中的code参数
+          const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+          window.history.replaceState({}, '', newUrl);
+          
+          console.log('🔧 [ResetPassword] URL已清理，保存code用于密码重置');
+          logger.log('检测到code参数，已保存用于密码重置', { code: currentCode.substring(0, 8) + '...' });
+          
+          // 将code保存到状态中供后续使用
+          setResetCode(currentCode);
           setHasValidSession(true);
           return;
         }
@@ -179,41 +193,54 @@ const ResetPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // 获取URL参数中的code
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get('code');
+      console.log('🔧 [ResetPassword] 开始密码重置处理', {
+        hasResetCode: !!resetCode,
+        resetCodeLength: resetCode?.length
+      });
 
-      let result;
-      if (code) {
-        // 如果有code参数，使用verifyOtp方法
-        logger.log('使用code参数重置密码', { hasCode: !!code });
-        result = await supabase.auth.verifyOtp({
-          token: code,
+      if (resetCode) {
+        // 使用保存的resetCode进行密码重置
+        logger.log('使用resetCode重置密码', { hasCode: !!resetCode });
+        console.log('🔧 [ResetPassword] 使用verifyOtp验证resetCode');
+        
+        const result = await supabase.auth.verifyOtp({
+          token: resetCode,
           type: 'recovery'
         });
         
         if (result.error) {
+          console.error('🔧 [ResetPassword] verifyOtp失败:', result.error);
           throw result.error;
         }
 
+        console.log('🔧 [ResetPassword] verifyOtp成功，开始更新密码');
+        
         // 验证成功后更新密码
         const updateResult = await supabase.auth.updateUser({
           password: password
         });
 
         if (updateResult.error) {
+          console.error('🔧 [ResetPassword] 密码更新失败:', updateResult.error);
           throw updateResult.error;
         }
+
+        console.log('🔧 [ResetPassword] 密码更新成功');
       } else {
-        // 如果没有code，直接更新密码（适用于已登录的会话）
+        // 如果没有resetCode，直接更新密码（适用于已登录的会话）
         logger.log('直接更新密码（会话模式）');
-        result = await supabase.auth.updateUser({
+        console.log('🔧 [ResetPassword] 使用会话模式更新密码');
+        
+        const result = await supabase.auth.updateUser({
           password: password
         });
 
         if (result.error) {
+          console.error('🔧 [ResetPassword] 会话模式密码更新失败:', result.error);
           throw result.error;
         }
+
+        console.log('🔧 [ResetPassword] 会话模式密码更新成功');
       }
 
       setSuccess(true);
