@@ -51,11 +51,20 @@ const HomePage: React.FC = () => {
         href: window.location.href
       });
       
-      // 保持所有参数并重定向到重置页面
-      const targetUrl = `/auth/reset-password${window.location.search}${window.location.hash}`;
-      console.log('🔧 [HomePage] 重定向到:', targetUrl);
+      // 提取code参数并通过state传递，避免URL处理问题
+      const extractedCode = code || 
+                           new URLSearchParams(window.location.hash.slice(1)).get('access_token');
       
-      navigate(targetUrl, { replace: true });
+      console.log('🔧 [HomePage] 提取code并通过state传递:', {
+        code: extractedCode ? extractedCode.substring(0, 8) + '...' : null,
+        hasCode: !!extractedCode
+      });
+      
+      // 清理当前URL并通过state传递code
+      navigate('/auth/reset-password', { 
+        replace: true,
+        state: { resetCode: extractedCode }
+      });
     } else {
       console.log('🔧 [HomePage] 未检测到密码重置参数，显示正常首页');
     }

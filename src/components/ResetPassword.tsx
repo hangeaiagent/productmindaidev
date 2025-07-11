@@ -37,16 +37,29 @@ const ResetPassword: React.FC = () => {
   const [hasValidSession, setHasValidSession] = useState(false);
   const [resetCode, setResetCode] = useState<string | null>(null);
 
-  // 立即检查并清理URL，避免Supabase自动处理
-  const urlParams = new URLSearchParams(window.location.search);
-  const initialCode = urlParams.get('code');
-  
-  // 如果有code参数，立即清理URL
-  if (initialCode && window.location.search.includes('code=')) {
-    console.log('🔧 [ResetPassword] 立即清理URL避免Supabase处理');
-    const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-    window.history.replaceState({}, '', newUrl);
-  }
+  // 从location.state获取resetCode，避免URL处理问题
+  const initialCode = React.useMemo(() => {
+    const stateCode = location.state?.resetCode;
+    const urlCode = new URLSearchParams(window.location.search).get('code');
+    const code = stateCode || urlCode;
+    
+    console.log('🔧 [ResetPassword] 获取code参数:', {
+      stateCode: stateCode ? stateCode.substring(0, 8) + '...' : null,
+      urlCode: urlCode ? urlCode.substring(0, 8) + '...' : null,
+      finalCode: code ? code.substring(0, 8) + '...' : null,
+      hasCode: !!code,
+      search: window.location.search
+    });
+    
+    // 如果仍有URL参数，清理URL
+    if (window.location.search.includes('code=')) {
+      console.log('🔧 [ResetPassword] 清理URL中的code参数');
+      const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+      window.history.replaceState(location.state, '', newUrl);
+    }
+    
+    return code;
+  }, [location.state]);
 
   // 调试日志：打印所有URL信息
   console.log('🔧 [ResetPassword] URL信息:', {
