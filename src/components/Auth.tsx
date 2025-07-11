@@ -196,8 +196,29 @@ const Auth: React.FC = () => {
         throw new Error(language === 'zh' ? '请输入邮箱地址' : 'Please enter your email address');
       }
 
+      // 根据环境确定正确的重定向URL
+      const isProduction = window.location.hostname === 'productmindai.com';
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      
+      let redirectUrl: string;
+      if (isProduction) {
+        redirectUrl = 'https://productmindai.com/auth/reset-password';
+      } else if (isDevelopment) {
+        redirectUrl = `${window.location.origin}/auth/reset-password`;
+      } else {
+        // 默认使用当前域名
+        redirectUrl = `${window.location.origin}/auth/reset-password`;
+      }
+
+      console.log('🔧 [密码重置] 环境检测:', { 
+        hostname: window.location.hostname,
+        isProduction, 
+        isDevelopment,
+        redirectUrl 
+      });
+
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: redirectUrl,
       });
 
       if (error) throw error;
