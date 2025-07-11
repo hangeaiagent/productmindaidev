@@ -19,11 +19,30 @@ const HomePage: React.FC = () => {
 
   // 检查密码重置参数
   useEffect(() => {
-    const hasResetParams = searchParams.get('access_token') || 
-                          searchParams.get('refresh_token') || 
-                          searchParams.get('code') ||
-                          window.location.hash.includes('access_token') ||
-                          window.location.hash.includes('recovery');
+    console.log('🔧 [HomePage] 检查密码重置参数', {
+      href: window.location.href,
+      search: window.location.search,
+      hash: window.location.hash,
+      pathname: window.location.pathname,
+      searchParams: Object.fromEntries(searchParams.entries())
+    });
+
+    const accessToken = searchParams.get('access_token');
+    const refreshToken = searchParams.get('refresh_token');
+    const code = searchParams.get('code');
+    const hasHashToken = window.location.hash.includes('access_token');
+    const hasRecovery = window.location.hash.includes('recovery');
+
+    const hasResetParams = accessToken || refreshToken || code || hasHashToken || hasRecovery;
+
+    console.log('🔧 [HomePage] 参数检测结果', {
+      accessToken: !!accessToken,
+      refreshToken: !!refreshToken,
+      code: !!code,
+      hasHashToken,
+      hasRecovery,
+      hasResetParams
+    });
 
     if (hasResetParams) {
       logger.log('检测到密码重置参数，重定向到重置页面', {
@@ -33,8 +52,12 @@ const HomePage: React.FC = () => {
       });
       
       // 保持所有参数并重定向到重置页面
-      const fullUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
-      navigate(`/auth/reset-password${window.location.search}${window.location.hash}`, { replace: true });
+      const targetUrl = `/auth/reset-password${window.location.search}${window.location.hash}`;
+      console.log('🔧 [HomePage] 重定向到:', targetUrl);
+      
+      navigate(targetUrl, { replace: true });
+    } else {
+      console.log('🔧 [HomePage] 未检测到密码重置参数，显示正常首页');
     }
   }, [searchParams, navigate]);
 
