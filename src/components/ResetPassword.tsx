@@ -27,6 +27,15 @@ const ResetPassword: React.FC = () => {
     searchParams: Object.fromEntries(searchParams.entries())
   });
 
+  // 直接从URL获取code参数进行测试
+  const urlCode = new URLSearchParams(window.location.search).get('code');
+  console.log('🔧 [ResetPassword] 直接解析code参数:', {
+    urlCode,
+    hasUrlCode: !!urlCode,
+    searchParamsCode: searchParams.get('code'),
+    hasSearchParamsCode: !!searchParams.get('code')
+  });
+
   // 多语言文案
   const texts = {
     zh: {
@@ -74,21 +83,35 @@ const ResetPassword: React.FC = () => {
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        logger.log('开始初始化重置会话', {
-          url: window.location.href,
-          hash: window.location.hash,
-          search: window.location.search
+        console.log('🔧 [ResetPassword] 开始初始化重置会话');
+        
+        // 优先检查code参数，这是最常见的密码重置场景
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        
+        console.log('🔧 [ResetPassword] 参数检查:', {
+          code: code,
+          hasCode: !!code,
+          urlSearch: window.location.search,
+          urlHref: window.location.href
         });
 
-        // 首先尝试从URL中获取会话信息
+        if (code) {
+          console.log('🔧 [ResetPassword] 检测到code参数，设置为有效会话');
+          logger.log('检测到code参数，认为是有效的重置请求', { code: code.substring(0, 8) + '...' });
+          setHasValidSession(true);
+          return;
+        }
+
+        // 如果没有code，检查其他认证方式
         const { data: authData, error: authError } = await supabase.auth.getSession();
         
         if (authError) {
           logger.error('获取会话失败', authError);
         }
 
-        // 如果URL中有hash参数，Supabase可能已经自动处理了
         if (authData.session) {
+          console.log('🔧 [ResetPassword] 找到现有Supabase会话');
           logger.log('找到有效会话', { 
             hasSession: true,
             userId: authData.session.user?.id 
@@ -97,65 +120,21 @@ const ResetPassword: React.FC = () => {
           return;
         }
 
-        // 如果没有现有会话，检查URL参数
-        const urlParams = new URLSearchParams(window.location.search);
-        const hashParams = new URLSearchParams(window.location.hash.slice(1));
-        
-        const accessToken = urlParams.get('access_token') || hashParams.get('access_token');
-        const refreshToken = urlParams.get('refresh_token') || hashParams.get('refresh_token');
-        const code = urlParams.get('code');
-        const type = urlParams.get('type') || hashParams.get('type');
-
-        logger.log('URL参数分析', {
-          accessToken: !!accessToken,
-          refreshToken: !!refreshToken,
-          code: !!code,
-          type,
-          urlSearch: window.location.search,
-          urlHash: window.location.hash
-        });
-
-        // 如果有access_token，尝试设置会话
-        if (accessToken && refreshToken) {
-          logger.log('尝试使用access_token设置会话');
-          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken
-          });
-
-          if (sessionError) {
-            logger.error('设置会话失败', sessionError);
-            setError(t.invalidLink);
-            return;
-          }
-
-          if (sessionData.session) {
-            logger.log('会话设置成功');
-            setHasValidSession(true);
-            return;
-          }
-        }
-
-        // 如果有code参数，认为是有效的重置请求
-        if (code) {
-          logger.log('检测到code参数，认为是有效的重置请求', { code });
-          // 对于密码重置，code参数的存在就表示这是一个有效的重置链接
-          // Supabase会在用户提交新密码时验证这个code
-          setHasValidSession(true);
-          return;
-        }
-
-        // 检查URL hash中是否包含Supabase的认证信息
+        // 检查hash中的认证参数
         if (window.location.hash.includes('access_token') || 
             window.location.hash.includes('recovery')) {
+          console.log('🔧 [ResetPassword] 检测到hash中的认证参数');
           logger.log('检测到hash中的认证参数，等待Supabase自动处理');
+          
           // 给Supabase一些时间处理URL hash
           setTimeout(async () => {
             const { data: delayedSession } = await supabase.auth.getSession();
             if (delayedSession.session) {
+              console.log('🔧 [ResetPassword] 延迟检测到有效会话');
               logger.log('延迟检测到有效会话');
               setHasValidSession(true);
             } else {
+              console.log('🔧 [ResetPassword] 延迟检测仍未找到有效会话');
               logger.warn('延迟检测仍未找到有效会话');
               setError(t.invalidLink);
             }
@@ -164,6 +143,7 @@ const ResetPassword: React.FC = () => {
         }
 
         // 如果以上都没有，则认为链接无效
+        console.log('🔧 [ResetPassword] 未找到任何有效的认证参数');
         logger.warn('未找到有效的认证参数', {
           url: window.location.href,
           hasHash: !!window.location.hash,
@@ -172,6 +152,7 @@ const ResetPassword: React.FC = () => {
         setError(t.invalidLink);
 
       } catch (err) {
+        console.error('🔧 [ResetPassword] 会话初始化异常:', err);
         logger.error('会话初始化异常', err);
         setError(t.invalidLink);
       }
