@@ -144,6 +144,19 @@ const TemplateList = () => {
     });
     
     setSelectedTemplate(templateWithProject);
+    
+    // 如果模板有版本历史，自动展开并显示最新活跃版本的内容
+    if (template.versions && template.versions.length > 0) {
+      setExpandedTemplates(prev => new Set([...prev, template.id]));
+      
+      // 查找当前活跃版本或最新版本
+      const activeVersion = template.versions.find(v => v.is_active) || 
+                           template.versions.sort((a, b) => b.version_number - a.version_number)[0];
+      
+      if (activeVersion) {
+        setStreamingOutput(activeVersion.output_content);
+      }
+    }
   };
 
   const handleGenerateClick = (template: Template) => {
@@ -222,14 +235,8 @@ const TemplateList = () => {
 
   const handleVersionClick = async (version: any) => {
     try {
-      const template = templates.find(t => 
-        t.versions?.some(v => v.id === version.id)
-      );
-      
-      if (template) {
-        setSelectedTemplate(template);
-        setStreamingOutput(version.output_content);
-      }
+      // 只更新显示的内容和版本状态，不重新选择模板
+      setStreamingOutput(version.output_content);
       
       const { error } = await supabase
         .from('template_versions')
@@ -451,7 +458,13 @@ const TemplateList = () => {
                       isSelected 
                         ? 'border-indigo-500 shadow-md' 
                         : 'border-gray-200 shadow-sm hover:shadow-md'
-                    } transition-all cursor-pointer group`}
+                    } transition-all cursor-pointer group ${
+                      template.versions?.length > 0 ? 'hover:bg-indigo-50/50' : 'hover:bg-gray-50'
+                    }`}
+                    title={template.versions?.length > 0 ? 
+                      (language === 'zh' ? '点击查看模板详情和版本历史' : 'Click to view template details and version history') :
+                      (language === 'zh' ? '选择此模板' : 'Select this template')
+                    }
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-start space-x-4">
@@ -480,8 +493,11 @@ const TemplateList = () => {
                             {format(new Date(template.created_at), 'yyyy-MM-dd HH:mm')}
                           </div>
                           {currentProject && template.versions?.length > 0 && (
-                            <div className="mt-1 text-xs text-indigo-600 font-medium">
-                              {language === 'zh' ? '已有模板版本' : 'Has template versions'}
+                            <div className="mt-1 text-xs text-indigo-600 font-medium flex items-center space-x-1">
+                              <span>{language === 'zh' ? '已有模板版本' : 'Has template versions'}</span>
+                              <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
+                                {template.versions.length}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -542,28 +558,11 @@ const TemplateList = () => {
                              }`}
                            >
                             <div
-                              className="flex items-center space-x-2"
-                              onClick={async (e) => {
+                              className="flex items-center space-x-2 cursor-pointer"
+                              onClick={(e) => {
                                 e.stopPropagation();
-                                try {
-                                  if (template) {
-                                    setSelectedTemplate(template);
-                                  }
-                                  
-                                  setStreamingOutput(version.output_content);
-                                  
-                                  const { error } = await supabase
-                                    .from('template_versions')
-                                    .update({ is_active: true })
-                                    .eq('id', version.id);
-
-                                  if (error) throw error;
-                                } catch (err) {
-                                  setError(err instanceof Error ? err.message : '加载版本失败');
-                                  setTimeout(() => setError(null), 3000);
-                                }
+                                handleVersionClick(version);
                               }}
-                              style={{ cursor: 'pointer' }}
                             >
                               <div className="flex-1">
                                 <div className="text-sm font-medium text-gray-700 flex items-center space-x-2">
