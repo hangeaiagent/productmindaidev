@@ -6,6 +6,24 @@ import { Lock, CheckCircle, AlertTriangle, Languages } from 'lucide-react';
 import { logger } from '../utils/logger';
 import ProductMindLogo from './ProductMindLogo';
 
+// 在密码重置页面禁用Supabase的自动URL检测
+if (typeof window !== 'undefined' && window.location.pathname === '/auth/reset-password') {
+  console.log('🔧 [ResetPassword] 在密码重置页面禁用Supabase自动URL检测');
+  // 临时覆盖detectSessionInUrl设置
+  const originalGetSession = supabase.auth.getSession;
+  let hasIntercepted = false;
+  
+  supabase.auth.getSession = async function(...args) {
+    if (!hasIntercepted && window.location.search.includes('code=')) {
+      console.log('🔧 [ResetPassword] 拦截getSession调用，避免自动处理URL');
+      hasIntercepted = true;
+      // 返回空会话，避免自动处理URL
+      return { data: { session: null }, error: null };
+    }
+    return originalGetSession.apply(this, args);
+  };
+}
+
 const ResetPassword: React.FC = () => {
   const { language, setLanguage } = useAppContext();
   const navigate = useNavigate();
@@ -19,22 +37,25 @@ const ResetPassword: React.FC = () => {
   const [hasValidSession, setHasValidSession] = useState(false);
   const [resetCode, setResetCode] = useState<string | null>(null);
 
+  // 立即检查并清理URL，避免Supabase自动处理
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialCode = urlParams.get('code');
+  
+  // 如果有code参数，立即清理URL
+  if (initialCode && window.location.search.includes('code=')) {
+    console.log('🔧 [ResetPassword] 立即清理URL避免Supabase处理');
+    const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    window.history.replaceState({}, '', newUrl);
+  }
+
   // 调试日志：打印所有URL信息
   console.log('🔧 [ResetPassword] URL信息:', {
     href: window.location.href,
     hash: window.location.hash,
     search: window.location.search,
     pathname: window.location.pathname,
-    searchParams: Object.fromEntries(searchParams.entries())
-  });
-
-  // 直接从URL获取code参数进行测试
-  const urlCode = new URLSearchParams(window.location.search).get('code');
-  console.log('🔧 [ResetPassword] 直接解析code参数:', {
-    urlCode,
-    hasUrlCode: !!urlCode,
-    searchParamsCode: searchParams.get('code'),
-    hasSearchParamsCode: !!searchParams.get('code')
+    initialCode: initialCode ? initialCode.substring(0, 8) + '...' : null,
+    hasInitialCode: !!initialCode
   });
 
   // 多语言文案
@@ -86,33 +107,19 @@ const ResetPassword: React.FC = () => {
       try {
         console.log('🔧 [ResetPassword] 开始初始化重置会话');
         
-        // 优先检查code参数，这是最常见的密码重置场景
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        
         console.log('🔧 [ResetPassword] 参数检查:', {
-          code: code,
-          hasCode: !!code,
+          initialCode: initialCode ? initialCode.substring(0, 8) + '...' : null,
+          hasInitialCode: !!initialCode,
           urlSearch: window.location.search,
           urlHref: window.location.href
         });
 
-        if (code) {
-          console.log('🔧 [ResetPassword] 检测到code参数，清理URL避免Supabase自动处理');
-          
-          // 清理URL，避免Supabase继续尝试自动处理code参数
-          // 保存code到组件状态，然后清理URL
-          const currentCode = code;
-          
-          // 清理URL中的code参数
-          const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-          window.history.replaceState({}, '', newUrl);
-          
-          console.log('🔧 [ResetPassword] URL已清理，保存code用于密码重置');
-          logger.log('检测到code参数，已保存用于密码重置', { code: currentCode.substring(0, 8) + '...' });
+        if (initialCode) {
+          console.log('🔧 [ResetPassword] 使用预处理的code参数');
+          logger.log('检测到code参数，已保存用于密码重置', { code: initialCode.substring(0, 8) + '...' });
           
           // 将code保存到状态中供后续使用
-          setResetCode(currentCode);
+          setResetCode(initialCode);
           setHasValidSession(true);
           return;
         }
@@ -173,7 +180,7 @@ const ResetPassword: React.FC = () => {
     };
 
     initializeSession();
-  }, [t.invalidLink]);
+  }, [initialCode, t.invalidLink]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
