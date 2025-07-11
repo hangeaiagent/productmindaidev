@@ -252,8 +252,25 @@ const ResetPassword: React.FC = () => {
       }, 3000);
 
     } catch (error) {
+      console.error('🔧 [ResetPassword] 密码重置失败:', error);
       logger.error('密码重置失败', error);
-      setError(t.resetFailed);
+      
+      // 根据错误类型提供更具体的错误信息
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid or expired OTP')) {
+          setError(language === 'zh' ? 
+            '重置码已过期或无效，请重新申请密码重置' : 
+            'Reset code has expired or is invalid, please request a new password reset');
+        } else if (error.message.includes('OTP has already been used')) {
+          setError(language === 'zh' ? 
+            '重置码已使用，请重新申请密码重置' : 
+            'Reset code has already been used, please request a new password reset');
+        } else {
+          setError(`${t.resetFailed}: ${error.message}`);
+        }
+      } else {
+        setError(t.resetFailed);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -261,6 +278,11 @@ const ResetPassword: React.FC = () => {
 
   const handleBackToLogin = () => {
     navigate('/login');
+  };
+
+  const handleRequestNewReset = () => {
+    // 跳转到登录页面并自动触发忘记密码流程
+    navigate('/login', { state: { showForgotPassword: true } });
   };
 
   if (success) {
@@ -320,9 +342,19 @@ const ResetPassword: React.FC = () => {
         {/* Main Form Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20">
           {error && (
-            <div className="bg-red-500/20 border border-red-400/30 text-red-100 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
-              <span>{error}</span>
+            <div className="bg-red-500/20 border border-red-400/30 text-red-100 px-4 py-3 rounded-lg mb-6 backdrop-blur-sm">
+              <div className="flex items-center mb-3">
+                <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+              {(error.includes('已过期') || error.includes('已使用') || error.includes('expired') || error.includes('used')) && (
+                <button
+                  onClick={handleRequestNewReset}
+                  className="w-full mt-3 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg transition font-medium"
+                >
+                  {language === 'zh' ? '重新申请密码重置' : 'Request New Password Reset'}
+                </button>
+              )}
             </div>
           )}
 

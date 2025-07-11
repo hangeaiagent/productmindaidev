@@ -122,7 +122,8 @@ const Auth: React.FC = () => {
   const t = content[language];
   console.log('📝 当前使用的文案语言:', language, Object.keys(t).length, '项文案');
 
-  const initialAuthMode = location.pathname === '/register' ? 'register' : 'login';
+  const initialAuthMode = location.pathname === '/register' ? 'register' : 
+                        location.state?.showForgotPassword ? 'resetPassword' : 'login';
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'resetPassword' | 'resetSent'>(initialAuthMode);
   const [formData, setFormData] = useState<AuthFormData>({
     email: '',
