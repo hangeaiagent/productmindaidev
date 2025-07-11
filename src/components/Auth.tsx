@@ -55,7 +55,21 @@ const Auth: React.FC = () => {
       invalidCode: '验证码无效或已过期',
       backToHome: '返回首页',
       welcomeBack: '欢迎回来',
-      joinUs: '加入我们'
+      joinUs: '加入我们',
+      forgotPassword: '忘记密码？',
+      resetPassword: '重置密码',
+      resetPasswordTitle: '重置密码',
+      resetPasswordDesc: '请输入您的邮箱地址，我们将发送重置密码的链接到您的邮箱',
+      sendResetLink: '发送重置链接',
+      resetLinkSent: '重置链接已发送',
+      resetLinkSentDesc: '重置密码的链接已发送到您的邮箱，请查收邮件并按照提示操作',
+      backToLogin: '返回登录',
+      resetSuccess: '密码重置成功',
+      resetFailed: '重置失败，请稍后重试',
+      newPassword: '新密码',
+      confirmNewPassword: '确认新密码',
+      resetPasswordButton: '重置密码',
+      passwordResetEmailSent: '密码重置邮件已发送'
     },
     en: {
       loginTitle: 'Sign In',
@@ -87,7 +101,21 @@ const Auth: React.FC = () => {
       invalidCode: 'Invalid or expired verification code',
       backToHome: 'Back to Home',
       welcomeBack: 'Welcome Back',
-      joinUs: 'Join Us'
+      joinUs: 'Join Us',
+      forgotPassword: 'Forgot password?',
+      resetPassword: 'Reset Password',
+      resetPasswordTitle: 'Reset Password',
+      resetPasswordDesc: 'Enter your email address and we will send you a link to reset your password',
+      sendResetLink: 'Send Reset Link',
+      resetLinkSent: 'Reset Link Sent',
+      resetLinkSentDesc: 'A password reset link has been sent to your email. Please check your inbox and follow the instructions',
+      backToLogin: 'Back to Login',
+      resetSuccess: 'Password reset successful',
+      resetFailed: 'Reset failed, please try again',
+      newPassword: 'New Password',
+      confirmNewPassword: 'Confirm New Password',
+      resetPasswordButton: 'Reset Password',
+      passwordResetEmailSent: 'Password reset email sent'
     }
   };
   
@@ -95,7 +123,7 @@ const Auth: React.FC = () => {
   console.log('📝 当前使用的文案语言:', language, Object.keys(t).length, '项文案');
 
   const initialAuthMode = location.pathname === '/register' ? 'register' : 'login';
-  const [authMode, setAuthMode] = useState<'login' | 'register'>(initialAuthMode);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'resetPassword' | 'resetSent'>(initialAuthMode);
   const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     password: '',
@@ -146,17 +174,39 @@ const Auth: React.FC = () => {
       if (error) {
         throw error;
       } else {
-        logger.log('登录成功，准备跳转');
-        const from = location.state?.from || location.pathname;
-        if (from === '/login' || from === '/register') {
-          navigate('/dashboard', { replace: true });
-        } else {
-          navigate(from, { replace: true });
-        }
+        logger.log('登录成功，准备跳转到dashboard');
+        // 登录成功后始终跳转到dashboard
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       setError(t.emailOrPasswordError);
       logger.error('邮箱登录失败', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (!formData.email) {
+        throw new Error(language === 'zh' ? '请输入邮箱地址' : 'Please enter your email address');
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) throw error;
+
+      setAuthMode('resetSent');
+      logger.log('密码重置邮件发送成功', { email: formData.email });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : t.resetFailed);
+      logger.error('密码重置失败', error);
     } finally {
       setIsLoading(false);
     }
@@ -240,13 +290,9 @@ const Auth: React.FC = () => {
       if (error) {
         throw error;
       } else {
-        logger.log('邮箱验证成功，准备跳转');
-        const from = location.state?.from || location.pathname;
-        if (from === '/login' || from === '/register') {
-          navigate('/dashboard', { replace: true });
-        } else {
-          navigate(from, { replace: true });
-        }
+        logger.log('邮箱验证成功，准备跳转到dashboard');
+        // 验证成功后始终跳转到dashboard
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       setError(t.invalidCode);
@@ -271,11 +317,15 @@ const Auth: React.FC = () => {
           <h2 className="text-4xl font-extrabold text-white mb-2 drop-shadow-lg">
             <span className="bg-gradient-to-r from-yellow-200 via-white to-purple-200 bg-clip-text text-transparent">
               {showVerification ? t.verifyTitle : 
+                authMode === 'resetPassword' ? t.resetPasswordTitle :
+                authMode === 'resetSent' ? t.resetLinkSent :
                 authMode === 'login' ? t.welcomeBack : t.joinUs}
             </span>
           </h2>
           <p className="text-lg text-white/80 mb-6 drop-shadow">
             {showVerification ? t.verifyDesc :
+              authMode === 'resetPassword' ? t.resetPasswordDesc :
+              authMode === 'resetSent' ? t.resetLinkSentDesc :
               authMode === 'login' ? t.loginTitle : t.registerTitle}
           </p>
         </div>
@@ -299,8 +349,12 @@ const Auth: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={showVerification ? handleVerifyEmail : 
-            authMode === 'login' ? handleEmailLogin : handleRegister} className="space-y-6">
+          <form onSubmit={
+            showVerification ? handleVerifyEmail : 
+            authMode === 'resetPassword' ? handleForgotPassword :
+            authMode === 'login' ? handleEmailLogin : 
+            handleRegister
+          } className="space-y-6">
             
             {showVerification ? (
               <div className="space-y-4">
@@ -337,6 +391,14 @@ const Auth: React.FC = () => {
                   </button>
                 </div>
               </div>
+            ) : authMode === 'resetSent' ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-green-400" />
+                </div>
+                <p className="text-white/90 mb-2">{t.resetLinkSentDesc}</p>
+                <p className="text-white/70 text-sm">{t.codeSentTo}: {formData.email}</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 <div className="relative">
@@ -355,22 +417,37 @@ const Auth: React.FC = () => {
                     onChange={handleInputChange}
                   />
                 </div>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-white/60" />
+                {authMode !== 'resetPassword' && (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-white/60" />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
+                        required
+                        className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
+                        placeholder={t.passwordPlaceholder}
+                        value={formData.password}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    {authMode === 'login' && (
+                      <div className="text-right">
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode('resetPassword')}
+                          className="text-sm text-yellow-200 hover:text-yellow-100 transition font-medium"
+                        >
+                          {t.forgotPassword}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete={authMode === 'login' ? 'current-password' : 'new-password'}
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm placeholder-white/60 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent"
-                    placeholder={t.passwordPlaceholder}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                  />
-                </div>
+                )}
                 {authMode === 'register' && (
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -399,27 +476,53 @@ const Auth: React.FC = () => {
                 isLoading ? 'opacity-75 cursor-not-allowed' : ''
               }`}
             >
-              {authMode === 'login' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+              {authMode === 'login' ? <LogIn className="w-4 h-4" /> : 
+               authMode === 'resetPassword' ? <Mail className="w-4 h-4" /> : 
+               <UserPlus className="w-4 h-4" />}
               <span>
                 {isLoading ? t.processing : 
                   showVerification ? t.verify :
+                  authMode === 'resetPassword' ? t.sendResetLink :
                   authMode === 'login' ? t.login : t.register}
               </span>
             </button>
           </form>
 
           {/* Mode Switch */}
-          {!showVerification && (
+          {!showVerification && authMode !== 'resetSent' && (
             <div className="mt-6 text-center">
-              <p className="text-white/70">
-                {authMode === 'login' ? t.noAccount : t.hasAccount}
-                <button
-                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                  className="ml-2 font-medium text-yellow-200 hover:text-yellow-100 transition"
-                >
-                  {authMode === 'login' ? t.registerNow : t.loginNow}
-                </button>
-              </p>
+              {authMode === 'resetPassword' ? (
+                <p className="text-white/70">
+                  <button
+                    onClick={() => setAuthMode('login')}
+                    className="font-medium text-yellow-200 hover:text-yellow-100 transition"
+                  >
+                    ← {t.backToLogin}
+                  </button>
+                </p>
+              ) : (
+                <p className="text-white/70">
+                  {authMode === 'login' ? t.noAccount : t.hasAccount}
+                  <button
+                    onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                    className="ml-2 font-medium text-yellow-200 hover:text-yellow-100 transition"
+                  >
+                    {authMode === 'login' ? t.registerNow : t.loginNow}
+                  </button>
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Reset Sent - Back to Login */}
+          {authMode === 'resetSent' && (
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => setAuthMode('login')}
+                className="font-medium text-yellow-200 hover:text-yellow-100 transition"
+              >
+                ← {t.backToLogin}
+              </button>
             </div>
           )}
 
