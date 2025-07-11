@@ -6,23 +6,7 @@ import { Lock, CheckCircle, AlertTriangle, Languages } from 'lucide-react';
 import { logger } from '../utils/logger';
 import ProductMindLogo from './ProductMindLogo';
 
-// 在密码重置页面禁用Supabase的自动URL检测
-if (typeof window !== 'undefined' && window.location.pathname === '/auth/reset-password') {
-  console.log('🔧 [ResetPassword] 在密码重置页面禁用Supabase自动URL检测');
-  // 临时覆盖detectSessionInUrl设置
-  const originalGetSession = supabase.auth.getSession;
-  let hasIntercepted = false;
-  
-  supabase.auth.getSession = async function(...args) {
-    if (!hasIntercepted && window.location.search.includes('code=')) {
-      console.log('🔧 [ResetPassword] 拦截getSession调用，避免自动处理URL');
-      hasIntercepted = true;
-      // 返回空会话，避免自动处理URL
-      return { data: { session: null }, error: null };
-    }
-    return originalGetSession.apply(this, args);
-  };
-}
+
 
 const ResetPassword: React.FC = () => {
   const { language, setLanguage } = useAppContext();
@@ -35,40 +19,13 @@ const ResetPassword: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [hasValidSession, setHasValidSession] = useState(false);
-  const [resetCode, setResetCode] = useState<string | null>(null);
-
-  // 从location.state获取resetCode，避免URL处理问题
-  const initialCode = React.useMemo(() => {
-    const stateCode = location.state?.resetCode;
-    const urlCode = new URLSearchParams(window.location.search).get('code');
-    const code = stateCode || urlCode;
-    
-    console.log('🔧 [ResetPassword] 获取code参数:', {
-      stateCode: stateCode ? stateCode.substring(0, 8) + '...' : null,
-      urlCode: urlCode ? urlCode.substring(0, 8) + '...' : null,
-      finalCode: code ? code.substring(0, 8) + '...' : null,
-      hasCode: !!code,
-      search: window.location.search
-    });
-    
-    // 如果仍有URL参数，清理URL
-    if (window.location.search.includes('code=')) {
-      console.log('🔧 [ResetPassword] 清理URL中的code参数');
-      const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-      window.history.replaceState(location.state, '', newUrl);
-    }
-    
-    return code;
-  }, [location.state]);
-
   // 调试日志：打印所有URL信息
   console.log('🔧 [ResetPassword] URL信息:', {
     href: window.location.href,
     hash: window.location.hash,
     search: window.location.search,
     pathname: window.location.pathname,
-    initialCode: initialCode ? initialCode.substring(0, 8) + '...' : null,
-    hasInitialCode: !!initialCode
+    searchParams: Object.fromEntries(searchParams.entries())
   });
 
   // 多语言文案
@@ -120,24 +77,61 @@ const ResetPassword: React.FC = () => {
       try {
         console.log('🔧 [ResetPassword] 开始初始化重置会话');
         
-        console.log('🔧 [ResetPassword] 参数检查:', {
-          initialCode: initialCode ? initialCode.substring(0, 8) + '...' : null,
-          hasInitialCode: !!initialCode,
-          urlSearch: window.location.search,
-          urlHref: window.location.href
+        // 检查URL中的hash参数，这是Supabase密码重置的标准流程
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+        
+        console.log('🔧 [ResetPassword] Hash参数检查:', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          type: type,
+          fullHash: window.location.hash
         });
 
-        if (initialCode) {
-          console.log('🔧 [ResetPassword] 使用预处理的code参数');
-          logger.log('检测到code参数，已保存用于密码重置', { code: initialCode.substring(0, 8) + '...' });
+        // 检查是否是密码重置类型的链接
+        if (type === 'recovery' && accessToken) {
+          console.log('🔧 [ResetPassword] 检测到密码重置链接');
+          logger.log('检测到密码重置链接', { type });
           
-          // 将code保存到状态中供后续使用
-          setResetCode(initialCode);
-          setHasValidSession(true);
+          // 让Supabase处理hash参数并建立会话
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          
+          if (sessionError) {
+            console.error('🔧 [ResetPassword] 获取会话失败:', sessionError);
+            logger.error('获取会话失败', sessionError);
+            setError(t.invalidLink);
+            return;
+          }
+
+          if (sessionData.session) {
+            console.log('🔧 [ResetPassword] 密码重置会话已建立');
+            logger.log('密码重置会话已建立', { 
+              userId: sessionData.session.user?.id,
+              type: sessionData.session.user?.app_metadata?.provider
+            });
+            setHasValidSession(true);
+            return;
+          }
+
+          // 如果没有立即获取到会话，稍等一下再试
+          setTimeout(async () => {
+            const { data: delayedSession } = await supabase.auth.getSession();
+            if (delayedSession.session) {
+              console.log('🔧 [ResetPassword] 延迟检测到密码重置会话');
+              logger.log('延迟检测到密码重置会话');
+              setHasValidSession(true);
+            } else {
+              console.log('🔧 [ResetPassword] 延迟检测仍未找到有效会话');
+              logger.warn('延迟检测仍未找到有效会话');
+              setError(t.invalidLink);
+            }
+          }, 2000);
           return;
         }
 
-        // 如果没有code，检查其他认证方式
+        // 如果没有在hash中找到重置参数，检查是否有现有的会话
         const { data: authData, error: authError } = await supabase.auth.getSession();
         
         if (authError) {
@@ -151,28 +145,6 @@ const ResetPassword: React.FC = () => {
             userId: authData.session.user?.id 
           });
           setHasValidSession(true);
-          return;
-        }
-
-        // 检查hash中的认证参数
-        if (window.location.hash.includes('access_token') || 
-            window.location.hash.includes('recovery')) {
-          console.log('🔧 [ResetPassword] 检测到hash中的认证参数');
-          logger.log('检测到hash中的认证参数，等待Supabase自动处理');
-          
-          // 给Supabase一些时间处理URL hash
-          setTimeout(async () => {
-            const { data: delayedSession } = await supabase.auth.getSession();
-            if (delayedSession.session) {
-              console.log('🔧 [ResetPassword] 延迟检测到有效会话');
-              logger.log('延迟检测到有效会话');
-              setHasValidSession(true);
-            } else {
-              console.log('🔧 [ResetPassword] 延迟检测仍未找到有效会话');
-              logger.warn('延迟检测仍未找到有效会话');
-              setError(t.invalidLink);
-            }
-          }, 1000);
           return;
         }
 
@@ -193,7 +165,7 @@ const ResetPassword: React.FC = () => {
     };
 
     initializeSession();
-  }, [initialCode, t.invalidLink]);
+      }, [t.invalidLink]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,58 +185,41 @@ const ResetPassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('🔧 [ResetPassword] 开始密码重置处理', {
-        hasResetCode: !!resetCode,
-        resetCodeLength: resetCode?.length
-      });
-
-      if (resetCode) {
-        // 使用保存的resetCode进行密码重置
-        logger.log('使用resetCode重置密码', { hasCode: !!resetCode });
-        console.log('🔧 [ResetPassword] 使用verifyOtp验证resetCode');
-        
-        const result = await supabase.auth.verifyOtp({
-          token: resetCode,
-          type: 'recovery'
-        });
-        
-        if (result.error) {
-          console.error('🔧 [ResetPassword] verifyOtp失败:', result.error);
-          throw result.error;
-        }
-
-        console.log('🔧 [ResetPassword] verifyOtp成功，开始更新密码');
-        
-        // 验证成功后更新密码
-        const updateResult = await supabase.auth.updateUser({
-          password: password
-        });
-
-        if (updateResult.error) {
-          console.error('🔧 [ResetPassword] 密码更新失败:', updateResult.error);
-          throw updateResult.error;
-        }
-
-        console.log('🔧 [ResetPassword] 密码更新成功');
-      } else {
-        // 如果没有resetCode，直接更新密码（适用于已登录的会话）
-        logger.log('直接更新密码（会话模式）');
-        console.log('🔧 [ResetPassword] 使用会话模式更新密码');
-        
-        const result = await supabase.auth.updateUser({
-          password: password
-        });
-
-        if (result.error) {
-          console.error('🔧 [ResetPassword] 会话模式密码更新失败:', result.error);
-          throw result.error;
-        }
-
-        console.log('🔧 [ResetPassword] 会话模式密码更新成功');
+      console.log('🔧 [ResetPassword] 开始密码重置处理');
+      
+      // 检查当前会话状态
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('🔧 [ResetPassword] 获取会话失败:', sessionError);
+        throw new Error(t.invalidLink);
       }
 
-      setSuccess(true);
+      if (!sessionData.session) {
+        console.error('🔧 [ResetPassword] 没有有效的会话');
+        throw new Error(t.invalidLink);
+      }
+
+      console.log('🔧 [ResetPassword] 使用会话更新密码');
+      logger.log('使用会话更新密码', { 
+        userId: sessionData.session.user?.id,
+        sessionValid: !!sessionData.session 
+      });
+      
+      // 使用当前会话更新密码
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (updateError) {
+        console.error('🔧 [ResetPassword] 密码更新失败:', updateError);
+        throw updateError;
+      }
+
+      console.log('🔧 [ResetPassword] 密码更新成功');
       logger.log('密码重置成功');
+
+      setSuccess(true);
 
       // 3秒后跳转到登录页面
       setTimeout(() => {
@@ -277,14 +232,18 @@ const ResetPassword: React.FC = () => {
       
       // 根据错误类型提供更具体的错误信息
       if (error instanceof Error) {
-        if (error.message.includes('Invalid or expired OTP')) {
+        if (error.message.includes('Invalid or expired')) {
           setError(language === 'zh' ? 
-            '重置码已过期或无效，请重新申请密码重置' : 
-            'Reset code has expired or is invalid, please request a new password reset');
-        } else if (error.message.includes('OTP has already been used')) {
+            '重置链接已过期或无效，请重新申请密码重置' : 
+            'Reset link has expired or is invalid, please request a new password reset');
+        } else if (error.message.includes('weak')) {
           setError(language === 'zh' ? 
-            '重置码已使用，请重新申请密码重置' : 
-            'Reset code has already been used, please request a new password reset');
+            '密码强度不够，请使用更强的密码' : 
+            'Password is too weak, please use a stronger password');
+        } else if (error.message.includes('same')) {
+          setError(language === 'zh' ? 
+            '新密码不能与旧密码相同' : 
+            'New password cannot be the same as the old password');
         } else {
           setError(`${t.resetFailed}: ${error.message}`);
         }

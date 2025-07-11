@@ -82,6 +82,18 @@ export const supabase = createClient<Database>(
   }
 );
 
+// 监听认证状态变化
+supabase.auth.onAuthStateChange((event, session) => {
+  logger.debug('认证状态变化', { event, hasSession: !!session });
+  
+  if (event === 'PASSWORD_RECOVERY') {
+    logger.log('密码重置事件检测到', { 
+      userId: session?.user?.id,
+      event 
+    });
+  }
+});
+
 // 测试连接并获取数据库信息
 export async function testConnection(retries = 3, delay = 1000): Promise<boolean> {
   for (let attempt = 1; attempt <= retries; attempt++) {

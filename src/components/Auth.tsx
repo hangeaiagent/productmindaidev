@@ -203,13 +203,13 @@ const Auth: React.FC = () => {
       
       let redirectUrl: string;
       if (isProduction) {
-        // 使用根路径，避免Supabase路径处理问题
-        redirectUrl = 'https://productmindai.com/';
+        // 生产环境使用专门的密码重置页面
+        redirectUrl = 'https://productmindai.com/auth/reset-password';
       } else if (isDevelopment) {
-        redirectUrl = `${window.location.origin}/`;
+        redirectUrl = `${window.location.origin}/auth/reset-password`;
       } else {
-        // 默认使用当前域名根路径
-        redirectUrl = `${window.location.origin}/`;
+        // 默认使用当前域名的重置页面
+        redirectUrl = `${window.location.origin}/auth/reset-password`;
       }
 
       console.log('🔧 [密码重置] 环境检测:', { 
@@ -223,10 +223,13 @@ const Auth: React.FC = () => {
         redirectTo: redirectUrl,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔧 [密码重置] 邮件发送失败:', error);
+        throw error;
+      }
 
       setAuthMode('resetSent');
-      logger.log('密码重置邮件发送成功', { email: formData.email });
+      logger.log('密码重置邮件发送成功', { email: formData.email, redirectUrl });
     } catch (error) {
       setError(error instanceof Error ? error.message : t.resetFailed);
       logger.error('密码重置失败', error);
