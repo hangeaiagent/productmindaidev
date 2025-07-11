@@ -132,7 +132,22 @@ const AIProductsPage: React.FC = () => {
   // 获取分类数据
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`/.netlify/functions/get-categories?language=${language}`);
+      const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development' || window.location.hostname === 'localhost';
+      const isProduction = window.location.hostname === 'productmindai.com';
+      console.log('🔧 [fetchCategories] Environment check:', { 
+        isDevelopment, 
+        isProduction,
+        hostname: window.location.hostname,
+        mode: import.meta.env.MODE 
+      });
+      
+      const apiUrl = isProduction 
+        ? `https://productmindai.com/.netlify/functions/get-categories?language=${language}`
+        : isDevelopment 
+          ? `http://localhost:8889/.netlify/functions/get-categories?language=${language}`
+          : `/.netlify/functions/get-categories?language=${language}`;
+      
+      const response = await fetch(apiUrl);
       const data = await response.json();
       if (data.success) {
         setCategories(data.categories);
@@ -144,6 +159,8 @@ const AIProductsPage: React.FC = () => {
       }
     } catch (error) {
       console.error('获取分类失败:', error);
+      // 添加用户可见的错误提示
+      toast.error(language === 'zh' ? '获取分类失败，请刷新页面重试' : 'Failed to fetch categories, please refresh the page');
     }
   };
 
@@ -152,7 +169,22 @@ const AIProductsPage: React.FC = () => {
     try {
       console.log('📊 开始获取项目数据，分类:', categoryCode || '全部', '语言:', language);
       setLoading(true);
-      let url = `/.netlify/functions/get-projects-by-category?language=${language}`;
+      
+      const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development' || window.location.hostname === 'localhost';
+      const isProduction = window.location.hostname === 'productmindai.com';
+      console.log('🔧 [fetchProjects] Environment check:', { 
+        isDevelopment, 
+        isProduction,
+        hostname: window.location.hostname,
+        mode: import.meta.env.MODE 
+      });
+      
+      let url = isProduction 
+        ? `https://productmindai.com/.netlify/functions/get-projects-by-category?language=${language}`
+        : isDevelopment 
+          ? `http://localhost:8889/.netlify/functions/get-projects-by-category?language=${language}`
+          : `/.netlify/functions/get-projects-by-category?language=${language}`;
+      
       if (categoryCode) {
         url += `&category=${encodeURIComponent(categoryCode)}`;
       }
@@ -165,19 +197,23 @@ const AIProductsPage: React.FC = () => {
         setProjects(data.projects);
       } else {
         console.error('❌ 获取项目失败:', data.error);
+        toast.error(language === 'zh' ? '获取项目失败，请刷新页面重试' : 'Failed to fetch projects, please refresh the page');
       }
     } catch (error) {
       console.error('❌ 获取项目失败:', error);
+      toast.error(language === 'zh' ? '网络错误，请检查网络连接' : 'Network error, please check your connection');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('🚀 [AIProductsPage] 组件初始化，开始获取分类数据...');
     fetchCategories();
   }, [language]);
 
   useEffect(() => {
+    console.log('🔄 [AIProductsPage] 获取项目数据，分类:', selectedCategory, '语言:', language);
     fetchProjects(selectedCategory);
   }, [selectedCategory, language]);
 
@@ -540,6 +576,29 @@ const AIProductsPage: React.FC = () => {
                   <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
                   <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 absolute top-0 left-0"></div>
                   <Brain className="w-6 h-6 text-blue-600 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                </div>
+              </div>
+            ) : filteredProjects.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className="text-center">
+                  <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <Brain className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {language === 'zh' ? '暂无项目数据' : 'No projects available'}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {language === 'zh' ? '请检查网络连接或联系管理员' : 'Please check your network connection or contact administrator'}
+                  </p>
+                  <button
+                    onClick={() => {
+                      fetchCategories();
+                      fetchProjects(selectedCategory);
+                    }}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {language === 'zh' ? '重试' : 'Retry'}
+                  </button>
                 </div>
               </div>
             ) : (
