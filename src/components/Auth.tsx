@@ -202,12 +202,13 @@ const Auth: React.FC = () => {
       
       let redirectUrl: string;
       if (isProduction) {
-        redirectUrl = 'https://productmindai.com/auth/reset-password';
+        // 使用根路径，避免Supabase路径处理问题
+        redirectUrl = 'https://productmindai.com/';
       } else if (isDevelopment) {
-        redirectUrl = `${window.location.origin}/auth/reset-password`;
+        redirectUrl = `${window.location.origin}/`;
       } else {
-        // 默认使用当前域名
-        redirectUrl = `${window.location.origin}/auth/reset-password`;
+        // 默认使用当前域名根路径
+        redirectUrl = `${window.location.origin}/`;
       }
 
       console.log('🔧 [密码重置] 环境检测:', { 

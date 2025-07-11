@@ -1,9 +1,10 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Sparkles, Database, Globe, BarChart3, Github, LogIn, UserPlus, Languages } from 'lucide-react';
 import AIProductIdeaGenerator from './AIProductIdeaGenerator';
 import ProductMindLogo from './ProductMindLogo';
 import { useAppContext } from '../context/AppContext';
+import { logger } from '../utils/logger';
 
 interface Content {
   [key: string]: {
@@ -13,7 +14,29 @@ interface Content {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { language, setLanguage } = useAppContext();
+
+  // 检查密码重置参数
+  useEffect(() => {
+    const hasResetParams = searchParams.get('access_token') || 
+                          searchParams.get('refresh_token') || 
+                          searchParams.get('code') ||
+                          window.location.hash.includes('access_token') ||
+                          window.location.hash.includes('recovery');
+
+    if (hasResetParams) {
+      logger.log('检测到密码重置参数，重定向到重置页面', {
+        search: window.location.search,
+        hash: window.location.hash,
+        href: window.location.href
+      });
+      
+      // 保持所有参数并重定向到重置页面
+      const fullUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      navigate(`/auth/reset-password${window.location.search}${window.location.hash}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // 多语言内容
   const content: Content = {

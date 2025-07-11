@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Lock, CheckCircle, AlertTriangle, Languages } from 'lucide-react';
@@ -9,16 +9,23 @@ import ProductMindLogo from './ProductMindLogo';
 const ResetPassword: React.FC = () => {
   const { language, setLanguage } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [hasValidSession, setHasValidSession] = useState(false);
 
-  // 从URL参数获取访问令牌
-  const accessToken = searchParams.get('access_token');
-  const refreshToken = searchParams.get('refresh_token');
+  // 调试日志：打印所有URL信息
+  console.log('🔧 [ResetPassword] URL信息:', {
+    href: window.location.href,
+    hash: window.location.hash,
+    search: window.location.search,
+    pathname: window.location.pathname,
+    searchParams: Object.fromEntries(searchParams.entries())
+  });
 
   // 多语言文案
   const texts = {
@@ -63,21 +70,43 @@ const ResetPassword: React.FC = () => {
     setLanguage(language === 'en' ? 'zh' : 'en');
   };
 
-  // 检查重置链接有效性
+  // 检查并处理认证会话
   useEffect(() => {
-    if (!accessToken) {
-      setError(t.invalidLink);
-      logger.error('密码重置: 缺少访问令牌', { url: window.location.href });
-    } else {
-      // 设置会话，以便重置密码
-      if (refreshToken) {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        });
+    const initializeSession = async () => {
+      try {
+        logger.log('开始初始化重置会话');
+        
+        // Supabase会自动处理URL中的认证参数（包括hash）
+        const { data: session, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          logger.error('获取会话失败', error);
+          setError(t.invalidLink);
+          return;
+        }
+
+        if (session.session) {
+          logger.log('找到有效会话', { 
+            hasSession: true,
+            userId: session.session.user?.id 
+          });
+          setHasValidSession(true);
+        } else {
+          logger.warn('未找到有效会话', {
+            url: window.location.href,
+            hash: window.location.hash,
+            search: window.location.search
+          });
+          setError(t.invalidLink);
+        }
+      } catch (err) {
+        logger.error('会话初始化异常', err);
+        setError(t.invalidLink);
       }
-    }
-  }, [accessToken, refreshToken, t.invalidLink]);
+    };
+
+    initializeSession();
+  }, [t.invalidLink]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +217,7 @@ const ResetPassword: React.FC = () => {
             </div>
           )}
 
-          {!accessToken ? (
+          {!hasValidSession ? (
             <div className="text-center py-8">
               <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <p className="text-white/90 mb-6">{t.linkExpired}</p>
